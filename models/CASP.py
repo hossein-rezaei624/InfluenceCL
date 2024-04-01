@@ -15,22 +15,11 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-class Casp(ContinualModel):
-    NAME = 'casp'
-    COMPATIBILITY = ['class-il', 'task-il']
-
-    def __init__(self, backbone, loss, args, transform):
-        super(Casp, self).__init__(backbone, loss, args, transform)
-        self.buffer = Buffer(self.args.buffer_size, self.device)
-
-
-
 
     def observe(self, inputs, labels, not_aug_inputs):
 
         real_batch_size = inputs.shape[0]
 
-        self.opt.zero_grad()
         if not self.buffer.is_empty():
             buf_inputs, buf_labels = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
@@ -40,7 +29,6 @@ class Casp(ContinualModel):
         outputs = self.net(inputs)
         loss = self.loss(outputs, labels)
         loss.backward()
-        self.opt.step()
 
         self.buffer.add_data(examples=inputs[:real_batch_size],
                              labels=labels[:real_batch_size])
@@ -49,13 +37,16 @@ class Casp(ContinualModel):
 
 
 
-class CASP(ContinualLearner):
 
-    def __init__(self, model, opt, params):
-        super(ProxyContrastiveReplay, self).__init__(model, opt, params)
-        self.buffer = Buffer(model, params)
-        self.mem_size = params.mem_size
-        self.eps_mem_batch = params.eps_mem_batch
+class Casp(ContinualModel):
+    NAME = 'casp'
+    COMPATIBILITY = ['class-il', 'task-il']
+
+    def __init__(self, backbone, loss, args, transform):
+        super(Casp, self).__init__(backbone, loss, args, transform)
+        self.buffer = Buffer(self.args.buffer_size, self.device)
+
+
 
     def train_learner(self, x_train, y_train):
 
