@@ -3,7 +3,7 @@ from torchvision import transforms
 
     
 transforms_aug = {
-    'cifar100': transforms.Compose([
+    'seq-cifar100': transforms.Compose([
         transforms.ToPILImage(),
         # transforms.RandomCrop(32, padding=4),
         transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
@@ -15,7 +15,7 @@ transforms_aug = {
         transforms.ToTensor(),
         # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
         ]),
-    'cifar10': transforms.Compose([
+    'seq-cifar10': transforms.Compose([
         transforms.ToPILImage(),
         # transforms.RandomCrop(32, padding=4),
         transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
@@ -27,7 +27,7 @@ transforms_aug = {
         transforms.ToTensor(),
         # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
         ]),
-    'mini_imagenet': transforms.Compose([
+    'seq-tinyimg': transforms.Compose([
         transforms.ToPILImage(),
         # transforms.RandomCrop(32, padding=4),
         transforms.RandomResizedCrop(size=84, scale=(0.2, 1.)),
