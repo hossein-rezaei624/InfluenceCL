@@ -64,6 +64,25 @@ class BasicBlock(nn.Module):
         return out
 
 
+class cosLinear(nn.Module):
+    def __init__(self, indim, outdim):
+        super(cosLinear, self).__init__()
+        self.L = nn.Linear(indim, outdim, bias = False)
+        self.scale = 0.09
+
+
+
+    def forward(self, x):
+        x_norm = torch.norm(x, p=2, dim =1).unsqueeze(1).expand_as(x)
+        x_normalized = x.div(x_norm+ 0.000001)
+
+        L_norm = torch.norm(self.L.weight, p=2, dim =1).unsqueeze(1).expand_as(self.L.weight.data)
+        weight_normalized = self.L.weight.div(L_norm + 0.000001)
+        cos_dist = torch.mm(x_normalized,weight_normalized.transpose(0,1))
+        scores = cos_dist / self.scale
+        return scores
+
+
 class ResNet(MammothBackbone):
     """
     ResNet network architecture. Designed for complex datasets.
@@ -90,6 +109,7 @@ class ResNet(MammothBackbone):
         self.layer3 = self._make_layer(block, nf * 4, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, nf * 8, num_blocks[3], stride=2)
         self.linear = nn.Linear(nf * 8 * block.expansion, num_classes)
+        self.pcrLinear = cosLinear(nf * 8 * block.expansion, num_classes)
 
         self._features = nn.Sequential(self.conv1,
                                        self.bn1,
@@ -147,6 +167,11 @@ class ResNet(MammothBackbone):
             return (out, feature)
 
         raise NotImplementedError("Unknown return type")
+
+    def pcrForward(self, x):
+        out = self.forward(x, 'features')
+        logits = self.pcrLinear(out)
+        return logits, out
 
 
 def resnet18(nclasses: int, nf: int=64) -> ResNet:
