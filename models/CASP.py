@@ -15,27 +15,8 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-
-    def observe(self, inputs, labels, not_aug_inputs):
-
-        real_batch_size = inputs.shape[0]
-
-        if not self.buffer.is_empty():
-            buf_inputs, buf_labels = self.buffer.get_data(
-                self.args.minibatch_size, transform=self.transform)
-            inputs = torch.cat((inputs, buf_inputs))
-            labels = torch.cat((labels, buf_labels))
-
         outputs = self.net(inputs)
         loss = self.loss(outputs, labels)
-        loss.backward()
-
-        self.buffer.add_data(examples=inputs[:real_batch_size],
-                             labels=labels[:real_batch_size])
-
-        return loss.item()
-
-
 
 
 class Casp(ContinualModel):
@@ -47,9 +28,10 @@ class Casp(ContinualModel):
         self.buffer = Buffer(self.args.buffer_size, self.device)
 
 
+    def observe(self, inputs, labels, not_aug_inputs):
 
-    def train_learner(self, x_train, y_train):
-
+        real_batch_size = inputs.shape[0]
+        
         # batch update
         batch_x, batch_y = batch_data
         batch_x_aug = torch.stack([transforms_aug[self.data](batch_x[idx].cpu())
@@ -64,10 +46,10 @@ class Casp(ContinualModel):
         novel_loss = 0*self.criterion(logits, batch_y_combine)
         self.opt.zero_grad()
 
-
-        mem_x, mem_y = self.buffer.retrieve(x=batch_x, y=batch_y)
-        if mem_x.size(0) > 0:
-            # mem_x, mem_y = Rotation(mem_x, mem_y)
+        if not self.buffer.is_empty():
+            mem_x, mem_y = self.buffer.get_data(
+                self.args.minibatch_size, transform=None)
+        
             mem_x_aug = torch.stack([transforms_aug[self.data](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
             mem_x = mem_x.to(self.device)
@@ -98,6 +80,10 @@ class Casp(ContinualModel):
 
         novel_loss.backward()
         self.opt.step()
+        
         # update mem
-        self.buffer.update(batch_x, batch_y)
+        self.buffer.add_data(examples=inputs[:real_batch_size],
+                             labels=labels[:real_batch_size])
+
+        return novel_loss.item()
 
