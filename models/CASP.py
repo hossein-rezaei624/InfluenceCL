@@ -1,24 +1,103 @@
 import torch
-from torch.utils import data
-from utils.buffer.buffer import Buffer
-from agents.base import ContinualLearner
-from continuum.data_utils import dataset_transform
-from utils.setup_elements import transforms_match, transforms_aug
-from utils.utils import maybe_cuda
-from utils.loss import SupConLoss
+from utils.buffer import Buffer
+from utils.args import *
+from models.utils.continual_model import ContinualModel
+from utils.casp_loss import SupConLoss
 
 
-class ProxyContrastiveReplay(ContinualLearner):
-    """
-        Proxy-based Contrastive Replay,
-        Implements the strategy defined in
-        "PCR: Proxy-based Contrastive Replay for Online Class-Incremental Continual Learning"
-        https://arxiv.org/abs/2304.04408
+def get_parser() -> ArgumentParser:
+    parser = ArgumentParser(description='Continual learning via'
+                                        ' Class-Adaptive Sampling Policy.')
+    add_management_args(parser)
+    add_experiment_args(parser)
+    add_rehearsal_args(parser)
+    return parser
 
-        This strategy has been designed and tested in the
-        Online Setting (OnlineCLScenario). However, it
-        can also be used in non-online scenarios
-        """
+    
+transforms_aug = {
+    'cifar100': transforms.Compose([
+        transforms.ToPILImage(),
+        # transforms.RandomCrop(32, padding=4),
+        transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomApply([
+            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+        ], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
+        ]),
+    'cifar10': transforms.Compose([
+        transforms.ToPILImage(),
+        # transforms.RandomCrop(32, padding=4),
+        transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomApply([
+            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+        ], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
+        ]),
+    'mini_imagenet': transforms.Compose([
+        transforms.ToPILImage(),
+        # transforms.RandomCrop(32, padding=4),
+        transforms.RandomResizedCrop(size=84, scale=(0.2, 1.)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomApply([
+            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+        ], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        # transforms.Normalize((0.4802, 0.4480, 0.3975), (0.2770, 0.2691, 0.2821))
+        ])
+}
+
+
+
+
+
+
+
+
+
+
+class Casp(ContinualModel):
+    NAME = 'casp'
+    COMPATIBILITY = ['class-il', 'task-il']
+
+    def __init__(self, backbone, loss, args, transform):
+        super(Casp, self).__init__(backbone, loss, args, transform)
+        self.buffer = Buffer(self.args.buffer_size, self.device)
+
+
+
+
+    def observe(self, inputs, labels, not_aug_inputs):
+
+        real_batch_size = inputs.shape[0]
+
+        self.opt.zero_grad()
+        if not self.buffer.is_empty():
+            buf_inputs, buf_labels = self.buffer.get_data(
+                self.args.minibatch_size, transform=self.transform)
+            inputs = torch.cat((inputs, buf_inputs))
+            labels = torch.cat((labels, buf_labels))
+
+        outputs = self.net(inputs)
+        loss = self.loss(outputs, labels)
+        loss.backward()
+        self.opt.step()
+
+        self.buffer.add_data(examples=inputs[:real_batch_size],
+                             labels=labels[:real_batch_size])
+
+        return loss.item()
+
+
+
+class CASP(ContinualLearner):
+
     def __init__(self, model, opt, params):
         super(ProxyContrastiveReplay, self).__init__(model, opt, params)
         self.buffer = Buffer(model, params)
@@ -27,11 +106,7 @@ class ProxyContrastiveReplay(ContinualLearner):
         self.mem_iters = params.mem_iters
 
     def train_learner(self, x_train, y_train):
-        self.before_train(x_train, y_train)
-        # set up loader
-        train_dataset = dataset_transform(x_train, y_train, transform=transforms_match[self.data])
-        train_loader = data.DataLoader(train_dataset, batch_size=self.batch, shuffle=True, num_workers=0,
-                                       drop_last=True)
+
         # set up model
         self.model = self.model.train()
         for ep in range(self.epoch):
@@ -87,4 +162,3 @@ class ProxyContrastiveReplay(ContinualLearner):
                 # update mem
                 self.buffer.update(batch_x, batch_y)
 
-        self.after_train()
