@@ -33,8 +33,8 @@ class Casp(ContinualModel):
         real_batch_size = inputs.shape[0]
         
         # batch update
-        batch_x, batch_y = batch_data
-        batch_x_aug = torch.stack([transforms_aug[self.data](batch_x[idx].cpu())
+        batch_x, batch_y = inputs, labels
+        batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
                                    for idx in range(batch_x.size(0))])
         batch_x = batch_x.to(self.device)
         batch_x_aug = batch_x_aug.to(self.device)
@@ -42,7 +42,7 @@ class Casp(ContinualModel):
         batch_x_combine = torch.cat((batch_x, batch_x_aug))
         batch_y_combine = torch.cat((batch_y, batch_y))
             
-        logits, feas= self.model.pcrForward(batch_x_combine)
+        logits, feas= self.net.pcrForward(batch_x_combine)
         novel_loss = 0*self.criterion(logits, batch_y_combine)
         self.opt.zero_grad()
 
@@ -50,7 +50,7 @@ class Casp(ContinualModel):
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
-            mem_x_aug = torch.stack([transforms_aug[self.data](mem_x[idx].cpu())
+            mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
             mem_x = mem_x.to(self.device)
             mem_x_aug = mem_x_aug.to(self.device)
@@ -59,11 +59,11 @@ class Casp(ContinualModel):
             mem_y_combine = torch.cat([mem_y, mem_y])
 
 
-            mem_logits, mem_fea= self.model.pcrForward(mem_x_combine)
+            mem_logits, mem_fea= self.net.pcrForward(mem_x_combine)
 
             combined_feas = torch.cat([mem_fea, feas])
             combined_labels = torch.cat((mem_y_combine, batch_y_combine))
-            combined_feas_aug = self.model.pcrLinear.L.weight[combined_labels]
+            combined_feas_aug = self.net.pcrLinear.L.weight[combined_labels]
 
             combined_feas_norm = torch.norm(combined_feas, p=2, dim=1).unsqueeze(1).expand_as(combined_feas)
             combined_feas_normalized = combined_feas.div(combined_feas_norm + 0.000001)
