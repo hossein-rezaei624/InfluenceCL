@@ -15,10 +15,6 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-        outputs = self.net(inputs)
-        loss = self.loss(outputs, labels)
-
-
 class Casp(ContinualModel):
     NAME = 'casp'
     COMPATIBILITY = ['class-il', 'task-il']
