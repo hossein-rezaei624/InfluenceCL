@@ -14,6 +14,7 @@ fnn_kernel_fn = jit(kernel_fn, static_argnums=(2,))
 
 
 def generate_fnn_ntk(X, Y):
+    print("subbbbb333", jax.devices())
     return np.array(fnn_kernel_fn(X, Y, 'ntk'))
 
 
@@ -61,9 +62,10 @@ def generate_resnet_ntk(X, Y, skip=25):
 
 
 def get_kernel_fn(bone):
+    print("subbbbb111", jax.devices())
     from backbone.MNISTMLP import MNISTMLP
     from backbone.ResNet18 import ResNet
-
+    print("subbbbb222", jax.devices())
     if isinstance(bone, MNISTMLP):
         return lambda x, y: generate_fnn_ntk(x.reshape(-1, 28, 28, 1), y.reshape(-1, 28, 28, 1))
     elif isinstance(bone, ResNet):
