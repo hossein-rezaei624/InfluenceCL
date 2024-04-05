@@ -39,7 +39,9 @@ class Casp(ContinualModel):
         batch_y_combine = torch.cat((batch_y, batch_y))
             
         logits, feas= self.net.pcrForward(batch_x_combine)
-        novel_loss = 0*self.loss(logits, batch_y_combine)
+        labels = batch_y_combine.clone()
+        ce = torch.nn.CrossEntropyLoss(reduction='mean')
+        novel_loss = 0*ce(logits, labels)
         self.opt.zero_grad()
 
         if not self.buffer.is_empty():
