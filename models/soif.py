@@ -59,7 +59,7 @@ class SOIF(ContinualModel):
         loss.backward()
         self.opt.step()
 
-        if self.epoch in self.args.sel_epoch:
+        if 1<2:
             inputs = inputs if self.args.norig else not_aug_inputs
             if self.buffer.num_seen_examples < self.args.buffer_size:
                 self.buffer.add_data(examples=inputs[:real_batch_size],
