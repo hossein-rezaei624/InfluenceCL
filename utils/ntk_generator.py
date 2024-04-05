@@ -64,6 +64,7 @@ def get_kernel_fn(bone):
     from backbone.MNISTMLP import MNISTMLP
     from backbone.ResNet18 import ResNet
     print("jax devices in use isssssss:", jax.devices())
+    print("we are hereeeee")
     if isinstance(bone, MNISTMLP):
         return lambda x, y: generate_fnn_ntk(x.reshape(-1, 28, 28, 1), y.reshape(-1, 28, 28, 1))
     elif isinstance(bone, ResNet):
