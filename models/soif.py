@@ -47,7 +47,7 @@ class SOIF(ContinualModel):
 
     def observe(self, inputs, labels, not_aug_inputs):
         real_batch_size = inputs.shape[0]
-
+        print("firsttttt", jax.devices())
         self.opt.zero_grad()
         if not self.buffer.is_empty():
             indexes, buf_inputs, buf_labels = self.buffer.get_data(
