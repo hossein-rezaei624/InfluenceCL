@@ -59,20 +59,27 @@ class SOIF(ContinualModel):
         self.opt.step()
 
         if self.epoch in self.args.sel_epoch:
+            print("if self.epoch in self.args.sel_epoch:")
             inputs = inputs if self.args.norig else not_aug_inputs
             if self.buffer.num_seen_examples < self.args.buffer_size:
+                print("if self.buffer.num_seen_examples < self.args.buffer_size:")
                 self.buffer.add_data(examples=inputs[:real_batch_size],
                                      labels=labels[:real_batch_size])
             else:
+                print("else")
                 inc_weight = real_batch_size / self.buffer.num_seen_examples
                 buf_inputs, buf_labels = self.buffer.get_all_data()
                 inputs = torch.cat((inputs[:real_batch_size], buf_inputs))
                 labels = torch.cat((labels[:real_batch_size], buf_labels))
+                print("labels = torch.cat((labels[:real_batch_size], buf_labels))")
                 chosen_indexes = self.ifs.select(inputs.cpu(), labels.cpu(), self.buffer.buffer_size, self.kernel_fn,
                                                  self.args.lmbda, self.args.mu, self.args.nu, inc_weight)[0]
+                print("here0")
                 out_indexes = np.setdiff1d(np.arange(self.buffer.buffer_size), chosen_indexes - real_batch_size)
                 in_indexes = chosen_indexes[chosen_indexes < real_batch_size]
+                print("here1")
                 self.buffer.replace_data(out_indexes, inputs[in_indexes], labels[in_indexes])
                 self.buffer.num_seen_examples += real_batch_size
+                print("here2")
 
         return loss.item()
