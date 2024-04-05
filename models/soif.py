@@ -5,6 +5,7 @@ from models.utils.continual_model import ContinualModel
 import numpy as np
 from utils.ntk_generator import get_kernel_fn
 from utils.influence_ntk import InfluenceNTK
+import jax
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning')
@@ -68,8 +69,10 @@ class SOIF(ContinualModel):
                 buf_inputs, buf_labels = self.buffer.get_all_data()
                 inputs = torch.cat((inputs[:real_batch_size], buf_inputs))
                 labels = torch.cat((labels[:real_batch_size], buf_labels))
+                print("jax devices in use isssssss1:", jax.devices())
                 chosen_indexes = self.ifs.select(inputs.cpu(), labels.cpu(), self.buffer.buffer_size, self.kernel_fn,
                                                  self.args.lmbda, self.args.mu, self.args.nu, inc_weight)[0]
+                print("jax devices in use isssssss2:", jax.devices())
                 out_indexes = np.setdiff1d(np.arange(self.buffer.buffer_size), chosen_indexes - real_batch_size)
                 in_indexes = chosen_indexes[chosen_indexes < real_batch_size]
                 self.buffer.replace_data(out_indexes, inputs[in_indexes], labels[in_indexes])
