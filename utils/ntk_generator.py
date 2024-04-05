@@ -1,8 +1,10 @@
+# Reference: https://github.com/zalanborsos/bilevel_coresets
 import numpy as np
-from jax.api import jit
+from jax import jit
 from neural_tangents import stax
 
-init_fn, apply_fn, kernel_fn = stax.serial(
+
+_, _, kernel_fn = stax.serial(
     stax.Dense(100, 1., 0.05),
     stax.Relu(),
     stax.Dense(100, 1., 0.05),
@@ -10,29 +12,9 @@ init_fn, apply_fn, kernel_fn = stax.serial(
     stax.Dense(10, 1., 0.05))
 fnn_kernel_fn = jit(kernel_fn, static_argnums=(2,))
 
-_, _, kernel_fn = stax.serial(
-    stax.Conv(32, (5, 5), (1, 1), padding='SAME', W_std=1., b_std=0.05),
-    stax.Relu(),
-    stax.Conv(64, (5, 5), (1, 1), padding='SAME', W_std=1., b_std=0.05),
-    stax.Relu(),
-    stax.Flatten(),
-    stax.Dense(128, 1., 0.05),
-    stax.Relu(),
-    stax.Dense(10, 1., 0.05))
-cnn_kernel_fn = jit(kernel_fn, static_argnums=(2,))
-
 
 def generate_fnn_ntk(X, Y):
     return np.array(fnn_kernel_fn(X, Y, 'ntk'))
-
-
-def generate_cnn_ntk(X, Y):
-    n = X.shape[0]
-    m = Y.shape[0]
-    K = np.zeros((n, m))
-    for i in range(m):
-        K[:, i:i + 1] = np.array(cnn_kernel_fn(X, Y[i:i + 1], 'ntk'))
-    return K
 
 
 def ResnetBlock(channels, strides=(1, 1), channel_mismatch=False):
@@ -75,4 +57,16 @@ def generate_resnet_ntk(X, Y, skip=25):
     K = np.zeros((n, m))
     for i in range(0, m, skip):
         K[:, i:i + skip] = np.array(resnet_kernel_fn(X, Y[i:i + skip], 'ntk'))
-    return K / 100
+    return K / 10
+
+
+def get_kernel_fn(bone):
+    from backbone.MNISTMLP import MNISTMLP
+    from backbone.ResNet18 import ResNet
+
+    if isinstance(bone, MNISTMLP):
+        return lambda x, y: generate_fnn_ntk(x.reshape(-1, 28, 28, 1), y.reshape(-1, 28, 28, 1))
+    elif isinstance(bone, ResNet):
+        return lambda x, y: generate_resnet_ntk(x.transpose(0, 2, 3, 1), y.transpose(0, 2, 3, 1))
+    else:
+        raise NotImplementedError('Neural Tangent Kernel is not implemented for this backbone')
