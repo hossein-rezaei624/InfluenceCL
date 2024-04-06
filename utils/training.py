@@ -59,7 +59,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 else:
                     if model.NAME == 'casp':
                         print("caspppppppppp")
-                        outputs, _ = model.pcrForward(inputs)
+                        outputs, _ = model.net.pcrForward(inputs)
                     else:
                         print("nottttt caspppppp")
                         outputs = model(inputs)
