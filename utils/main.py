@@ -115,8 +115,10 @@ def main(args=None):
     setproctitle.setproctitle('{}_{}_{}'.format(args.model, args.buffer_size if 'buffer_size' in args else 0, args.dataset))
 
     if isinstance(dataset, ContinualDataset):
+        print("first")
         train(model, dataset, args)
     else:
+        print("second")
         assert not hasattr(model, 'end_task') or model.NAME == 'joint_gcl'
         ctrain(args)
 
