@@ -58,8 +58,10 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                     outputs = model(inputs, k)
                 else:
                     if model.NAME == 'casp':
+                        print("caspppppppppp")
                         outputs, _ = model.pcrForward(inputs)
                     else:
+                        print("nottttt caspppppp")
                         outputs = model(inputs)
 
                 _, pred = torch.max(outputs.data, 1)
