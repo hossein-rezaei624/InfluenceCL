@@ -55,11 +55,12 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 inputs, labels = data
                 inputs, labels = inputs.to(model.device), labels.to(model.device)
                 if 'class-il' not in model.COMPATIBILITY:
-                    print("we are in ifffffffff")
                     outputs = model(inputs, k)
                 else:
-                    print("we are if elseeeeeee")
-                    outputs = model(inputs)
+                    if model.NAME == 'casp':
+                        outputs, _ = model.pcrForward(inputs)
+                    else:
+                        outputs = model(inputs)
 
                 _, pred = torch.max(outputs.data, 1)
                 correct += torch.sum(pred == labels).item()
