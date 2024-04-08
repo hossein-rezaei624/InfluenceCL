@@ -40,7 +40,6 @@ class Casp(ContinualModel):
             
         logits, feas= self.net.pcrForward(batch_x_combine)
         novel_loss = 0*self.loss(logits, batch_y_combine)
-        print("first novel_loss", novel_loss)
         self.opt.zero_grad()
 
         if not self.buffer.is_empty():
