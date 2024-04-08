@@ -17,7 +17,7 @@ def get_parser() -> ArgumentParser:
 
 class Casp(ContinualModel):
     NAME = 'casp'
-    COMPATIBILITY = ['class-il', 'task-il']
+    COMPATIBILITY = ['class-il']
 
     def __init__(self, backbone, loss, args, transform):
         super(Casp, self).__init__(backbone, loss, args, transform)
