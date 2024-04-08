@@ -39,8 +39,9 @@ class Casp(ContinualModel):
         batch_y_combine = torch.cat((batch_y, batch_y))
             
         logits, feas= self.net.pcrForward(batch_x_combine)
-        ##novel_loss = 0*self.loss(logits, batch_y_combine)
+        novel_loss = 0*self.loss(logits, batch_y_combine)
         ##novel_loss = 0
+        print("novel_loss", novel_loss)
         self.opt.zero_grad()
 
         if not self.buffer.is_empty():
@@ -72,7 +73,7 @@ class Casp(ContinualModel):
                                       combined_feas_aug_normalized.unsqueeze(1)],
                                      dim=1)
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss = PSC(features=cos_features, labels=combined_labels)
+            novel_loss += PSC(features=cos_features, labels=combined_labels)
 
 
         novel_loss.backward()
