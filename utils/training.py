@@ -3,7 +3,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import itertools
+##import itertools
 
 import math
 import sys
@@ -116,7 +116,10 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
-        unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
+        #unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
+        unique_classes = set()
+        for _, labels, indices_1 in train_loader:
+            unique_classes.update(labels.numpy())
         print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             model.begin_task(dataset)
