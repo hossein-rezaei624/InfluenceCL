@@ -3,6 +3,8 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import itertools
+
 import math
 import sys
 from argparse import Namespace
@@ -142,6 +144,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
                     index_ = index_.to(model.device)
+                    unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _ in train_loader))
+                    print("unique_classes", unique_classes)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, index_)
                 assert not math.isnan(loss)
                 progress_bar.prog(i, len(train_loader), epoch, t, loss)
