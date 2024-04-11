@@ -118,7 +118,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         train_loader, test_loader = dataset.get_data_loaders()
         #unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
         unique_classes = set()
-        for _, labels, indices_1 in train_loader:
+        for _, labels, _, _ in train_loader:
             unique_classes.update(labels.numpy())
         print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
