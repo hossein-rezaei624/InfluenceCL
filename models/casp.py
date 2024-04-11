@@ -86,8 +86,11 @@ class Casp(ContinualModel):
         self.buffer = Buffer(self.args.buffer_size, self.device)
 
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
 
+        print("inputs.shape:", inputs.shape, "labels.shape:", labels.shape, "index_.shape:", index_.shape)
+        print("labels", labels, "index_", index_)
+        
         real_batch_size = inputs.shape[0]
         
         # batch update
