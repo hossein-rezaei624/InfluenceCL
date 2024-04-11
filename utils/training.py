@@ -120,6 +120,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         unique_classes = set()
         for _, labels, _, _ in train_loader:
             unique_classes.update(labels.numpy())
+            if len(unique_classes)==dataset.N_CLASSES_PER_TASK:
+                break
         print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             model.begin_task(dataset)
