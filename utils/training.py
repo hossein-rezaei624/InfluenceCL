@@ -116,6 +116,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
+        unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
+        print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             model.begin_task(dataset)
         if t and not args.ignore_other_metrics:
@@ -144,8 +146,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
                     index_ = index_.to(model.device)
-                    unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
-                    print("unique_classes", unique_classes)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, index_)
                 assert not math.isnan(loss)
                 progress_bar.prog(i, len(train_loader), epoch, t, loss)
