@@ -15,6 +15,68 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
+    
+soft_1 = nn.Softmax(dim=1)
+
+def distribute_samples(probabilities, M):
+    # Normalize the probabilities
+    total_probability = sum(probabilities.values())
+    normalized_probabilities = {k: v / total_probability for k, v in probabilities.items()}
+
+    # Calculate the number of samples for each class
+    samples = {k: round(v * M) for k, v in normalized_probabilities.items()}
+    
+    # Check if there's any discrepancy due to rounding and correct it
+    discrepancy = M - sum(samples.values())
+    
+    # Adjust the number of samples in each class to ensure the total number of samples equals M
+    for key in samples:
+        if discrepancy == 0:
+            break    # Stop adjusting if there's no discrepancy
+        if discrepancy > 0:
+            # If there are less samples than M, add a sample to the current class and decrease discrepancy
+            samples[key] += 1
+            discrepancy -= 1
+        elif discrepancy < 0 and samples[key] > 0:
+            # If there are more samples than M and the current class has samples, remove one and increase discrepancy
+            samples[key] -= 1
+            discrepancy += 1
+
+    return samples    # Return the final classes distribution
+
+    
+def distribute_excess(lst):
+    # Calculate the total excess value
+    total_excess = sum(val - 500 for val in lst if val > 500)
+
+    # Number of elements that are not greater than 500
+    recipients = [i for i, val in enumerate(lst) if val < 500]
+
+    num_recipients = len(recipients)
+
+    # Calculate the average share and remainder
+    avg_share, remainder = divmod(total_excess, num_recipients)
+
+    lst = [val if val <= 500 else 500 for val in lst]
+    
+    # Distribute the average share
+    for idx in recipients:
+        lst[idx] += avg_share
+    
+    # Distribute the remainder
+    for idx in recipients[:remainder]:
+        lst[idx] += 1
+    
+    # Cap values greater than 500
+    for i, val in enumerate(lst):
+        if val > 500:
+            return distribute_excess(lst)
+            break
+
+    return lst
+
+
+
 class Casp(ContinualModel):
     NAME = 'casp'
     COMPATIBILITY = ['class-il']
