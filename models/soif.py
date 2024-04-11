@@ -45,7 +45,7 @@ class SOIF(ContinualModel):
     def end_epoch(self, dataset):
         self.epoch += 1
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
         real_batch_size = inputs.shape[0]
         self.opt.zero_grad()
         if not self.buffer.is_empty():
