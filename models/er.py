@@ -26,7 +26,7 @@ class Er(ContinualModel):
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.transform = None
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
 
         real_batch_size = inputs.shape[0]
 
