@@ -137,11 +137,12 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     logits = logits.to(model.device)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, logits)
                 else:
-                    inputs, labels, not_aug_inputs = data
+                    inputs, labels, not_aug_inputs, index_ = data
                     inputs, labels = inputs.to(model.device), labels.to(
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
-                    loss = model.meta_observe(inputs, labels, not_aug_inputs)
+                    index_ = index_.to(model.device)
+                    loss = model.meta_observe(inputs, labels, not_aug_inputs, index_)
                 assert not math.isnan(loss)
                 progress_bar.prog(i, len(train_loader), epoch, t, loss)
 
