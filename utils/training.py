@@ -144,7 +144,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
                     index_ = index_.to(model.device)
-                    unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _ in train_loader))
+                    unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
                     print("unique_classes", unique_classes)
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, index_)
                 assert not math.isnan(loss)
