@@ -96,7 +96,7 @@ class Casp(ContinualModel):
         real_batch_size = inputs.shape[0]
         
         # batch update
-        batch_x, batch_y = not_aug_inputs, labels
+        batch_x, batch_y = inputs, labels
         batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
                                    for idx in range(batch_x.size(0))])
         batch_x = batch_x.to(self.device)
@@ -145,7 +145,7 @@ class Casp(ContinualModel):
         self.opt.step()
         
         # update mem
-        self.buffer.add_data(examples=not_aug_inputs[:real_batch_size],
+        self.buffer.add_data(examples=inputs[:real_batch_size],
                              labels=labels[:real_batch_size])
 
         return novel_loss.item()
