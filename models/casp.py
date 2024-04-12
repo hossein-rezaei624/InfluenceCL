@@ -115,6 +115,124 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset):
         self.epoch += 1
+        
+        if self.epoch == self.args.n_epoch:
+            # Calculate mean confidence by class
+            mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
+            
+            # Calculate standard deviation of mean confidences by class
+            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(8)])) for class_id, __ in enumerate(self.unique_classes)}
+            
+            # Compute mean and variability of confidences for each sample
+            Confidence_mean = self.confidence_by_sample.mean(dim=0)
+            Variability = self.confidence_by_sample.std(dim=0)
+
+        
+            # Initialize an empty list to store indices
+            list_of_indices = []
+            # Initialize a counter
+            counter__ = 0
+            # Iterate over each label in the buffer
+            for i in range(buffer.buffer_label.shape[0]):
+                # Check if the label is in the set of unique classes
+                if buffer.buffer_label[i].item() in unique_classes:
+                    # Increment the counter and add the index to the list
+                    counter__ +=1
+                    list_of_indices.append(i)
+        
+            # Store the total count in top_n
+            top_n = counter__
+        
+            # Sort indices based on the Confidence
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            
+            # Sort indices based on the variability
+            sorted_indices_2 = np.argsort(Variability.numpy())
+            
+        
+        
+            ##top_indices_sorted = sorted_indices_1 #hard
+            
+            ##top_indices_sorted = sorted_indices_1[::-1] #simple
+        
+            # Descending order
+            top_indices_sorted = sorted_indices_2[::-1] #challenging
+        
+            # Create a subset of the train dataset using the sorted indices
+            subset_data = torch.utils.data.Subset(train_dataset, top_indices_sorted)
+            # Create a DataLoader for the subset data
+            trainloader_C = torch.utils.data.DataLoader(subset_data, batch_size=10, shuffle=False, num_workers=0)
+        
+            # Initialize lists to store images and labels
+            images_list = []
+            labels_list = []
+        
+            # Iterate over batches of images and labels from the DataLoader
+            for images, labels, indices_1 in trainloader_C:
+                # Append the images and labels to their respective lists
+                images_list.append(images)
+                labels_list.append(labels)
+        
+            # Concatenate all images and labels along the first dimension
+            all_images = torch.cat(images_list, dim=0)
+            all_labels = torch.cat(labels_list, dim=0)
+        
+            # Convert standard deviation of means by class to item form
+            updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
+        
+            # Distribute samples based on the standard deviation
+            dist = distribute_samples(updated_std_of_means_by_class, top_n)
+        
+            # Calculate the number of samples per class
+            num_per_class = top_n//len(unique_classes)
+            # Initialize a counter for each class
+            counter_class = [0 for _ in range(len(unique_classes))]
+        
+            if len(y_train) == top_n:
+                # Uniform distribution with adjustments for any remainder
+                condition = [num_per_class for _ in range(len(unique_classes))]
+                diff = top_n - num_per_class*len(unique_classes)
+                for o in range(diff):
+                    condition[o] += 1
+            else:
+                # Distribution based on the class variability
+                condition = [value for k, value in dist.items()]
+        
+            # Check if any class exceeds its allowed number of samples
+            check_bound = len(y_train)/len(unique_classes)
+            for i in range(len(condition)):
+                if condition[i] > check_bound:
+                    # Redistribute the excess samples
+                    condition = distribute_excess(condition)
+                    break
+        
+            # Initialize new lists for adjusted images and labels
+            images_list_ = []
+            labels_list_ = []
+        
+            # Iterate over all_labels and select most challening images for each class based on the class variability
+            for i in range(all_labels.shape[0]):
+                if counter_class[mapping[all_labels[i].item()]] < condition[mapping[all_labels[i].item()]]:
+                    counter_class[mapping[all_labels[i].item()]] += 1
+                    labels_list_.append(all_labels[i])
+                    images_list_.append(all_images[i])
+                if counter_class == condition:
+                    break
+        
+            # Stack the selected images and labels
+            all_images_ = torch.stack(images_list_)
+            all_labels_ = torch.stack(labels_list_)
+        
+            # Shuffle the data
+            indices = torch.randperm(all_images_.size(0))
+            shuffled_images = all_images_[indices]
+            shuffled_labels = all_labels_[indices]
+        
+            # Update the buffer with the shuffled images and labels
+            buffer.buffer_label[list_of_indices] = shuffled_labels.to("cuda")
+            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")
+            
+    
     
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
