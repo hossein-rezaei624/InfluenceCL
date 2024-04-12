@@ -107,7 +107,7 @@ class Casp(ContinualModel):
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(8)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((8, 5000))
-        print("len(dataset)", len(dataset))
+        print("len(train_loader)", len(train_loader))
     
     def end_epoch(self, dataset):
         self.epoch += 1
