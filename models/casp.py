@@ -122,6 +122,10 @@ class Casp(ContinualModel):
         #print("labels", labels, "index_", index_)
         
         real_batch_size = inputs.shape[0]
+
+        targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
+        confidence_batch = []
+
         
         # batch update
         batch_x, batch_y = inputs, labels
@@ -136,6 +140,19 @@ class Casp(ContinualModel):
         logits, feas= self.net.pcrForward(batch_x_combine)
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
+
+        
+        soft_ = soft_1(logits)
+        # Accumulate confidences
+        for i in range(targets.shape[0]):
+            confidence_batch.append(soft_[i,targets[i]].item())
+            
+            # Update the dictionary with the confidence score for the current class for the current epoch
+            self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, targets[i]].item())
+
+        # Record the confidence scores for samples in the corresponding tensor
+        conf_tensor = torch.tensor(confidence_batch)
+        self.confidence_by_sample[self.epoch, index_] = conf_tensor
 
         if not self.buffer.is_empty():
             mem_x, mem_y = self.buffer.get_data(
