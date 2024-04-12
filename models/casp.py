@@ -96,7 +96,7 @@ class Casp(ContinualModel):
         self.n_sample_per_task = None
 
     def begin_train(self, dataset):
-        self.n_sample_per_task = dataset.get_examples_number()/dataset.N_TASKS
+        self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
         print("self.n_sample_per_task", self.n_sample_per_task)
     
     def begin_task(self, dataset, train_loader):
