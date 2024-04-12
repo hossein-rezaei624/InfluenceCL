@@ -124,7 +124,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 ##                break
 ##        print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
-            model.begin_task(dataset)
+            model.begin_task(dataset, train_loader)
         if t and not args.ignore_other_metrics:
             accs = evaluate(model, dataset, last=True)
             results[t-1] = results[t-1] + accs[0]
