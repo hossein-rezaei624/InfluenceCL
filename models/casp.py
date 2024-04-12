@@ -158,7 +158,7 @@ class Casp(ContinualModel):
         
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1] #challenging
-'''
+
             # Create a subset of the train dataset using the sorted indices
             subset_data = torch.utils.data.Subset(train_dataset, top_indices_sorted)
             # Create a DataLoader for the subset data
@@ -231,7 +231,7 @@ class Casp(ContinualModel):
         
             # Update the buffer with the shuffled images and labels
             buffer.buffer_label[list_of_indices] = shuffled_labels.to("cuda")
-            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")'''
+            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
