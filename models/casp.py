@@ -98,6 +98,7 @@ class Casp(ContinualModel):
         self.epoch = 0
         self.task += 1
         self.unique_classes = set()
+        print("len(dataset)", dataset.get_examples_number())
         for _, labels, _, _ in train_loader:
             self.unique_classes.update(labels.numpy())
             if len(self.unique_classes)==dataset.N_CLASSES_PER_TASK:
@@ -107,7 +108,6 @@ class Casp(ContinualModel):
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(8)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((8, 5000))
-        print("len(train_loader)", len(train_loader))
     
     def end_epoch(self, dataset):
         self.epoch += 1
