@@ -164,7 +164,10 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             if scheduler is not None:
                 scheduler.step()
             if hasattr(model, 'end_epoch'):
-                model.end_epoch(dataset)
+                if model.NAME == 'casp':
+                    model.end_epoch(dataset, train_loader)
+                else:
+                    model.end_epoch(dataset)
 
         if hasattr(model, 'end_task'):
             model.end_task(dataset)
