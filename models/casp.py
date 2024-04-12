@@ -98,7 +98,7 @@ class Casp(ContinualModel):
         self.epoch = 0
         self.task += 1
         self.unique_classes = set()
-        print(dataset.len())
+        print(train_loader.shape)
         print("len(dataset)", dataset.get_examples_number())
         for _, labels, _, _ in train_loader:
             self.unique_classes.update(labels.numpy())
