@@ -86,8 +86,16 @@ class Casp(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(Casp, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.task = 0
+        self.epoch = 0
 
+    def begin_task(self, dataset):
+        self.task += 1
+        self.epoch = 0
 
+    def end_epoch(self, dataset):
+        self.epoch += 1
+    
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         #print("inputs.shape:", inputs.shape, "labels.shape:", labels.shape, "index_.shape:", index_.shape)
