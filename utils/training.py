@@ -113,6 +113,9 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             random_results_class, random_results_task = evaluate(model, dataset_copy)
 
     print(file=sys.stderr)
+    if hasattr(model, 'begin_train'):
+        if model.NAME == 'casp':
+            model.begin_train(dataset)
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
