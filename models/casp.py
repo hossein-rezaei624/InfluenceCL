@@ -194,14 +194,14 @@ class Casp(ContinualModel):
             dist = distribute_samples(updated_std_of_means_by_class, top_n)
         
             # Calculate the number of samples per class
-            num_per_class = top_n//len(unique_classes)
+            num_per_class = top_n//len(self.unique_classes)
             # Initialize a counter for each class
-            counter_class = [0 for _ in range(len(unique_classes))]
+            counter_class = [0 for _ in range(len(self.unique_classes))]
         
-            if len(y_train) == top_n:
+            if self.n_sample_per_task == top_n:
                 # Uniform distribution with adjustments for any remainder
-                condition = [num_per_class for _ in range(len(unique_classes))]
-                diff = top_n - num_per_class*len(unique_classes)
+                condition = [num_per_class for _ in range(len(self.unique_classes))]
+                diff = top_n - num_per_class*len(self.unique_classes)
                 for o in range(diff):
                     condition[o] += 1
             else:
@@ -209,7 +209,7 @@ class Casp(ContinualModel):
                 condition = [value for k, value in dist.items()]
         
             # Check if any class exceeds its allowed number of samples
-            check_bound = len(y_train)/len(unique_classes)
+            check_bound = self.n_sample_per_task/len(self.unique_classes)
             for i in range(len(condition)):
                 if condition[i] > check_bound:
                     # Redistribute the excess samples
@@ -222,8 +222,8 @@ class Casp(ContinualModel):
         
             # Iterate over all_labels and select most challening images for each class based on the class variability
             for i in range(all_labels.shape[0]):
-                if counter_class[mapping[all_labels[i].item()]] < condition[mapping[all_labels[i].item()]]:
-                    counter_class[mapping[all_labels[i].item()]] += 1
+                if counter_class[self.mapping[all_labels[i].item()]] < condition[self.mapping[all_labels[i].item()]]:
+                    counter_class[self.mapping[all_labels[i].item()]] += 1
                     labels_list_.append(all_labels[i])
                     images_list_.append(all_images[i])
                 if counter_class == condition:
@@ -239,8 +239,8 @@ class Casp(ContinualModel):
             shuffled_labels = all_labels_[indices]
         
             # Update the buffer with the shuffled images and labels
-            buffer.buffer_label[list_of_indices] = shuffled_labels.to("cuda")
-            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")
+            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
+            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
