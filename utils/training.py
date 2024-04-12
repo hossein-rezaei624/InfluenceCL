@@ -125,7 +125,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 ##        print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             if model.NAME == 'casp':
-                model.begin_task(train_loader)
+                model.begin_task(dataset, train_loader)
             else:
                 model.begin_task(dataset)
         if t and not args.ignore_other_metrics:
