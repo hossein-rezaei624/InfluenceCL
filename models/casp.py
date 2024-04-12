@@ -177,14 +177,15 @@ class Casp(ContinualModel):
             all_labels = torch.cat(all_labels, dim=0)
             all_indices = torch.cat(all_indices, dim=0)
 
-            # Use sorted indices to reorder the data
-            sorted_inputs = all_inputs[top_indices_sorted]
-            sorted_labels = all_labels[top_indices_sorted]
-            sorted_indices = all_indices[top_indices_sorted]
-        
-            # Concatenate all images and labels along the first dimension
-            all_images = torch.cat(images_list, dim=0)
-            all_labels = torch.cat(labels_list, dim=0)
+            # Convert sorted_indices_2 to a tensor for indexing
+            top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
+
+            # Find the positions of these indices in the shuffled order
+            positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
+
+            # Extract inputs and labels using these positions
+            all_images = all_inputs[positions]
+            all_labels = all_labels[positions]
         
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
