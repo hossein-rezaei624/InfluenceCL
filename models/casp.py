@@ -133,9 +133,10 @@ class Casp(ContinualModel):
             # Initialize a counter
             counter__ = 0
             # Iterate over each label in the buffer
-            for i in range(buffer.buffer_label.shape[0]):
+            print("self.buffer.labels.shape[0]", self.buffer.labels.shape[0])
+            for i in range(self.buffer.labels.shape[0]):
                 # Check if the label is in the set of unique classes
-                if buffer.buffer_label[i].item() in unique_classes:
+                if self.buffer.labels[i].item() in self.unique_classes:
                     # Increment the counter and add the index to the list
                     counter__ +=1
                     list_of_indices.append(i)
