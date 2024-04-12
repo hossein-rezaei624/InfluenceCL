@@ -159,7 +159,7 @@ class Casp(ContinualModel):
             ##top_indices_sorted = sorted_indices_1[::-1] #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1] #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -177,7 +177,6 @@ class Casp(ContinualModel):
             all_labels = torch.cat(all_labels, dim=0)
             all_indices = torch.cat(all_indices, dim=0)
 
-            ##print("top_indices_sorted", top_indices_sorted[500:502])
             # Convert sorted_indices_2 to a tensor for indexing
             top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
 
