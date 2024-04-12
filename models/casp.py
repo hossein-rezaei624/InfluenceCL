@@ -161,20 +161,26 @@ class Casp(ContinualModel):
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1] #challenging
 
-            # Create a subset of the train dataset using the sorted indices
-            subset_data = torch.utils.data.Subset(train_dataset, top_indices_sorted)
-            # Create a DataLoader for the subset data
-            trainloader_C = torch.utils.data.DataLoader(subset_data, batch_size=10, shuffle=False, num_workers=0)
-        
-            # Initialize lists to store images and labels
-            images_list = []
-            labels_list = []
-        
-            # Iterate over batches of images and labels from the DataLoader
-            for images, labels, indices_1 in trainloader_C:
-                # Append the images and labels to their respective lists
-                images_list.append(images)
-                labels_list.append(labels)
+
+            # Initialize lists to hold data
+            all_inputs, all_labels, all_indices = [], [], []
+            
+            # Collect all data
+            for data_1 in train_loader:
+                inputs_1, labels_1, _, indices_1 = data_1
+                all_inputs.append(inputs_1)
+                all_labels.append(labels_1)
+                all_indices.append(indices_1)
+            
+            # Concatenate all collected items to form complete arrays            
+            all_inputs = torch.cat(all_inputs, dim=0)
+            all_labels = torch.cat(all_labels, dim=0)
+            all_indices = torch.cat(all_indices, dim=0)
+
+            # Use sorted indices to reorder the data
+            sorted_inputs = all_inputs[top_indices_sorted]
+            sorted_labels = all_labels[top_indices_sorted]
+            sorted_indices = all_indices[top_indices_sorted]
         
             # Concatenate all images and labels along the first dimension
             all_images = torch.cat(images_list, dim=0)
