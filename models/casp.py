@@ -158,8 +158,8 @@ class Casp(ContinualModel):
         
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1] #challenging
-        
-  '''          # Create a subset of the train dataset using the sorted indices
+  '''      
+            # Create a subset of the train dataset using the sorted indices
             subset_data = torch.utils.data.Subset(train_dataset, top_indices_sorted)
             # Create a DataLoader for the subset data
             trainloader_C = torch.utils.data.DataLoader(subset_data, batch_size=10, shuffle=False, num_workers=0)
