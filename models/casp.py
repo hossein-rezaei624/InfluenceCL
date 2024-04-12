@@ -177,7 +177,7 @@ class Casp(ContinualModel):
             all_labels = torch.cat(all_labels, dim=0)
             all_indices = torch.cat(all_indices, dim=0)
 
-            print("top_indices_sorted", top_indices_sorted[250:501])
+            print("top_indices_sorted", top_indices_sorted[500:502])
             # Convert sorted_indices_2 to a tensor for indexing
             top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
 
