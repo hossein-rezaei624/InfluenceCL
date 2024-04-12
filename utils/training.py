@@ -117,12 +117,12 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
         #unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
-        unique_classes = set()
-        for _, labels, _, _ in train_loader:
-            unique_classes.update(labels.numpy())
-            if len(unique_classes)==dataset.N_CLASSES_PER_TASK:
-                break
-        print("unique_classes", unique_classes)
+##        unique_classes = set()
+##        for _, labels, _, _ in train_loader:
+##            unique_classes.update(labels.numpy())
+##            if len(unique_classes)==dataset.N_CLASSES_PER_TASK:
+##                break
+##        print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             model.begin_task(dataset)
         if t and not args.ignore_other_metrics:
