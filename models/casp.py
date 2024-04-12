@@ -231,11 +231,9 @@ class Casp(ContinualModel):
         
             # Update the buffer with the shuffled images and labels
             buffer.buffer_label[list_of_indices] = shuffled_labels.to("cuda")
-            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")
-'''
-            
-    
-    
+            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")'''
+
+
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         #print("inputs.shape:", inputs.shape, "labels.shape:", labels.shape, "index_.shape:", index_.shape)
