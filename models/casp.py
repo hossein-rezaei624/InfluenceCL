@@ -103,7 +103,7 @@ class Casp(ContinualModel):
             self.unique_classes.update(labels.numpy())
             if len(self.unique_classes)==dataset.N_CLASSES_PER_TASK:
                 break
-        #print("unique_classes:", self.unique_classes)
+        print("unique_classes:", self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(8)} for class_id, __ in enumerate(self.unique_classes)}
