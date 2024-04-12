@@ -133,7 +133,7 @@ class Casp(ContinualModel):
             # Initialize a counter
             counter__ = 0
             # Iterate over each label in the buffer
-            print("self.buffer.labels.shape[0]", self.buffer.labels.shape[0])
+            print("self.buffer.labels.shape[000000000000000000000000000000000]", self.buffer.labels.shape[0])
             for i in range(self.buffer.labels.shape[0]):
                 # Check if the label is in the set of unique classes
                 if self.buffer.labels[i].item() in self.unique_classes:
@@ -159,7 +159,7 @@ class Casp(ContinualModel):
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1] #challenging
         
-            # Create a subset of the train dataset using the sorted indices
+  '''          # Create a subset of the train dataset using the sorted indices
             subset_data = torch.utils.data.Subset(train_dataset, top_indices_sorted)
             # Create a DataLoader for the subset data
             trainloader_C = torch.utils.data.DataLoader(subset_data, batch_size=10, shuffle=False, num_workers=0)
@@ -231,7 +231,7 @@ class Casp(ContinualModel):
         
             # Update the buffer with the shuffled images and labels
             buffer.buffer_label[list_of_indices] = shuffled_labels.to("cuda")
-            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")
+            buffer.buffer_img[list_of_indices] = shuffled_images.to("cuda")'''
             
     
     
