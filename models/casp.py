@@ -92,7 +92,7 @@ class Casp(ContinualModel):
         self.mapping = {}
         self.reverse_mapping = {}
         self.confidence_by_class = {}
-        self.confidence_by_sample = torch.tensor()
+        self.confidence_by_sample = None
 
     def begin_task(self, dataset, train_loader):
         self.epoch = 0
