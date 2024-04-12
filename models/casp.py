@@ -113,7 +113,7 @@ class Casp(ContinualModel):
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(8)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((8, self.n_sample_per_task))
     
-    def end_epoch(self, dataset):
+    def end_epoch(self, dataset, train_loader):
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
