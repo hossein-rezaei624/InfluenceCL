@@ -91,10 +91,10 @@ class Casp(ContinualModel):
         self.unique_classes = set()
 
     def begin_task(self, dataset):
-        self.task += 1
         self.epoch = 0
-        self.unique_classes = set()
+        #self.unique_classes = set()
         self.train_loader, _ = dataset.get_data_loaders()
+        self.task += 1
         for _, labels, _, _ in self.train_loader:
             self.unique_classes.update(labels.numpy())
             if len(self.unique_classes)==dataset.N_CLASSES_PER_TASK:
