@@ -249,8 +249,7 @@ class Casp(ContinualModel):
         #print("labels", labels, "index_", index_)
         
         real_batch_size = inputs.shape[0]
-        if self.epoch == 2:
-            print("Hiiiiiiiiiiiiiiiiiiiiiii")
+
         if self.epoch < 8:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
