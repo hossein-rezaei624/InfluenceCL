@@ -117,7 +117,6 @@ class Casp(ContinualModel):
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
-            print("yeahhhhhhhhhhhhhhhhhhhhhhh")
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
@@ -250,7 +249,8 @@ class Casp(ContinualModel):
         #print("labels", labels, "index_", index_)
         
         real_batch_size = inputs.shape[0]
-
+        if self.epoch == 2:
+            print("Hiiiiiiiiiiiiiiiiiiiiiii")
         if self.epoch < 8:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
