@@ -282,10 +282,10 @@ class Casp(ContinualModel):
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
-                confidence_batch.append(soft_[i,targets[i]].item())
+                confidence_batch.append(soft_[i,labels[i]].item())
                 
                 # Update the dictionary with the confidence score for the current class for the current epoch
-                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, targets[i]].item())
+                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
     
             # Record the confidence scores for samples in the corresponding tensor
             conf_tensor = torch.tensor(confidence_batch)
