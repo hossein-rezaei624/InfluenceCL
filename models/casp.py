@@ -269,7 +269,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 8:
+        if self.epoch <= 8:
             soft_ = soft_1(logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
