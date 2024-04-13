@@ -128,12 +128,12 @@ class Casp(ContinualModel):
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
             Variability = self.confidence_by_sample.std(dim=0)
 
-            plt.scatter(Variability, Confidence_mean, s = 2)
+            ##plt.scatter(Variability, Confidence_mean, s = 2)
             
-            plt.xlabel("Variability") 
-            plt.ylabel("Confidence") 
+            ##plt.xlabel("Variability") 
+            ##plt.ylabel("Confidence") 
             
-            plt.savefig('scatter_plot.png')
+            ##plt.savefig('scatter_plot.png')
 
             
         
@@ -248,8 +248,8 @@ class Casp(ContinualModel):
             shuffled_labels = all_labels_[indices]
         
             # Update the buffer with the shuffled images and labels
-            ##self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
-            ##self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
+            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
+            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
