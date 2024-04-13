@@ -259,7 +259,7 @@ class Casp(ContinualModel):
         
         real_batch_size = inputs.shape[0]
 
-        if self.epoch < 12:
+        if self.epoch < 12 and self.task != 1:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -278,7 +278,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 12:
+        if self.epoch < 12 and self.task != 1:
             soft_ = soft_1(logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
