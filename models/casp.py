@@ -7,6 +7,7 @@ from utils.casp_transforms_aug import transforms_aug
 
 import torch.nn as nn
 import numpy as np
+import matplotlib.pyplot as plt
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -127,6 +128,14 @@ class Casp(ContinualModel):
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
             Variability = self.confidence_by_sample.std(dim=0)
 
+            plt.scatter(Variability, Confidence_mean, s = 2)
+            
+            plt.xlabel("Variability") 
+            plt.ylabel("Confidence") 
+            
+            plt.savefig('scatter_plot.png')
+
+            
         
             # Initialize an empty list to store indices
             list_of_indices = []
