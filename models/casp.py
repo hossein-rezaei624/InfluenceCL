@@ -8,6 +8,7 @@ from utils.casp_transforms_aug import transforms_aug
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+import torchvision
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -128,12 +129,12 @@ class Casp(ContinualModel):
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
             Variability = self.confidence_by_sample.std(dim=0)
 
-            ##plt.scatter(Variability, Confidence_mean, s = 2)
+            plt.scatter(Variability, Confidence_mean, s = 2)
             
-            ##plt.xlabel("Variability") 
-            ##plt.ylabel("Confidence") 
+            plt.xlabel("Variability") 
+            plt.ylabel("Confidence") 
             
-            ##plt.savefig('scatter_plot.png')
+            plt.savefig('scatter_plot.png')
 
             
         
@@ -195,7 +196,20 @@ class Casp(ContinualModel):
             # Extract inputs and labels using these positions
             all_images = all_inputs[positions]
             all_labels = all_labels[positions]
-        
+
+
+
+            # Extract the first 12 images to display (or fewer if there are less than 12 images)
+            images_display = [all_images[j] for j in range(100)]
+    
+            # Make a grid from these images
+            grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            
+            # Save grid image with unique name for each batch
+            torchvision.utils.save_image(grid, 'grid_image.png')
+
+
+            
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
         
