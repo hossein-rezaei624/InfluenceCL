@@ -85,7 +85,7 @@ def parse_args():
 def main(args=None):
 
     # set up seed
-    np.random.seed(0)
+    numpy.random.seed(0)
     random.seed(0)
     torch.manual_seed(0)
     if torch.cuda.is_available():
