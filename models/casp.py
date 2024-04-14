@@ -173,18 +173,20 @@ class Casp(ContinualModel):
 
 
             # Initialize lists to hold data
-            all_inputs, all_labels, all_indices = [], [], []
+            all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
             
             # Collect all data
             for data_1 in train_loader:
                 inputs_1, labels_1, not_aug_inputs_1, indices_1 = data_1
-                all_inputs.append(not_aug_inputs_1)
+                all_inputs.append(inputs_1)
                 all_labels.append(labels_1)
+                all_not_aug_inputs.append(not_aug_inputs_1)
                 all_indices.append(indices_1)
             
             # Concatenate all collected items to form complete arrays            
             all_inputs = torch.cat(all_inputs, dim=0)
             all_labels = torch.cat(all_labels, dim=0)
+            all_not_aug_inputs = torch.cat(all_not_aug_inputs, dim=0)
             all_indices = torch.cat(all_indices, dim=0)
 
             # Convert sorted_indices_2 to a tensor for indexing
@@ -196,7 +198,7 @@ class Casp(ContinualModel):
             # Extract inputs and labels using these positions
             all_images = all_inputs[positions]
             all_labels = all_labels[positions]
-
+            all_not_aug_inputs = all_not_aug_inputs[positions]
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
@@ -208,6 +210,18 @@ class Casp(ContinualModel):
             # Save grid image with unique name for each batch
             torchvision.utils.save_image(grid, 'grid_image.png')
 
+
+
+            # Extract the first 12 images to display (or fewer if there are less than 12 images)
+            images_display_ = [all_not_aug_inputs[j] for j in range(100)]
+    
+            # Make a grid from these images
+            grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
+            
+            # Save grid image with unique name for each batch
+            torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
+
+            
 
             
             # Convert standard deviation of means by class to item form
