@@ -112,8 +112,8 @@ class Casp(ContinualModel):
         #print("unique_classes:", self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(6)} for class_id, __ in enumerate(self.unique_classes)}
-        self.confidence_by_sample = torch.zeros((6, self.n_sample_per_task))
+        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(4)} for class_id, __ in enumerate(self.unique_classes)}
+        self.confidence_by_sample = torch.zeros((4, self.n_sample_per_task))
     
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
@@ -123,7 +123,7 @@ class Casp(ContinualModel):
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(6)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(4)])) for class_id, __ in enumerate(self.unique_classes)}
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -157,19 +157,19 @@ class Casp(ContinualModel):
             top_n = counter__
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -202,24 +202,24 @@ class Casp(ContinualModel):
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display = [all_images[j] for j in range(100)]
+            ##images_display = [all_images[j] for j in range(100)]
     
             # Make a grid from these images
-            grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            ##grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_image.png')
+            ##torchvision.utils.save_image(grid, 'grid_image.png')
 
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display_ = [all_not_aug_inputs[j] for j in range(100)]
+            ##images_display_ = [all_not_aug_inputs[j] for j in range(100)]
     
             # Make a grid from these images
-            grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
+            ##grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
+            ##torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
 
             
 
@@ -286,7 +286,7 @@ class Casp(ContinualModel):
         #print("labels", labels, "index_", index_)
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < 6:
+        if self.epoch < 4:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -306,8 +306,8 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 6:
-            soft_ = soft_1(logits)
+        if self.epoch < 4:
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
