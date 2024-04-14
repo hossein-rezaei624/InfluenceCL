@@ -276,8 +276,8 @@ class Casp(ContinualModel):
             shuffled_labels = all_labels_[indices]
         
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
-            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
+            ##self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
+            ##self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
