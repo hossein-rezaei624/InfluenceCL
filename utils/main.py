@@ -30,6 +30,8 @@ import torch
 import uuid
 import datetime
 
+import random
+
 def lecun_fix():
     # Yann moved his website to CloudFlare. You need this now
     from six.moves import urllib # pyright: ignore
