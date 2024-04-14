@@ -166,10 +166,10 @@ class Casp(ContinualModel):
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1] #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
