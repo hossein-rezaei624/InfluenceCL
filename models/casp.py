@@ -276,8 +276,8 @@ class Casp(ContinualModel):
             shuffled_labels = all_labels_[indices]
         
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
-            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
+            ##self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
+            ##self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
@@ -292,7 +292,7 @@ class Casp(ContinualModel):
 
         
         # batch update
-        batch_x, batch_y = inputs, labels
+        batch_x, batch_y = not_aug_inputs, labels
         casp_logits, _ = self.net.pcrForward(not_aug_inputs)
         batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
                                    for idx in range(batch_x.size(0))])
