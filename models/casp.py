@@ -177,8 +177,8 @@ class Casp(ContinualModel):
             
             # Collect all data
             for data_1 in train_loader:
-                inputs_1, labels_1, _, indices_1 = data_1
-                all_inputs.append(inputs_1)
+                inputs_1, labels_1, not_aug_inputs_1, indices_1 = data_1
+                all_inputs.append(not_aug_inputs_1)
                 all_labels.append(labels_1)
                 all_indices.append(indices_1)
             
@@ -262,8 +262,8 @@ class Casp(ContinualModel):
             shuffled_labels = all_labels_[indices]
         
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
-            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
+            ##self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
+            ##self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
@@ -279,7 +279,7 @@ class Casp(ContinualModel):
         
         # batch update
         batch_x, batch_y = inputs, labels
-        ##casp_logits, _ = self.net.pcrForward(inputs)
+        casp_logits, _ = self.net.pcrForward(not_aug_inputs)
         batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
                                    for idx in range(batch_x.size(0))])
         batch_x = batch_x.to(self.device)
@@ -293,7 +293,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < 6:
-            soft_ = soft_1(logits)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
