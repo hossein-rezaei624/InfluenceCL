@@ -157,19 +157,19 @@ class Casp(ContinualModel):
             top_n = counter__
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -307,7 +307,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < 6:
-            soft_ = soft_1(casp_logits)
+            soft_ = soft_1(logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
