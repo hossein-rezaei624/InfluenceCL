@@ -129,12 +129,12 @@ class Casp(ContinualModel):
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
             Variability = self.confidence_by_sample.std(dim=0)
 
-            plt.scatter(Variability, Confidence_mean, s = 2)
+            ##plt.scatter(Variability, Confidence_mean, s = 2)
             
-            plt.xlabel("Variability") 
-            plt.ylabel("Confidence") 
+            ##plt.xlabel("Variability") 
+            ##plt.ylabel("Confidence") 
             
-            plt.savefig('scatter_plot.png')
+            ##plt.savefig('scatter_plot.png')
 
             
         
@@ -157,19 +157,19 @@ class Casp(ContinualModel):
             top_n = counter__
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
-            top_indices_sorted = sorted_indices_1 #hard
+            ##top_indices_sorted = sorted_indices_1 #hard
             
             ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -202,24 +202,24 @@ class Casp(ContinualModel):
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display = [all_images[j] for j in range(100)]
+            ##images_display = [all_images[j] for j in range(100)]
     
             # Make a grid from these images
-            grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            ##grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_image.png')
+            ##torchvision.utils.save_image(grid, 'grid_image.png')
 
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display_ = [all_not_aug_inputs[j] for j in range(100)]
+            ##images_display_ = [all_not_aug_inputs[j] for j in range(100)]
     
             # Make a grid from these images
-            grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
+            ##grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
+            ##torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
 
             
 
