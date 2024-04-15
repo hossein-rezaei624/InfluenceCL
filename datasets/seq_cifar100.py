@@ -32,9 +32,7 @@ class MyCIFAR100(CIFAR100):
     """
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor(),
-             transforms.Normalize((0.5071, 0.4867, 0.4408),
-                                  (0.2675, 0.2565, 0.2761)),])
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
         super(MyCIFAR100, self).__init__(root, train, transform, target_transform, not self._check_integrity())
 
