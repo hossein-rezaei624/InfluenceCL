@@ -123,7 +123,7 @@ class Casp(ContinualModel):
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(7)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(7)])) for class_id, __ in enumerate(self.unique_classes)}
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -157,19 +157,19 @@ class Casp(ContinualModel):
             top_n = counter__
         
             # Sort indices based on the Confidence
-            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            sorted_indices_2 = np.argsort(Variability.numpy())
+            ##sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
