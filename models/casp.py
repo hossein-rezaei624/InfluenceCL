@@ -225,7 +225,7 @@ class Casp(ContinualModel):
 
             
             # Convert standard deviation of means by class to item form
-            updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
+            updated_std_of_means_by_class = {k: 1 - v.item() for k, v in std_of_means_by_class.items()}
         
             # Distribute samples based on the standard deviation
             dist = distribute_samples(updated_std_of_means_by_class, top_n)
