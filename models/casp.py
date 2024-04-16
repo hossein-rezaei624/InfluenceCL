@@ -118,7 +118,7 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
 
-        if self.epoch == self.args.n_epochs:
+        if self.epoch == self.args.n_epochs and False:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
@@ -347,7 +347,7 @@ class Casp(ContinualModel):
             cos_features = torch.cat([combined_feas_normalized.unsqueeze(1),
                                       combined_feas_aug_normalized.unsqueeze(1)],
                                      dim=1)
-            PSC = SupConLoss(temperature=0.2, contrast_mode='proxy')
+            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
 
