@@ -75,5 +75,5 @@ class SOIF(ContinualModel):
                 in_indexes = chosen_indexes[chosen_indexes < real_batch_size]
                 self.buffer.replace_data(out_indexes, inputs[in_indexes], labels[in_indexes])
                 self.buffer.num_seen_examples += real_batch_size
-
+        print("len(self.buffer)", len(self.buffer))
         return loss.item()
