@@ -117,7 +117,20 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
-        
+
+        list_of_indices = []
+        counter__ = 0
+        # Iterate over each label in the buffer
+        for i in range(self.buffer.labels.shape[0]):
+            # Check if the label is in the set of unique classes
+            if self.buffer.labels[i].item() in self.unique_classes:
+                # Increment the counter and add the index to the list
+                counter__ +=1
+                list_of_indices.append(i)
+
+        print("counter__", counter__)
+        print("list_of_indices", list_of_indices[:21])
+
         if self.epoch == self.args.n_epochs:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
