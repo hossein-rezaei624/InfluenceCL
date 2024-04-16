@@ -347,7 +347,7 @@ class Casp(ContinualModel):
             cos_features = torch.cat([combined_feas_normalized.unsqueeze(1),
                                       combined_feas_aug_normalized.unsqueeze(1)],
                                      dim=1)
-            PSC = SupConLoss(temperature=0.05, contrast_mode='proxy')
+            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
 
