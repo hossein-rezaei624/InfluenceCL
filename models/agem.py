@@ -47,7 +47,7 @@ class AGem(ContinualModel):
             labels=cur_y.to(self.device)
         )
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
 
         self.zero_grad()
         p = self.net.forward(inputs)
