@@ -150,7 +150,7 @@ class Casp(ContinualModel):
                     counter__ +=1
                     list_of_indices.append(i)
             
-            ##print("counter__", counter__)
+            print("counter__", counter__)
             ##print("list_of_indices", list_of_indices)
             
             # Store the total count in top_n
