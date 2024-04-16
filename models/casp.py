@@ -370,6 +370,6 @@ class Casp(ContinualModel):
         # update mem
         self.buffer.add_data(examples=inputs[:real_batch_size],
                              labels=labels[:real_batch_size])
-
+        print("len(self.buffer)", len(self.buffer))
         return novel_loss.item()
 
