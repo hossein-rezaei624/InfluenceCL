@@ -112,8 +112,8 @@ class Casp(ContinualModel):
         #print("unique_classes:", self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(7)} for class_id, __ in enumerate(self.unique_classes)}
-        self.confidence_by_sample = torch.zeros((7, self.n_sample_per_task))
+        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(2)} for class_id, __ in enumerate(self.unique_classes)}
+        self.confidence_by_sample = torch.zeros((2, self.n_sample_per_task))
     
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
@@ -136,7 +136,7 @@ class Casp(ContinualModel):
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(7)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(2)])) for class_id, __ in enumerate(self.unique_classes)}
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -299,7 +299,7 @@ class Casp(ContinualModel):
         #print("labels", labels, "index_", index_)
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < 7:
+        if self.epoch < 2:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -319,7 +319,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 7:
+        if self.epoch < 2:
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
