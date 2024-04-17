@@ -307,7 +307,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < 4:
-            soft_ = soft_1(logits)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
