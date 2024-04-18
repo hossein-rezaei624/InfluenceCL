@@ -128,7 +128,7 @@ class Gem(ContinualModel):
         )
 
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
 
         if not self.buffer.is_empty():
             buf_inputs, buf_labels, buf_task_labels = self.buffer.get_data(
