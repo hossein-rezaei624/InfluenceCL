@@ -611,7 +611,6 @@ best_args = {
                                   'minibatch_size': 32,
                                   'gss_minibatch_size': 32,
                                   'batch_size': 32,
-                                  'n_epochs': 50,
                                   'batch_num': 1},
                             1000: {'lr': 0.03,
                                   'minibatch_size': 32,
