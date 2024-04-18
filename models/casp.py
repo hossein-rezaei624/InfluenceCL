@@ -227,7 +227,7 @@ class Casp(ContinualModel):
 
             
             # Convert standard deviation of means by class to item form
-            updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
+            updated_std_of_means_by_class = {k: 1 - v.item() for k, v in std_of_means_by_class.items()}
         
             # Distribute samples based on the standard deviation
             dist = distribute_samples(updated_std_of_means_by_class, top_n)
@@ -309,7 +309,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.args.casp_epoch:
-            soft_ = soft_1(logits)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
