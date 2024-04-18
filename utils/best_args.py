@@ -592,7 +592,6 @@ best_args = {
                                   'hal_lambda': 0.1,
                                   'beta': 0.3,
                                   'gamma': 0.1,
-                                  'steps_on_anchors': 100,
                                   'finetuning_epochs': 1},
                             1000: {'lr': 0.03,
                                    'minibatch_size': 32,
