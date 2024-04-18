@@ -57,7 +57,7 @@ class MyCIFAR10(CIFAR10):
         if hasattr(self, 'logits'):
             return img, target, not_aug_img, self.logits[index]
 
-        return img, target, not_aug_img
+        return img, target, not_aug_img, index
 
 
 class SequentialCIFAR10(ContinualDataset):
