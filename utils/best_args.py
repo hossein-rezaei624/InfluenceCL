@@ -1077,7 +1077,7 @@ best_args = {
         'lwf': {
             -1: {'lr': 0.03, 'optim_mom': 0, 'optim_wd': 5e-4},
         },
-        'agem': {500: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0},
+        'gem': {500: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0},
                 1000: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0},
                 2000: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0}},
 
