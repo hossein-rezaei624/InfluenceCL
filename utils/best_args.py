@@ -589,7 +589,6 @@ best_args = {
                             500: {'lr': 0.03,
                                   'minibatch_size': 32,
                                   'batch_size': 32,
-                                  'n_epochs': 50,
                                   'hal_lambda': 0.1,
                                   'beta': 0.3,
                                   'gamma': 0.1,
