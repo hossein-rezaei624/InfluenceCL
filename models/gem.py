@@ -6,23 +6,31 @@
 
 import numpy as np
 import torch
-import os
-from utils.conf import warn_once
-
 try:
     import quadprog
-except BaseException:
-    quadprog = None
-    if os.name == 'nt':
-        # check if os is windows
-        warn_once('Warning: GEM and A-GEM cannot be used on Windows (quadprog required)')
-    else:
-        warn_once('Warning: quadprog not found (GEM and A-GEM will not work)')
-    raise ImportError
+except:
+    print('Warning: GEM and A-GEM cannot be used on Windows (quadprog required)')
 
 from models.utils.continual_model import ContinualModel
-from utils.args import add_rehearsal_args, ArgumentParser
-from utils.buffer import Buffer, fill_buffer
+from utils.args import *
+from utils.buffer import Buffer
+
+
+def get_parser() -> ArgumentParser:
+    parser = ArgumentParser(description='Continual learning via'
+                                        ' Gradient Episodic Memory.')
+    add_management_args(parser)
+    add_experiment_args(parser)
+    add_rehearsal_args(parser)
+    # remove minibatch_size from parser
+    for i in range(len(parser._actions)):
+        if parser._actions[i].dest == 'minibatch_size':
+            del parser._actions[i]
+            break
+
+    parser.add_argument('--gamma', type=float, default=None,
+                        help='Margin parameter for GEM.')
+    return parser
 
 
 def store_grad(params, grads, grad_dims):
@@ -89,19 +97,10 @@ class Gem(ContinualModel):
     NAME = 'gem'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il']
 
-    @staticmethod
-    def get_parser() -> ArgumentParser:
-        parser = ArgumentParser(description='Continual learning via Gradient Episodic Memory.')
-        add_rehearsal_args(parser)
-
-        parser.add_argument('--gamma', type=float, default=0.5,
-                            help='Margin parameter for GEM.')
-        return parser
-
     def __init__(self, backbone, loss, args, transform):
-        assert quadprog is not None, 'GEM requires quadprog (linux only)'
         super(Gem, self).__init__(backbone, loss, args, transform)
-        self.buffer = Buffer(self.args.buffer_size)
+        self.current_task = 0
+        self.buffer = Buffer(self.args.buffer_size, self.device)
 
         # Allocate temporary synaptic memory
         self.grad_dims = []
@@ -112,16 +111,28 @@ class Gem(ContinualModel):
         self.grads_da = torch.zeros(np.sum(self.grad_dims)).to(self.device)
 
     def end_task(self, dataset):
+        self.current_task += 1
         self.grads_cs.append(torch.zeros(
             np.sum(self.grad_dims)).to(self.device))
 
-        fill_buffer(self.buffer, dataset, self.current_task, required_attributes=['examples', 'labels', 'task_labels'])
+        # add data to the buffer
+        samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
-    def observe(self, inputs, labels, not_aug_inputs, epoch=None):
+        loader = dataset.train_loader
+        cur_y, cur_x, __ = next(iter(loader))[1:]
+        self.buffer.add_data(
+            examples=cur_x.to(self.device),
+            labels=cur_y.to(self.device),
+            task_labels=torch.ones(samples_per_task,
+                dtype=torch.long).to(self.device) * (self.current_task - 1)
+        )
+
+
+    def observe(self, inputs, labels, not_aug_inputs, index_):
 
         if not self.buffer.is_empty():
             buf_inputs, buf_labels, buf_task_labels = self.buffer.get_data(
-                self.args.buffer_size, transform=self.transform, device=self.device)
+                self.args.buffer_size, transform=self.transform)
 
             for tt in buf_task_labels.unique():
                 # compute gradient on the memory buffer
@@ -145,7 +156,7 @@ class Gem(ContinualModel):
             store_grad(self.parameters, self.grads_da, self.grad_dims)
 
             dot_prod = torch.mm(self.grads_da.unsqueeze(0),
-                                torch.stack(self.grads_cs).T)
+                            torch.stack(self.grads_cs).T)
             if (dot_prod < 0).sum() != 0:
                 project2cone2(self.grads_da.unsqueeze(1),
                               torch.stack(self.grads_cs).T, margin=self.args.gamma)
