@@ -111,7 +111,7 @@ class HAL(ContinualModel):
 
         self.spare_model.zero_grad()
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
         real_batch_size = inputs.shape[0]
         if not hasattr(self, 'input_shape'):
             self.input_shape = inputs.shape[1:]
