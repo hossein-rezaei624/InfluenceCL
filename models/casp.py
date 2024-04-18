@@ -125,7 +125,7 @@ class Casp(ContinualModel):
             mean_by_class = {class_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.args.casp_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.args.casp_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -227,7 +227,7 @@ class Casp(ContinualModel):
 
             
             # Convert standard deviation of means by class to item form
-            updated_std_of_means_by_class = {k: 1 - v.item() for k, v in std_of_means_by_class.items()}
+            updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
         
             # Distribute samples based on the standard deviation
             dist = distribute_samples(updated_std_of_means_by_class, top_n)
@@ -309,7 +309,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.args.casp_epoch:
-            soft_ = soft_1(logits)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
