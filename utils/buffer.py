@@ -136,8 +136,7 @@ class Buffer:
         """
         if not hasattr(self, 'examples'):
             self.init_tensors(examples, labels, logits, task_labels)
-            print("initttttttttttt")
-        print("outtttttttttttttttt")
+        
         for i in range(examples.shape[0]):
             index = reservoir(self.num_seen_examples, self.buffer_size)
             self.num_seen_examples += 1
