@@ -142,24 +142,6 @@ class Casp(ContinualModel):
 
             
         
-            # Initialize an empty list to store indices
-            list_of_indices = []
-            # Initialize a counter
-            counter__ = 0
-            # Iterate over each label in the buffer
-##            for i in range(self.buffer.labels.shape[0]):
-##                # Check if the label is in the set of unique classes
-##                if self.buffer.labels[i].item() in self.unique_classes:
-##                    # Increment the counter and add the index to the list
-##                    counter__ +=1
-##                    list_of_indices.append(i)
-            
-            ##print("counter__", counter__)
-            ##print("list_of_indices", list_of_indices)
-            
-            # Store the total count in top_n
-            top_n = self.args.buffer_size
-        
             # Sort indices based on the Confidence
             sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
@@ -246,12 +228,9 @@ class Casp(ContinualModel):
             # Distribute samples based on the standard deviation
             dist = dist_class[(self.task - 1)]
         
-            # Calculate the number of samples per class
-            num_per_class = top_n//len(self.unique_classes)
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
         
-
             # Distribution based on the class variability
             condition = [value for k, value in dist.items()]
         
