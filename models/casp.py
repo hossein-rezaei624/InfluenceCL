@@ -279,14 +279,13 @@ class Casp(ContinualModel):
 
 
 
-            if not hasattr(self.buffer, 'examples'):
-                self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
-                print("self.buffer.labels", self.buffer.labels)
-                self.buffer.num_seen_examples = self.args.buffer_size
+     ##       if not hasattr(self.buffer, 'examples'):
+     ##           self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
+     ##           self.buffer.num_seen_examples = self.args.buffer_size
             
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels = shuffled_labels.to(self.device)
-            self.buffer.examples = shuffled_images.to(self.device)
+            ##self.buffer.labels = shuffled_labels.to(self.device)
+            ##self.buffer.examples = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
@@ -364,8 +363,8 @@ class Casp(ContinualModel):
         self.opt.step()
         
         # update mem
- ##       self.buffer.add_data(examples=inputs[:real_batch_size],
- ##                            labels=labels[:real_batch_size])
+        self.buffer.add_data(examples=inputs[:real_batch_size],
+                             labels=labels[:real_batch_size])
         
         return novel_loss.item()
 
