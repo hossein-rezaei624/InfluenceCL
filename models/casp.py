@@ -339,8 +339,8 @@ class Casp(ContinualModel):
 
 
 
-        if False:
-
+        if self.buffer.is_empty():
+            print("iffffffffffff")
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
             feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
@@ -356,7 +356,8 @@ class Casp(ContinualModel):
             novel_loss += PSC(features=cos_features, labels=batch_y_combine)
 
         
-        elif not self.buffer.is_empty():
+        else:
+            print("elseeeeeeeeeeeeee")
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
@@ -392,8 +393,8 @@ class Casp(ContinualModel):
         self.opt.step()
         
         # update mem
-        self.buffer.add_data(examples=inputs[:real_batch_size],
-                             labels=labels[:real_batch_size])
+##        self.buffer.add_data(examples=inputs[:real_batch_size],
+##                             labels=labels[:real_batch_size])
         
         return novel_loss.item()
 
