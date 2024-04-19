@@ -339,7 +339,7 @@ class Casp(ContinualModel):
 
 
 
-        if self.buffer.is_empty():
+        if False:
 
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
@@ -356,7 +356,7 @@ class Casp(ContinualModel):
             novel_loss += PSC(features=cos_features, labels=batch_y_combine)
 
         
-        else:
+        elif not self.buffer.is_empty():
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
