@@ -245,7 +245,7 @@ class Casp(ContinualModel):
 
             
             # Distribute samples based on the standard deviation
-            dist = dist_class[self.task]
+            dist = dist_class[(self.task - 1)]
         
             # Calculate the number of samples per class
             num_per_class = top_n//len(self.unique_classes)
