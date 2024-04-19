@@ -237,10 +237,15 @@ class Casp(ContinualModel):
 
             dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
 
-            print("dist_task", dist_task)
+            print("dist_taskkkkkkkk", dist_task)
+
+
+            dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
+            print("dist_classssssss", dist_class)
+
             
             # Distribute samples based on the standard deviation
-            dist = distribute_samples(updated_std_of_means_by_class, top_n)
+            dist = dist_class[self.task]
         
             # Calculate the number of samples per class
             num_per_class = top_n//len(self.unique_classes)
