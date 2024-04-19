@@ -120,6 +120,8 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
 
+        print("self.buffer.num_seen_examples", self.buffer.num_seen_examples)
+        
         if self.epoch == self.args.casp_epoch:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
