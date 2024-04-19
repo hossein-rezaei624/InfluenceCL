@@ -120,7 +120,7 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
 
-        if self.epoch == self.args.n_epochs:
+        if self.epoch == self.args.casp_epoch:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
@@ -145,18 +145,18 @@ class Casp(ContinualModel):
             # Initialize a counter
             counter__ = 0
             # Iterate over each label in the buffer
-            for i in range(self.buffer.labels.shape[0]):
-                # Check if the label is in the set of unique classes
-                if self.buffer.labels[i].item() in self.unique_classes:
-                    # Increment the counter and add the index to the list
-                    counter__ +=1
-                    list_of_indices.append(i)
+##            for i in range(self.buffer.labels.shape[0]):
+##                # Check if the label is in the set of unique classes
+##                if self.buffer.labels[i].item() in self.unique_classes:
+##                    # Increment the counter and add the index to the list
+##                    counter__ +=1
+##                    list_of_indices.append(i)
             
             ##print("counter__", counter__)
             ##print("list_of_indices", list_of_indices)
             
             # Store the total count in top_n
-            top_n = counter__
+            top_n = self.args.buffer_size
         
             # Sort indices based on the Confidence
             sorted_indices_1 = np.argsort(Confidence_mean.numpy())
@@ -276,10 +276,17 @@ class Casp(ContinualModel):
             indices = torch.randperm(all_images_.size(0))
             shuffled_images = all_images_[indices]
             shuffled_labels = all_labels_[indices]
-        
+
+
+
+            if not hasattr(self.buffer, 'examples'):
+                self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
+                print("self.buffer.labels", self.buffer.labels)
+                self.buffer.num_seen_examples = self.args.buffer_size
+            
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels[list_of_indices] = shuffled_labels.to(self.device)
-            self.buffer.examples[list_of_indices] = shuffled_images.to(self.device)
+            self.buffer.labels = shuffled_labels.to(self.device)
+            self.buffer.examples = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
@@ -357,8 +364,8 @@ class Casp(ContinualModel):
         self.opt.step()
         
         # update mem
-        self.buffer.add_data(examples=inputs[:real_batch_size],
-                             labels=labels[:real_batch_size])
+ ##       self.buffer.add_data(examples=inputs[:real_batch_size],
+ ##                            labels=labels[:real_batch_size])
         
         return novel_loss.item()
 
