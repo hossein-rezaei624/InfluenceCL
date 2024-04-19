@@ -252,15 +252,9 @@ class Casp(ContinualModel):
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
         
-            if self.n_sample_per_task == top_n:
-                # Uniform distribution with adjustments for any remainder
-                condition = [num_per_class for _ in range(len(self.unique_classes))]
-                diff = top_n - num_per_class*len(self.unique_classes)
-                for o in range(diff):
-                    condition[o] += 1
-            else:
-                # Distribution based on the class variability
-                condition = [value for k, value in dist.items()]
+
+            # Distribution based on the class variability
+            condition = [value for k, value in dist.items()]
         
             # Check if any class exceeds its allowed number of samples
             check_bound = self.n_sample_per_task/len(self.unique_classes)
@@ -287,20 +281,14 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images_list_)
             all_labels_ = torch.stack(labels_list_)
         
-            # Shuffle the data
-            indices = torch.randperm(all_images_.size(0))
-            shuffled_images = all_images_[indices]
-            shuffled_labels = all_labels_[indices]
-
-
 
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
             self.buffer.num_seen_examples += self.n_sample_per_task
             
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels = shuffled_labels.to(self.device)
-            self.buffer.examples = shuffled_images.to(self.device)
+            self.buffer.labels = all_labels_.to(self.device)
+            self.buffer.examples = all_images_.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
