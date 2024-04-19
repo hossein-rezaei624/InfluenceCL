@@ -51,19 +51,19 @@ def distribute_samples(probabilities, M):
     return samples    # Return the final classes distribution
 
     
-def distribute_excess(lst):
+def distribute_excess(lst, check_bound):
     # Calculate the total excess value
-    total_excess = sum(val - 500 for val in lst if val > 500)
+    total_excess = sum(val - check_bound for val in lst if val > check_bound)
 
-    # Number of elements that are not greater than 500
-    recipients = [i for i, val in enumerate(lst) if val < 500]
+    # Number of elements that are not greater than check_bound
+    recipients = [i for i, val in enumerate(lst) if val < check_bound]
 
     num_recipients = len(recipients)
 
     # Calculate the average share and remainder
     avg_share, remainder = divmod(total_excess, num_recipients)
 
-    lst = [val if val <= 500 else 500 for val in lst]
+    lst = [val if val <= check_bound else check_bound for val in lst]
     
     # Distribute the average share
     for idx in recipients:
@@ -73,10 +73,10 @@ def distribute_excess(lst):
     for idx in recipients[:remainder]:
         lst[idx] += 1
     
-    # Cap values greater than 500
+    # Cap values greater than check_bound
     for i, val in enumerate(lst):
-        if val > 500:
-            return distribute_excess(lst)
+        if val > check_bound:
+            return distribute_excess(lst, check_bound)
             break
 
     return lst
@@ -252,7 +252,7 @@ class Casp(ContinualModel):
             for i in range(len(condition)):
                 if condition[i] > check_bound:
                     # Redistribute the excess samples
-                    condition = distribute_excess(condition)
+                    condition = distribute_excess(condition, check_bound)
                     break
         
             # Initialize new lists for adjusted images and labels
