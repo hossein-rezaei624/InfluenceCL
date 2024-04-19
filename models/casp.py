@@ -226,8 +226,6 @@ class Casp(ContinualModel):
             ##torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
 
             
-
-            
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
 
@@ -236,7 +234,10 @@ class Casp(ContinualModel):
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
 
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
-            print("updated_task_portion", updated_task_portion)
+
+            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+
+            print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = distribute_samples(updated_std_of_means_by_class, top_n)
