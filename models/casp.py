@@ -289,13 +289,13 @@ class Casp(ContinualModel):
 
 
 
-##            if not hasattr(self.buffer, 'examples'):
-##                self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
-##            self.buffer.num_seen_examples += self.n_sample_per_task
+            if not hasattr(self.buffer, 'examples'):
+                self.buffer.init_tensors(shuffled_images.to(self.device), shuffled_labels.to(self.device), None, None)
+            self.buffer.num_seen_examples += self.n_sample_per_task
             
             # Update the buffer with the shuffled images and labels
-##            self.buffer.labels = shuffled_labels.to(self.device)
-##            self.buffer.examples = shuffled_images.to(self.device)
+            self.buffer.labels = shuffled_labels.to(self.device)
+            self.buffer.examples = shuffled_images.to(self.device)
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
