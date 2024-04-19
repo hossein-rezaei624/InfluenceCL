@@ -337,7 +337,26 @@ class Casp(ContinualModel):
             conf_tensor = torch.tensor(confidence_batch)
             self.confidence_by_sample[self.epoch, index_] = conf_tensor
 
-        if not self.buffer.is_empty():
+
+
+        if self.buffer.is_empty():
+
+            feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
+
+            feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
+            feas_normalized = feas.div(feas_norm + 0.000001)
+
+            feas_aug_norm = torch.norm(feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
+                feas_aug)
+            feas_aug_normalized = feas_aug.div(feas_aug_norm + 0.000001)
+            cos_features = torch.cat([feas_normalized.unsqueeze(1),
+                                      feas_aug_normalized.unsqueeze(1)],
+                                     dim=1)
+            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
+            novel_loss += PSC(features=cos_features, labels=batch_y_combine)
+
+        
+        else:
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
