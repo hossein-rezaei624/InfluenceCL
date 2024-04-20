@@ -294,7 +294,7 @@ class Casp(ContinualModel):
                     if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
                         counter_manage_merged[self.buffer.labels[i].item()] += 1
                         labels_store.append(self.buffer.labels[i])
-                        images_store.append(self.buffer.labels[i])
+                        images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
                         break
             
