@@ -298,10 +298,14 @@ class Casp(ContinualModel):
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
-                                
+
+                print("labels_store_.shape", labels_store_.shape)
+                print("all_labels_.shape", all_labels_.shape)
+                
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
-                
+
+            print("all_labels_.shape", all_labels_.shape)
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
             self.buffer.num_seen_examples += self.n_sample_per_task
@@ -309,7 +313,8 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-            
+
+            print("self.buffer.labels.shape", self.buffer.labels.shape)
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
