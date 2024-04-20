@@ -237,7 +237,7 @@ class Casp(ContinualModel):
             ##print("dist_classssssss", dist_class)
             
             # Distribute samples based on the standard deviation
-            dist = dist_class[(self.task - 1)]
+            dist = dist_class.pop()
             dist = {self.mapping[k]: v for k, v in dist.items()}
         
             # Initialize a counter for each class
@@ -276,10 +276,16 @@ class Casp(ContinualModel):
                 self.buffer.init_tensors(all_images_.to(self.device), all_labels_.to(self.device), None, None)
             self.buffer.num_seen_examples += self.n_sample_per_task
 
-
-
+            
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task)]
-            print("counter_manageeeeeeeeee", counter_manage)
+
+            dist_class_merged = {}
+            counter_manage_merged = {}
+            
+            for d in dist_class:
+                dist_class_merged.apdate(d)
+            for f in counter_manage:
+                counter_manage_merged.apdate(f)
 
             
             # Update the buffer with the shuffled images and labels
