@@ -219,16 +219,16 @@ class Casp(ContinualModel):
 
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
 
-            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+##            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
 
             
-##            same_task_number = self.args.buffer_size//self.task
-##            dist_task = {i:same_task_number for i in range(self.task)}
-##            diff = self.args.buffer_size - same_task_number*self.task
-##            for o in range(diff):
-##                dist_task[o] += 1
+            same_task_number = self.args.buffer_size//self.task
+            dist_task = {i:same_task_number for i in range(self.task)}
+            diff = self.args.buffer_size - same_task_number*self.task
+            for o in range(diff):
+                dist_task[o] += 1
 
-            print("dist_taskkkkkkkk", dist_task)
+##            print("dist_taskkkkkkkk", dist_task)
 
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
