@@ -232,6 +232,7 @@ class Casp(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
+            print("dist_classssssssssss", dist_class)
             
             # Distribute samples based on the standard deviation
             dist = dist_class[(self.task - 1)]
