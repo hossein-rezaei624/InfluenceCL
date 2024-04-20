@@ -228,7 +228,7 @@ class Casp(ContinualModel):
             for o in range(diff):
                 dist_task[o] += 1
 
-##            print("dist_taskkkkkkkk", dist_task)
+            print("dist_taskkkkkkkk", dist_task)
 
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
@@ -293,8 +293,11 @@ class Casp(ContinualModel):
                         labels_store.append(self.buffer.labels[i])
                         images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
+                        print("we are in breakkkkkkk.")
                         break
-            
+
+                print("dist_class_merged", dist_class_merged)
+                print("counter_manage_merged", counter_manage_merged)
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
