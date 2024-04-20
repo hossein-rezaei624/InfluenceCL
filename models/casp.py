@@ -288,7 +288,7 @@ class Casp(ContinualModel):
                 # Initialize new lists for adjusted images and labels
                 images_store = []
                 labels_store = []
-            
+                print("self.buffer.labels.shape", self.buffer.labels.shape)
                 # Iterate over all_labels and select most challening images for each class based on the class variability
                 for i in range(len(self.buffer)):
                     if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
