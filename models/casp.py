@@ -268,8 +268,8 @@ class Casp(ContinualModel):
                     break
         
             # Stack the selected images and labels
-            all_images_ = torch.stack(images_list_)
-            all_labels_ = torch.stack(labels_list_)
+            all_images_ = torch.stack(images_list_).to(self.device)
+            all_labels_ = torch.stack(labels_list_).to(self.device)
         
 
 
@@ -313,8 +313,8 @@ class Casp(ContinualModel):
             self.buffer.num_seen_examples += self.n_sample_per_task
             
             # Update the buffer with the shuffled images and labels
-            self.buffer.labels = all_labels_.to(self.device)
-            self.buffer.examples = all_images_.to(self.device)
+            self.buffer.labels = all_labels_
+            self.buffer.examples = all_images_
             
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
