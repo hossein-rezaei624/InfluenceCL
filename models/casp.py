@@ -217,11 +217,19 @@ class Casp(ContinualModel):
 
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
 
-            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+  ###          dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+
+            
+            same_task_number = self.args.buffer_size//self.task
+            dist_task = [same_task_number for _ in range(self.task)]
+            diff = self.args.buffer_size - same_task_number*self.task
+            for o in range(diff):
+                dist_task[o] += 1
 
             print("dist_taskkkkkkkk", dist_task)
 
 
+            
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
             
@@ -360,10 +368,6 @@ class Casp(ContinualModel):
 
         novel_loss.backward()
         self.opt.step()
-        
-        # update mem
-##        self.buffer.add_data(examples=inputs[:real_batch_size],
-##                             labels=labels[:real_batch_size])
         
         return novel_loss.item()
 
