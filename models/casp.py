@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
+import random
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -216,7 +217,7 @@ class Casp(ContinualModel):
 
             self.class_portion.append(updated_std_of_means_by_class)
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
-            print("self.class_portionnnnnnnnnnnnnnn", self.class_portion)
+            
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
 
 ##            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
@@ -230,6 +231,9 @@ class Casp(ContinualModel):
 
             print("dist_taskkkkkkkk", dist_task)
 
+            print("self.class_portion beforeeeeeee", self.class_portion)
+            self.class_portion = [dict(random.sample(list(d.items()), k=len(d))) for d in self.class_portion]
+            print("self.class_portion afterrrrrrrr", self.class_portion)
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
@@ -296,8 +300,8 @@ class Casp(ContinualModel):
                         print("we are in breakkkkkkk.")
                         break
 
-                print("dist_class_merged", dist_class_merged)
-                print("counter_manage_merged", counter_manage_merged)
+                ##print("dist_class_merged", dist_class_merged)
+                ##print("counter_manage_merged", counter_manage_merged)
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
