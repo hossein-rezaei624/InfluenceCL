@@ -278,9 +278,8 @@ class Casp(ContinualModel):
 
 
 
-      ##      dist_class
-
-
+            counter_manage = [{k:0 for k, __ in dist_class.items()} for _ in range(self.task)]
+            print("counter_manageeeeeeeeee", counter_manage)
 
             
             # Update the buffer with the shuffled images and labels
