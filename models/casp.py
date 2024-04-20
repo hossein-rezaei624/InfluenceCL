@@ -286,8 +286,12 @@ class Casp(ContinualModel):
                 dist_class_merged.update(d)
             for f in counter_manage:
                 counter_manage_merged.update(f)
-            print("dist_class_mergeddddddd", dist_class_merged)
-            print("counter_manage_mergedddddd", counter_manage_merged)
+
+
+
+            print("all_labels_.to(self.device).shape", all_labels_.to(self.device).shape)
+
+
             
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_.to(self.device)
