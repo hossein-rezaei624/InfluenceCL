@@ -302,10 +302,13 @@ class Casp(ContinualModel):
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
                 
+                print("labels_store_.shape", labels_store_.shape)
+                print("images_store_.shape", images_store_.shape)
+                print("all_images_.shape", all_images_.shape)
+                
                 final_images = torch.cat((images_store_, all_images_))
                 final_labels = torch.cat((labels_store_, all_labels_))
     
-                print("labels_store_.shape", labels_store_.shape)
                 print("final_labels.shape", final_labels.shape)
             
             if not hasattr(self.buffer, 'examples'):
