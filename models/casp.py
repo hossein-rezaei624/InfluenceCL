@@ -234,13 +234,11 @@ class Casp(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
-            print("dist_classssssssssss", dist_class)
+            ##print("dist_classssssss", dist_class)
             
             # Distribute samples based on the standard deviation
             dist = dist_class[(self.task - 1)]
-            print("dist beforeeeeeeee", dist)
             dist = {self.mapping[k]: v for k, v in dist.items()}
-            print("dist afterrrrrrrrr", dist)
         
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
@@ -277,6 +275,13 @@ class Casp(ContinualModel):
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_.to(self.device), all_labels_.to(self.device), None, None)
             self.buffer.num_seen_examples += self.n_sample_per_task
+
+
+
+      ##      dist_class
+
+
+
             
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_.to(self.device)
