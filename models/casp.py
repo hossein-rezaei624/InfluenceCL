@@ -277,7 +277,7 @@ class Casp(ContinualModel):
             self.buffer.num_seen_examples += self.n_sample_per_task
 
             
-            counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task)]
+            counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
             dist_class_merged = {}
             counter_manage_merged = {}
@@ -286,7 +286,8 @@ class Casp(ContinualModel):
                 dist_class_merged.apdate(d)
             for f in counter_manage:
                 counter_manage_merged.apdate(f)
-
+            print("dist_class_mergeddddddd", dist_class_merged)
+            print("counter_manage_mergedddddd", counter_manage_merged)
             
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_.to(self.device)
