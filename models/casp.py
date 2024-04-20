@@ -221,7 +221,7 @@ class Casp(ContinualModel):
 
             
             same_task_number = self.args.buffer_size//self.task
-            dist_task = [same_task_number for _ in range(self.task)]
+            dist_task = {i:same_task_number for i in range(self.task)}
             diff = self.args.buffer_size - same_task_number*self.task
             for o in range(diff):
                 dist_task[o] += 1
