@@ -284,30 +284,29 @@ class Casp(ContinualModel):
             for f in counter_manage:
                 counter_manage_merged.update(f)
 
-
-
-            # Initialize new lists for adjusted images and labels
-            images_store = []
-            labels_store = []
-        
-            # Iterate over all_labels and select most challening images for each class based on the class variability
-            for i in range(len(self.buffer)):
-                if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
-                    counter_manage_merged[self.buffer.labels[i].item()] += 1
-                    labels_store.append(self.buffer.labels[i])
-                    images_store.append(self.buffer.labels[i])
-                if counter_manage_merged == dist_class_merged:
-                    break
-        
-            # Stack the selected images and labels
-            images_store_ = torch.stack(images_store)
-            labels_store_ = torch.stack(labels_store)
+            if not self.buffer.is_empty():
+                # Initialize new lists for adjusted images and labels
+                images_store = []
+                labels_store = []
             
-            final_images = torch.cat((images_store_, all_images_))
-            final_labels = torch.cat((labels_store_, all_labels_))
-
-            print("labels_store_.shape", labels_store_.shape)
-            print("final_labels.shape", final_labels.shape)
+                # Iterate over all_labels and select most challening images for each class based on the class variability
+                for i in range(len(self.buffer)):
+                    if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
+                        counter_manage_merged[self.buffer.labels[i].item()] += 1
+                        labels_store.append(self.buffer.labels[i])
+                        images_store.append(self.buffer.labels[i])
+                    if counter_manage_merged == dist_class_merged:
+                        break
+            
+                # Stack the selected images and labels
+                images_store_ = torch.stack(images_store)
+                labels_store_ = torch.stack(labels_store)
+                
+                final_images = torch.cat((images_store_, all_images_))
+                final_labels = torch.cat((labels_store_, all_labels_))
+    
+                print("labels_store_.shape", labels_store_.shape)
+                print("final_labels.shape", final_labels.shape)
             
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_.to(self.device), all_labels_.to(self.device), None, None)
