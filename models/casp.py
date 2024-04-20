@@ -228,8 +228,7 @@ class Casp(ContinualModel):
             for o in range(diff):
                 dist_task[o] += 1
 
-            print("dist_taskkkkkkkk", dist_task)
-
+   ###         print("dist_taskkkkkkkk", dist_task)
 
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
@@ -271,8 +270,6 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images_list_).to(self.device)
             all_labels_ = torch.stack(labels_list_).to(self.device)
         
-
-
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
@@ -288,7 +285,7 @@ class Casp(ContinualModel):
                 # Initialize new lists for adjusted images and labels
                 images_store = []
                 labels_store = []
-                print("self.buffer.labels.shape", self.buffer.labels.shape)
+                
                 # Iterate over all_labels and select most challening images for each class based on the class variability
                 for i in range(len(self.buffer)):
                     if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
@@ -301,15 +298,10 @@ class Casp(ContinualModel):
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
-                
-                print("labels_store_.shape", labels_store_.shape)
-                print("all_labels_.shape", all_labels_.shape)
-                
+                                
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
-    
-                print("all_labels_.shape", all_labels_.shape)
-            
+                
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_.to(self.device), all_labels_.to(self.device), None, None)
             self.buffer.num_seen_examples += self.n_sample_per_task
