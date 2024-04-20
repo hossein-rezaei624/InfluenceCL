@@ -283,9 +283,9 @@ class Casp(ContinualModel):
             counter_manage_merged = {}
             
             for d in dist_class:
-                dist_class_merged.apdate(d)
+                dist_class_merged.update(d)
             for f in counter_manage:
-                counter_manage_merged.apdate(f)
+                counter_manage_merged.update(f)
             print("dist_class_mergeddddddd", dist_class_merged)
             print("counter_manage_mergedddddd", counter_manage_merged)
             
