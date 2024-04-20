@@ -211,6 +211,8 @@ class Casp(ContinualModel):
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
 
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()}
+            
 
             self.class_portion.append(updated_std_of_means_by_class)
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
@@ -236,6 +238,9 @@ class Casp(ContinualModel):
             
             # Distribute samples based on the standard deviation
             dist = dist_class[(self.task - 1)]
+            print("dist beforeeeeeeee", dist)
+            dist = {self.mapping[k]: v for k, v in dist.items()}
+            print("dist afterrrrrrrrr", dist)
         
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
