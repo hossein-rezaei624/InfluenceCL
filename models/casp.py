@@ -299,8 +299,8 @@ class Casp(ContinualModel):
                         break
             
                 # Stack the selected images and labels
-                images_store_ = torch.stack(images_store)
-                labels_store_ = torch.stack(labels_store)
+                images_store_ = torch.stack(images_store).to(self.device)
+                labels_store_ = torch.stack(labels_store).to(self.device)
                 
                 final_images = torch.cat((images_store_, all_images_))
                 final_labels = torch.cat((labels_store_, all_labels_))
