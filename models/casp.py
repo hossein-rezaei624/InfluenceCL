@@ -278,7 +278,7 @@ class Casp(ContinualModel):
 
 
 
-            counter_manage = [{k:0 for k, __ in dist_class.items()} for _ in range(self.task)]
+            counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task)]
             print("counter_manageeeeeeeeee", counter_manage)
 
             
