@@ -216,38 +216,33 @@ class Casp(ContinualModel):
             self.class_portion.append(updated_std_of_means_by_class)
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
             
-            updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
-            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+##            updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
+##            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
 
-            if self.task > 1:
-                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
-                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
-                print("dist_taskkkkkkkk_prevvvvvvvvvvv", dist_task_prev)
-            
-##            same_task_number = self.args.buffer_size//self.task
-##            dist_task = {i:same_task_number for i in range(self.task)}
-##            diff = self.args.buffer_size - same_task_number*self.task
-##            for o in range(diff):
-##                dist_task[o] += 1
-
-            print("dist_taskkkkkkkk", dist_task)
-            
 ##            if self.task > 1:
-##                same_task_number_prev = self.args.buffer_size//(self.task - 1)
-##                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-##                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-##                for o in range(diff_prev):
-##                    dist_task_prev[o] += 1
+##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
+##                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
+            
+            same_task_number = self.args.buffer_size//self.task
+            dist_task = {i:same_task_number for i in range(self.task)}
+            diff = self.args.buffer_size - same_task_number*self.task
+            for o in range(diff):
+                dist_task[o] += 1
+
+            
+            if self.task > 1:
+                same_task_number_prev = self.args.buffer_size//(self.task - 1)
+                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
+                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
+                for o in range(diff_prev):
+                    dist_task_prev[o] += 1
     
-##                print("dist_taskkkkkkkk_prevvvvvvvvvvv", dist_task_prev)
 
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
-            ##print("dist_classssssss", dist_class)
 
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
-                ##print("dist_classssssss_prevvvvvv", dist_class_prev)
             
             
             # Distribute samples based on the standard deviation
@@ -295,14 +290,11 @@ class Casp(ContinualModel):
             
             for d in dist_class:
                 dist_class_merged.update(d)
-            print("dist_class_mergedddddd", dist_class_merged)
             for f in counter_manage:
                 counter_manage_merged.update(f)
-            print("counter_manage_mergedd", counter_manage_merged)
             if self.task > 1:
                 for h in dist_class_prev:
                     dist_class_merged_prev.update(h)
-                print("dist_class_merged_prev", dist_class_merged_prev)
                 
                 class_key = list(dist_class_merged.keys())
                 temp_key = -1
@@ -313,10 +305,8 @@ class Casp(ContinualModel):
                         dist_class_merged[k] -= temp
                         for hh in range(temp):
                             dist_class_merged[class_key[temp_key + hh + 1]] += 1
-                            print("we are reallyyyyyyyyyyyyy here")
-                print("dist_class_mergedddddd", dist_class_merged)
             
-            if not self.buffer.is_empty() and self.task > 1:
+            if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
                 images_store = []
                 labels_store = []
@@ -328,22 +318,15 @@ class Casp(ContinualModel):
                         labels_store.append(self.buffer.labels[i])
                         images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
-                        print("we are in breakkkkkkk.")
                         break
 
-                ##print("dist_class_merged", dist_class_merged)
-                ##print("counter_manage_merged", counter_manage_merged)
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
-
-                print("labels_store_.shape", labels_store_.shape)
-                print("all_labels_.shape", all_labels_.shape)
                 
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
 
-            print("all_labels_.shape", all_labels_.shape)
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
             
@@ -353,7 +336,6 @@ class Casp(ContinualModel):
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
 
-            print("self.buffer.labels.shape", self.buffer.labels.shape)
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
@@ -396,7 +378,7 @@ class Casp(ContinualModel):
 
 
 
-        if False:
+        if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
             feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
@@ -412,7 +394,7 @@ class Casp(ContinualModel):
             novel_loss += PSC(features=cos_features, labels=batch_y_combine)
 
         
-        elif not self.buffer.is_empty():
+        else:
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
@@ -446,11 +428,6 @@ class Casp(ContinualModel):
 
         novel_loss.backward()
         self.opt.step()
-        if self.task == 1 and self.epoch < self.args.casp_epoch:
-            # update mem
-            self.buffer.add_data(examples=inputs[:real_batch_size],
-                                 labels=labels[:real_batch_size])
-
         
         return novel_loss.item()
 
