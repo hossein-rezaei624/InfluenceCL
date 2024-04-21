@@ -1,4 +1,4 @@
-import torch
+import torch # task strategy is added
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
