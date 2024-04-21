@@ -231,9 +231,6 @@ class Casp(ContinualModel):
 
             print("dist_taskkkkkkkk", dist_task)
 
-            ##print("self.class_portion beforeeeeeee", self.class_portion)
-######            self.class_portion = [dict(random.sample(list(d.items()), k=len(d))) for d in self.class_portion]
-            ##print("self.class_portion afterrrrrrrr", self.class_portion)
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
@@ -241,9 +238,7 @@ class Casp(ContinualModel):
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
-            print("disttttttttttttt before", dist)
             dist = {self.mapping[k]: v for k, v in dist.items()}
-            print("distttttttttttttt after", dist)
         
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
