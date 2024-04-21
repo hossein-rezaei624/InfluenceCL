@@ -229,25 +229,22 @@ class Casp(ContinualModel):
 
             print("dist_taskkkkkkkk", dist_task)
             
+            if self.task > 1:
+                same_task_number_prev = self.args.buffer_size//(self.task - 1)
+                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
+                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
+                for o in range(diff_prev):
+                    dist_task_prev[o] += 1
+    
+                print("dist_taskkkkkkkk_prevvvvvvvvvvv", dist_task_prev)
 
-            same_task_number_prev = self.args.buffer_size//(self.task - 1)
-            dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-            diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-            for o in range(diff_prev):
-                dist_task_prev[o] += 1
-
-            print("dist_taskkkkkkkk_prevvvvvvvvvvv", dist_task_prev)
-
-            
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
-
             print("dist_classssssss", dist_class)
 
-
-            dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
-
-            print("dist_classssssss_prevvvvvv", dist_class_prev)
+            if self.task > 1:
+                dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
+                print("dist_classssssss_prevvvvvv", dist_class_prev)
             
             
             # Distribute samples based on the standard deviation
@@ -295,14 +292,15 @@ class Casp(ContinualModel):
             
             for d in dist_class:
                 dist_class_merged.update(d)
+            print("dist_class_merged", dist_class_merged)
             for f in counter_manage:
                 counter_manage_merged.update(f)
-            for h in dist_class_prev:
-                dist_class_merged_prev.update(h)
-
-            print("dist_class_merged", dist_class_merged)
             print("counter_manage_merged", counter_manage_merged)
-            print("dist_class_merged_prev", dist_class_merged_prev)
+            if self.task > 1:
+                for h in dist_class_prev:
+                    dist_class_merged_prev.update(h)
+                print("dist_class_merged_prev", dist_class_merged_prev)
+
 
             
             if not self.buffer.is_empty():
