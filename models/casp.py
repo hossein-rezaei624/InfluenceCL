@@ -300,11 +300,18 @@ class Casp(ContinualModel):
                 for h in dist_class_prev:
                     dist_class_merged_prev.update(h)
                 print("dist_class_merged_prev", dist_class_merged_prev)
-
+                
+                class_key = list(dist_class_merged.keys())
+                temp_key = -1
                 for k, value in dist_class_merged.items():
+                    temp_key += 1
                     if value > dist_class_merged_prev[k]:
                         temp = value - dist_class_merged_prev[k]
-                        
+                        dist_class_merged[k] -= temp
+                        for hh in range(temp):
+                            dist_class_merged[class_key[temp_key + hh + 1]] += 1
+                            print("we are reallyyyyyyyyyyyyy here")
+                print("dist_class_mergedddddd", dist_class_merged)
             
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
