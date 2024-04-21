@@ -211,9 +211,7 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            print("firstttttttttt", updated_std_of_means_by_class)
             updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()}
-            print("seconddddddddd", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
@@ -230,31 +228,22 @@ class Casp(ContinualModel):
                 dist_task[o] += 1
 
             print("dist_taskkkkkkkk", dist_task)
-
-            ##print("self.class_portion beforeeeeeee", self.class_portion)
-            self.class_portion = [dict(random.sample(list(d.items()), k=len(d))) for d in self.class_portion]
-            ##print("self.class_portion afterrrrrrrr", self.class_portion)
             
             
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
-            ##print("dist_classssssss", dist_class)
+            print("dist_classssssss", dist_class)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
-            print("dist   111111", dist)
             dist = {self.mapping[k]: v for k, v in dist.items()}
-            print("dist   222222", dist)
             
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
         
             # Distribution based on the class variability
-            condition = [value for k, value in dist.items()]
-            print("condition 111111", condition)
             condition = [dist[k] for k in range(len(dist))]
-            print("condition 222222", condition)
         
             # Check if any class exceeds its allowed number of samples
             check_bound = self.n_sample_per_task/len(self.unique_classes)
