@@ -238,13 +238,18 @@ class Casp(ContinualModel):
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
+            print("dist   111111", dist)
             dist = {self.mapping[k]: v for k, v in dist.items()}
-        
+            print("dist   222222", dist)
+            
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
         
             # Distribution based on the class variability
             condition = [value for k, value in dist.items()]
+            print("condition 111111", condition)
+            condition = [dist[k] for k in range(len(dist))]
+            print("condition 222222", condition)
         
             # Check if any class exceeds its allowed number of samples
             check_bound = self.n_sample_per_task/len(self.unique_classes)
