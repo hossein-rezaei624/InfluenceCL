@@ -217,24 +217,27 @@ class Casp(ContinualModel):
             self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
             
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
+            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
 
-##            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
+            if self.task > 1:
+                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
+                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
 
             
-            same_task_number = self.args.buffer_size//self.task
-            dist_task = {i:same_task_number for i in range(self.task)}
-            diff = self.args.buffer_size - same_task_number*self.task
-            for o in range(diff):
-                dist_task[o] += 1
+##            same_task_number = self.args.buffer_size//self.task
+##            dist_task = {i:same_task_number for i in range(self.task)}
+##            diff = self.args.buffer_size - same_task_number*self.task
+##            for o in range(diff):
+##                dist_task[o] += 1
 
             print("dist_taskkkkkkkk", dist_task)
             
-            if self.task > 1:
-                same_task_number_prev = self.args.buffer_size//(self.task - 1)
-                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-                for o in range(diff_prev):
-                    dist_task_prev[o] += 1
+##            if self.task > 1:
+##                same_task_number_prev = self.args.buffer_size//(self.task - 1)
+##                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
+##                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
+##                for o in range(diff_prev):
+##                    dist_task_prev[o] += 1
     
                 print("dist_taskkkkkkkk_prevvvvvvvvvvv", dist_task_prev)
 
