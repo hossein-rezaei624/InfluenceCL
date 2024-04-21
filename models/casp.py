@@ -231,6 +231,11 @@ class Casp(ContinualModel):
 
             print("dist_taskkkkkkkk", dist_task)
 
+            ##print("self.class_portion beforeeeeeee", self.class_portion)
+            self.class_portion = [dict(random.sample(list(d.items()), k=len(d))) for d in self.class_portion]
+            ##print("self.class_portion afterrrrrrrr", self.class_portion)
+            
+            
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
