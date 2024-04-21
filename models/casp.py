@@ -209,7 +209,8 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()}
+##            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()}
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}
 
             self.class_portion.append(updated_std_of_means_by_class)
 ##            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
@@ -227,7 +228,7 @@ class Casp(ContinualModel):
             for o in range(diff):
                 dist_task[o] += 1
 
-            
+            print("dist_task", dist_task)
             if self.task > 1:
                 same_task_number_prev = self.args.buffer_size//(self.task - 1)
                 dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
@@ -237,7 +238,7 @@ class Casp(ContinualModel):
     
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
-
+            print("dist_class", dist_class)
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
             
@@ -302,7 +303,7 @@ class Casp(ContinualModel):
                         dist_class_merged[k] -= temp
                         for hh in range(temp):
                             dist_class_merged[class_key[temp_key + hh + 1]] += 1
-            
+            print("dist_class_merged", dist_class_merged)
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
                 images_store = []
