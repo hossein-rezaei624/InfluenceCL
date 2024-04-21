@@ -104,7 +104,6 @@ class Casp(ContinualModel):
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
-        #print("self.n_sample_per_task", self.n_sample_per_task)
     
     def begin_task(self, dataset, train_loader):
         self.epoch = 0
@@ -114,7 +113,6 @@ class Casp(ContinualModel):
             self.unique_classes.update(labels.numpy())
             if len(self.unique_classes)==dataset.N_CLASSES_PER_TASK:
                 break
-        #print("unique_classes:", self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for class_id, __ in enumerate(self.unique_classes)}
@@ -214,7 +212,7 @@ class Casp(ContinualModel):
             updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()}
 
             self.class_portion.append(updated_std_of_means_by_class)
-            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
+##            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
             
 ##            updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
 ##            dist_task = distribute_samples(updated_task_portion, self.args.buffer_size)
@@ -237,7 +235,6 @@ class Casp(ContinualModel):
                 for o in range(diff_prev):
                     dist_task_prev[o] += 1
     
-
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
