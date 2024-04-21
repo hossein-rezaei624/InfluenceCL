@@ -233,11 +233,13 @@ class Casp(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
 
-            print("dist_classssssss", dist_class)
+            print("dist_classssssss before", dist_class)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
             dist = {self.mapping[k]: v for k, v in dist.items()}
+
+            print("dist_classssssss after", dist_class)
             
             # Initialize a counter for each class
             counter_class = [0 for _ in range(len(self.unique_classes))]
