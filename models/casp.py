@@ -346,7 +346,11 @@ class Casp(ContinualModel):
             print("all_labels_.shape", all_labels_.shape)
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
-            self.buffer.num_seen_examples += self.n_sample_per_task
+            
+            if self.task == 1:
+                self.buffer.num_seen_examples = self.n_sample_per_task
+            else:
+                self.buffer.num_seen_examples += self.n_sample_per_task
             
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
@@ -395,7 +399,7 @@ class Casp(ContinualModel):
 
 
 
-        if self.buffer.is_empty():
+        if False:
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
             feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
@@ -411,7 +415,7 @@ class Casp(ContinualModel):
             novel_loss += PSC(features=cos_features, labels=batch_y_combine)
 
         
-        else:
+        elif not self.buffer.is_empty():
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=None)
         
@@ -445,6 +449,11 @@ class Casp(ContinualModel):
 
         novel_loss.backward()
         self.opt.step()
+        if self.task == 1 and self.epoch < self.args.casp_epoch:
+            # update mem
+            self.buffer.add_data(examples=inputs[:real_batch_size],
+                                 labels=labels[:real_batch_size])
+
         
         return novel_loss.item()
 
