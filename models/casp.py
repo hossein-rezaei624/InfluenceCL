@@ -316,7 +316,7 @@ class Casp(ContinualModel):
                             print("we are reallyyyyyyyyyyyyy here")
                 print("dist_class_mergedddddd", dist_class_merged)
             
-            if not self.buffer.is_empty():
+            if not self.buffer.is_empty() and self.task > 1:
                 # Initialize new lists for adjusted images and labels
                 images_store = []
                 labels_store = []
