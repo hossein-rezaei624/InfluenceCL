@@ -240,11 +240,11 @@ class Casp(ContinualModel):
 
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
-            print("dist_classssssss", dist_class)
+            ##print("dist_classssssss", dist_class)
 
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
-                print("dist_classssssss_prevvvvvv", dist_class_prev)
+                ##print("dist_classssssss_prevvvvvv", dist_class_prev)
             
             
             # Distribute samples based on the standard deviation
@@ -292,16 +292,19 @@ class Casp(ContinualModel):
             
             for d in dist_class:
                 dist_class_merged.update(d)
-            print("dist_class_merged", dist_class_merged)
+            print("dist_class_mergedddddd", dist_class_merged)
             for f in counter_manage:
                 counter_manage_merged.update(f)
-            print("counter_manage_merged", counter_manage_merged)
+            print("counter_manage_mergedd", counter_manage_merged)
             if self.task > 1:
                 for h in dist_class_prev:
                     dist_class_merged_prev.update(h)
                 print("dist_class_merged_prev", dist_class_merged_prev)
 
-
+                for k, value in dist_class_merged.items():
+                    if value > dist_class_merged_prev[k]:
+                        temp = value - dist_class_merged_prev[k]
+                        
             
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
