@@ -121,7 +121,7 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
         self.epoch += 1
         
-        if self.epoch == self.args.casp_epoch:
+        if self.epoch == self.args.n_epochs:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
@@ -142,19 +142,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            sorted_indices_2 = np.argsort(Variability.numpy())
+            ##sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
