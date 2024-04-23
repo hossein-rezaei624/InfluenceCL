@@ -390,7 +390,7 @@ class Casp(ContinualModel):
             self.confidence_by_sample[self.epoch, index_] = conf_tensor
 
 
-        if self.epoch >= (self.args.n_epochs - self.args.casp_epoch) and self.task > 1:
+        if self.epoch >= (self.args.n_epochs - self.args.casp_epoch):
             soft_task = soft_1(logits)
             for j in range(labels.shape[0]):
                 self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.args.casp_epoch)].append(soft_task[j, labels[j]].item())
