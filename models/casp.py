@@ -101,6 +101,7 @@ class Casp(ContinualModel):
         self.n_sample_per_task = None
         self.class_portion = []
         self.task_portion = []
+        self.task_history = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -117,8 +118,14 @@ class Casp(ContinualModel):
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
+        self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for task_id in range(self.task)}
     
     def end_epoch(self, dataset, train_loader):
+        
+        
+        print("self.class_portion", self.class_portion)
+        
+        
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
@@ -142,19 +149,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            sorted_indices_2 = np.argsort(Variability.numpy())
+            ##sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -371,6 +378,8 @@ class Casp(ContinualModel):
             self.confidence_by_sample[self.epoch, index_] = conf_tensor
 
 
+    ##    if self.epoch >= (self.args.n_epochs - self.args.casp_epoch):
+    ##        self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
 
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
