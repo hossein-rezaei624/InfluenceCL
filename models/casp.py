@@ -126,10 +126,7 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset, train_loader):
         
-##        if self.epoch == self.args.n_epochs - 1:
-##            print("self.class_portion", self.class_portion)
-
-        if self.epoch >= (self.args.n_epochs - self.args.casp_epoch):
+        if self.epoch >= (self.args.n_epochs - self.args.casp_epoch) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
             soft_buffer = soft_1(buffer_logits)
             for j in range(len(self.buffer)):
