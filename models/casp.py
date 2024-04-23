@@ -121,7 +121,7 @@ class Casp(ContinualModel):
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
         self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for task_id in range(self.task)}
-        self.task_class = {value: (self.task - 1) for index, value in enumerate(self.unique_classes)}
+        self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
         print("self.task_class", self.task_class)
     
     def end_epoch(self, dataset, train_loader):
