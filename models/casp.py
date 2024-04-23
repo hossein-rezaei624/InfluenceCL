@@ -122,8 +122,8 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset, train_loader):
         
-        
-        print("self.class_portion", self.class_portion)
+        if self.epoch == self.args.n_epochs - 1:
+            print("self.class_portion", self.class_portion)
         
         
         self.epoch += 1
