@@ -133,7 +133,7 @@ class Casp(ContinualModel):
         
         self.epoch += 1
         
-        if self.epoch == self.args.n_epochs:
+        if self.epoch == self.args.casp_epoch:
             # Calculate mean confidence by class
             mean_by_class = {class_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for class_id, confidences in self.confidence_by_class.items()}
             
