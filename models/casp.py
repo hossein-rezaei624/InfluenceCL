@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
 import random
+import copy
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -102,6 +103,7 @@ class Casp(ContinualModel):
         self.class_portion = []
         self.task_portion = []
         self.task_history = []
+        self.task_class = {}
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -119,11 +121,14 @@ class Casp(ContinualModel):
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
         self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for task_id in range(self.task)}
+        self.task_class = {value: (self.task - 1) for index, value in enumerate(self.unique_classes)}
+        print("self.task_class", self.task_class)
     
     def end_epoch(self, dataset, train_loader):
         
-        if self.epoch == self.args.n_epochs - 1:
-            print("self.class_portion", self.class_portion)
+##        if self.epoch == self.args.n_epochs - 1:
+##            print("self.class_portion", self.class_portion)
+
         
         
         self.epoch += 1
