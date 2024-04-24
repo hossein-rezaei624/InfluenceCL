@@ -145,7 +145,7 @@ class Casp(ContinualModel):
 
             mean_by_task = {task_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for task_id, confidences in self.confidence_by_task.items()}
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
-            print("std_of_means_by_task", std_of_means_by_task)
+            ###print("std_of_means_by_task", std_of_means_by_task)
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -262,8 +262,10 @@ class Casp(ContinualModel):
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
             if self.task > 1:
-                dist_class_prev = [distribute_samples(self.class_portion[i], dist_task_prev[i]) for i in range(self.task - 1)]
+                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
             
+            print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
+            self.dist_task_prev = dist_task
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
@@ -325,6 +327,7 @@ class Casp(ContinualModel):
                         dist_class_merged[k] -= temp
                         for hh in range(temp):
                             dist_class_merged[class_key[temp_key + hh + 1]] += 1
+                            print("we are really hereeeee:", hh)
             
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
