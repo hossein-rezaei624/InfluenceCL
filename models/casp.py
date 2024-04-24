@@ -102,7 +102,7 @@ class Casp(ContinualModel):
         self.n_sample_per_task = None
         self.class_portion = []
         self.task_portion = []
-        self.task_history = []
+        self.dist_task_prev = None
         self.task_class = {}
 
     def begin_train(self, dataset):
@@ -241,19 +241,23 @@ class Casp(ContinualModel):
 ##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
 ##                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
             
-            same_task_number = self.args.buffer_size//self.task
-            dist_task = {i:same_task_number for i in range(self.task)}
-            diff = self.args.buffer_size - same_task_number*self.task
-            for o in range(diff):
-                dist_task[o] += 1
+####            same_task_number = self.args.buffer_size//self.task
+####            dist_task = {i:same_task_number for i in range(self.task)}
+####            diff = self.args.buffer_size - same_task_number*self.task
+####            for o in range(diff):
+####                dist_task[o] += 1
+####
+####            if self.task > 1:
+####                same_task_number_prev = self.args.buffer_size//(self.task - 1)
+####                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
+####                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
+####                for o in range(diff_prev):
+####                    dist_task_prev[o] += 1
 
-            if self.task > 1:
-                same_task_number_prev = self.args.buffer_size//(self.task - 1)
-                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-                for o in range(diff_prev):
-                    dist_task_prev[o] += 1
-    
+
+            dist_task = {k: v.item() for k, v in std_of_means_by_task.items()}
+
+            
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
