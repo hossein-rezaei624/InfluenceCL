@@ -404,7 +404,7 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-
+            print("all_labels_.shape", all_labels_.shape)
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
