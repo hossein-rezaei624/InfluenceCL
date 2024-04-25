@@ -84,6 +84,49 @@ def distribute_excess(lst, check_bound):
     return lst
 
 
+def adjust_values_integer_include_all(a, b):
+    excess = {}
+    shortage = {}
+    total_excess = 0
+
+    # Establish initial excess and shortage based on the limits in b
+    for k in a:
+        if k in b:
+            if a[k] > b[k]:
+                excess[k] = a[k] - b[k]
+                total_excess += a[k] - b[k]
+                a[k] = b[k]  # Adjust to the limit of b
+            elif a[k] < b[k]:
+                shortage[k] = b[k] - a[k]  # Available space to increase
+        else:
+            # If no corresponding key in b, treat as having no upper limit
+            shortage[k] = float('inf')  # Theoretically unlimited capacity
+
+    # Distribute the excess to those under the limit as integers
+    while total_excess > 0 and shortage:
+        per_key_excess = max(total_excess // len(shortage), 1)  # Ensure minimal distribution
+        for k in list(shortage):
+            if total_excess == 0:
+                break
+            if shortage[k] == float('inf'):
+                increment = per_key_excess  # No limit, so use per_key_excess
+            else:
+                increment = min(shortage[k], per_key_excess)
+
+            a[k] += increment
+            total_excess -= increment
+
+            if shortage[k] != float('inf'):
+                shortage[k] -= increment
+                if shortage[k] == 0:
+                    del shortage[k]  # Remove key from shortage if fully adjusted
+
+    # Ensure all values are integers
+    for key in a:
+        a[key] = int(a[key])
+
+    return a
+
 
 class Casp(ContinualModel):
     NAME = 'casp'
@@ -256,14 +299,18 @@ class Casp(ContinualModel):
 
 
             updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
-            dist_task = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
-
+            dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
+            print("dist_task_before", dist_task_before)
+            if self.task > 1:
+                dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
+            else:
+                dist_task = dist_task_before
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
-            
+
             print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
             self.dist_task_prev = dist_task
             
