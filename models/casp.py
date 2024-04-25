@@ -297,7 +297,7 @@ class Casp(ContinualModel):
 
             updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
-            ##print("dist_task_before", dist_task_before)
+            print("dist_task_before", dist_task_before)
             
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
@@ -309,7 +309,7 @@ class Casp(ContinualModel):
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
-            ##print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
+            print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
             self.dist_task_prev = dist_task
             
             # Distribute samples based on the standard deviation
@@ -357,22 +357,24 @@ class Casp(ContinualModel):
             
             for d in dist_class:
                 dist_class_merged.update(d)
+            print("dist_class_merged", dist_class_merged)
             for f in counter_manage:
                 counter_manage_merged.update(f)
             if self.task > 1:
                 for h in dist_class_prev:
                     dist_class_merged_prev.update(h)
-                
+                print("dist_class_merged_prev", dist_class_merged_prev)
                 class_key = list(dist_class_merged.keys())
                 temp_key = -1
                 for k, value in dist_class_merged.items():
                     temp_key += 1
                     if value > dist_class_merged_prev[k]:
+                        print("kkkkkkk", k)
                         temp = value - dist_class_merged_prev[k]
                         dist_class_merged[k] -= temp
                         for hh in range(temp):
                             dist_class_merged[class_key[temp_key + hh + 1]] += 1
-            
+            print("dist_class_merged", dist_class_merged)
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
                 images_store = []
