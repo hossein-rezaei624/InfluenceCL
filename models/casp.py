@@ -9,8 +9,6 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
-import random
-import copy
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -165,7 +163,6 @@ class Casp(ContinualModel):
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
         self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
-        ##print("self.task_class", self.task_class)
     
     def end_epoch(self, dataset, train_loader):
         
@@ -188,7 +185,7 @@ class Casp(ContinualModel):
 
             mean_by_task = {task_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for task_id, confidences in self.confidence_by_task.items()}
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
-            ###print("std_of_means_by_task", std_of_means_by_task)
+
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -300,7 +297,8 @@ class Casp(ContinualModel):
 
             updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
-            print("dist_task_before", dist_task_before)
+            ##print("dist_task_before", dist_task_before)
+            
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
             else:
@@ -311,7 +309,7 @@ class Casp(ContinualModel):
             if self.task > 1:
                 dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
-            print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
+            ##print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
             self.dist_task_prev = dist_task
             
             # Distribute samples based on the standard deviation
@@ -374,7 +372,6 @@ class Casp(ContinualModel):
                         dist_class_merged[k] -= temp
                         for hh in range(temp):
                             dist_class_merged[class_key[temp_key + hh + 1]] += 1
-                            print("we are really hereeeee:", hh)
             
             if not self.buffer.is_empty():
                 # Initialize new lists for adjusted images and labels
