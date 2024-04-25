@@ -255,9 +255,9 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            dist_task = {k: v.item() for k, v in std_of_means_by_task.items()}
+            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
+            dist_task = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
 
-            
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
