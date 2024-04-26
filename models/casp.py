@@ -306,10 +306,10 @@ class Casp(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
-            if self.task > 1:
-                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
+###            if self.task > 1:
+###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
-            print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
+###            print("dist_task", dist_task, "\n", "self.dist_task_prev", self.dist_task_prev)
             self.dist_task_prev = dist_task
             
             # Distribute samples based on the standard deviation
