@@ -185,7 +185,8 @@ class Casp(ContinualModel):
 
 
             mean_by_task = {task_id: {epoch: torch.std(torch.tensor(confidences[epoch])) for epoch in confidences} for task_id, confidences in self.confidence_by_task.items()}
-            std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
+   ####         std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
+            std_of_means_by_task = {task_id: mean_by_task[task_id][self.args.casp_epoch] for task_id in range(self.task)}
 
             
             # Compute mean and variability of confidences for each sample
