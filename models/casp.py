@@ -387,12 +387,14 @@ class Casp(ContinualModel):
                         labels_store.append(self.buffer.labels[i])
                         images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
+                        print("we are in break")
                         break
-
+                print("counter_manage_merged", counter_manage_merged)
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
-                
+                print("labels_store_.shape", labels_store_.shape)
+                print("all_labels_.shape before", all_labels_.shape)
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
 
