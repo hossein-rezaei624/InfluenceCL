@@ -1,4 +1,4 @@
-import torch
+import torch #start changing class from first to the end
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
