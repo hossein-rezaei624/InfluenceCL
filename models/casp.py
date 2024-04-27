@@ -401,7 +401,7 @@ class Casp(ContinualModel):
                     if value > dist_class_merged_prev[k]:
                         print("kkkkkk", k)
                         dist_class_merged = redistribute_values_v2(dist_class_merged.copy(), dist_class_merged_prev.copy(), self.list_class[self.task_class[k]].copy())
-
+                        print("dist_class_merged innnnnnnn", dist_class_merged)
 
             print("dist_class_merged", dist_class_merged)
             self.dist_class_prev = dist_class_merged.copy()
