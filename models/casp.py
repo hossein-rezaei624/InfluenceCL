@@ -221,9 +221,7 @@ class Casp(ContinualModel):
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
-            print("Confidence_mean", Confidence_mean)
             Variability = self.confidence_by_sample.std(dim=0)
-            print("Variability", Variability)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -235,19 +233,18 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            sorted_indices_2 = np.argsort(Variability.numpy())
-            print("sorted_indices_2", sorted_indices_2)
+            ##sorted_indices_2 = np.argsort(Variability.numpy())
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
