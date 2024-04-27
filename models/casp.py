@@ -269,7 +269,7 @@ class Casp(ContinualModel):
             updated_std_of_means_by_class = std_of_means_by_class
 ##            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}
 
-            self.class_portion.append(updated_std_of_means_by_class)
+            self.class_portion = std_of_means_by_class.copy()
 ##            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
             
 ##            updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
