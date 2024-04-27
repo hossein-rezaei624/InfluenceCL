@@ -179,7 +179,6 @@ class Casp(ContinualModel):
         self.task_class = {}
         self.dist_class_prev = None
         self.list_class = []
-        self.confidence_by_class = {}
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
