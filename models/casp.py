@@ -324,6 +324,9 @@ class Casp(ContinualModel):
 
             updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
+
+            print("dist_task_before", dist_task_before)
+            print("self.dist_task_prev", self.dist_task_prev)
             
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
@@ -331,10 +334,13 @@ class Casp(ContinualModel):
                 dist_task = dist_task_before
             
             dist_class = [distribute_samples(std_of_means_by_class[i], dist_task[i]) for i in range(self.task)]
+
+            print("dist_class", dist_class)
             
 ###            if self.task > 1:
 ###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
+            print("dist_task", dist_task)
             self.dist_task_prev = dist_task
 
             # Distribute samples based on the standard deviation
@@ -380,17 +386,19 @@ class Casp(ContinualModel):
             dist_class_merged = {}
             counter_manage_merged = {}
             dist_class_merged_prev = {}
-            
+            print("self.dist_class_prev", self.dist_class_prev)
             for d in dist_class:
                 dist_class_merged.update(d)
+            print("dist_class_merged", dist_class_merged)
             for f in counter_manage:
                 counter_manage_merged.update(f)
             if self.task > 1:
                 dist_class_merged_prev = self.dist_class_prev
                 for k, value in dist_class_merged.items():
                     if value > dist_class_merged_prev[k]:
+                        print("kkkkk", k)
                         dist_class_merged = redistribute_values_v2(dist_class_merged, dist_class_merged_prev.copy(), self.list_class[self.task_class[k]].copy())
-
+            print("dist_class_merged", dist_class_merged)
             self.dist_class_prev = dist_class_merged.copy()
             self.dist_class_prev.update(dist_last)
             if not self.buffer.is_empty():
@@ -405,11 +413,16 @@ class Casp(ContinualModel):
                         labels_store.append(self.buffer.labels[i])
                         images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
+                        print("we are in breakkkk")
                         break
 
+                print("counter_manage_merged", counter_manage_merged)
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
+
+                print("labels_store_.shape", labels_store_.shape)
+                print("all_labels_.shape", all_labels_.shape)
                 
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
