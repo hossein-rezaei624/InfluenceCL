@@ -266,7 +266,6 @@ class Casp(ContinualModel):
 
             
             # Convert standard deviation of means by class to item form
-            updated_std_of_means_by_class = std_of_means_by_class
 ##            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}
 
             self.class_portion = std_of_means_by_class.copy()
