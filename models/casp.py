@@ -179,6 +179,7 @@ class Casp(ContinualModel):
         self.task_class = {}
         self.dist_class_prev = None
         self.list_class = []
+        self.confidence_by_class = {}
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -194,7 +195,7 @@ class Casp(ContinualModel):
         self.list_class.append(self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {task_id: {class_id: [] for class_id in self.list_class[task_id]} for task_id in range(self.task)}
+        self.confidence_by_class.update({self.task - 1: {class_id: [] for class_id in self.list_class[self.task - 1]}})
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
@@ -206,7 +207,7 @@ class Casp(ContinualModel):
             soft_buffer = soft_1(buffer_logits)
             for j in range(len(self.buffer)):
                 self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]].append(soft_buffer[j, self.buffer.labels[j]].item())
-                self.confidence_by_class[self.task_class[self.buffer.labels[j].item()]][self.buffer.labels[j].item()].append(soft_buffer[j, self.buffer.labels[j]].item())
+                ##self.confidence_by_class[self.task_class[self.buffer.labels[j].item()]][self.buffer.labels[j].item()].append(soft_buffer[j, self.buffer.labels[j]].item())
         
         self.epoch += 1
         
