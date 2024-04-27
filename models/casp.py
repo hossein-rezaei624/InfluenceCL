@@ -436,7 +436,7 @@ class Casp(ContinualModel):
             soft_task = soft_1(logits)
             for j in range(labels.shape[0]):
                 self.confidence_by_task[self.task_class[labels[j].item()]].append(soft_task[j, labels[j]].item())
-                self.confidence_by_class[self.task_class[labels[j].item()]][labels[j].item()].append(soft_buffer[j, labels[j]].item())
+                self.confidence_by_class[self.task_class[labels[j].item()]][labels[j].item()].append(soft_task[j, labels[j]].item())
 
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
