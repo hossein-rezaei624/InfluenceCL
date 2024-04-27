@@ -294,6 +294,7 @@ class Casp(ContinualModel):
 
             updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
+            print("dist_task_before", dist_task_before)
             
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
@@ -305,8 +306,12 @@ class Casp(ContinualModel):
 ###            if self.task > 1:
 ###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
+            print("dist_task", dist_task)
+            print("self.dist_task_prev", self.dist_task_prev)
             self.dist_task_prev = dist_task
-            
+
+            print("dist_class", dist_class)
+            print("dist_class_prev", dist_class_prev)
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
             dist_last = dist.copy()
