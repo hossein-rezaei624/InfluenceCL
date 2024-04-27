@@ -194,7 +194,7 @@ class Casp(ContinualModel):
         self.list_class.append(self.unique_classes)
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {task_id: {class_id: [] for class_id in self.list_class[task_id]} for task_id in range(self.task)}
+        self.confidence_by_class.update({self.task - 1: {class_id: [] for class_id in self.list_class[self.task - 1]}})
         self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
@@ -206,15 +206,12 @@ class Casp(ContinualModel):
             soft_buffer = soft_1(buffer_logits)
             for j in range(len(self.buffer)):
                 self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]].append(soft_buffer[j, self.buffer.labels[j]].item())
-                self.confidence_by_class[self.task_class[self.buffer.labels[j].item()]][self.buffer.labels[j].item()].append(soft_buffer[j, self.buffer.labels[j]].item())
         
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
             # Calculate mean confidence by class
             std_of_means_by_class = {task_id: {class_id: torch.nan_to_num(torch.std(torch.tensor(confidences)), nan=0.0).item() for class_id, confidences in self.confidence_by_class[task_id].items()} for task_id in range(self.task)}            
-
-            print("std_of_means_by_class", std_of_means_by_class)
             
             std_of_means_by_task = {task_id: torch.std(torch.tensor(confidences)) for task_id, confidences in self.confidence_by_task.items()}
    ####         std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
@@ -238,7 +235,6 @@ class Casp(ContinualModel):
             
             # Sort indices based on the variability
             ##sorted_indices_2 = np.argsort(Variability.numpy())
-            
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
@@ -334,6 +330,7 @@ class Casp(ContinualModel):
                 dist_task = dist_task_before
             
             dist_class = [distribute_samples(std_of_means_by_class[i], dist_task[i]) for i in range(self.task)]
+
             
 ###            if self.task > 1:
 ###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
@@ -383,7 +380,6 @@ class Casp(ContinualModel):
             dist_class_merged = {}
             counter_manage_merged = {}
             dist_class_merged_prev = {}
-            
             for d in dist_class:
                 dist_class_merged.update(d)
             for f in counter_manage:
@@ -393,7 +389,7 @@ class Casp(ContinualModel):
                 for k, value in dist_class_merged.items():
                     if value > dist_class_merged_prev[k]:
                         dist_class_merged = redistribute_values_v2(dist_class_merged, dist_class_merged_prev.copy(), self.list_class[self.task_class[k]].copy())
-
+            
             self.dist_class_prev = dist_class_merged.copy()
             self.dist_class_prev.update(dist_last)
             if not self.buffer.is_empty():
@@ -425,7 +421,7 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-
+            
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
