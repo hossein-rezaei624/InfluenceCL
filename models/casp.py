@@ -126,6 +126,41 @@ def adjust_values_integer_include_all(a, b):
     return a
 
 
+def redistribute_values_v2(list_1, list_2, set_1):
+    excess = {}
+    total_excess = 0
+
+    # Identify excess and the initial positions that can receive excess
+    for key in set_1:
+        if list_1[key] > list_2[key]:
+            excess[key] = list_1[key] - list_2[key]
+            total_excess += list_1[key] - list_2[key]
+            list_1[key] = list_2[key]  # Reduce to maximum allowed
+
+    # Identify where excess can be distributed
+    shortage = {k: list_2[k] - list_1[k] for k in set_1 if list_1[k] < list_2[k]}
+    
+    # While there is excess to distribute
+    while total_excess > 0 and shortage:
+        per_key_excess = max(total_excess // len(shortage), 1)  # Minimum distribution of 1 to ensure progress
+
+        for key in list(shortage):
+            if total_excess <= 0:
+                break
+            available_increase = min(shortage[key], per_key_excess)
+            list_1[key] += available_increase
+            total_excess -= available_increase
+            shortage[key] -= available_increase
+            
+            # Remove key from shortage if it is fully topped up
+            if shortage[key] == 0:
+                del shortage[key]
+
+    return list_1
+
+
+
+
 class Casp(ContinualModel):
     NAME = 'casp'
     COMPATIBILITY = ['class-il']
@@ -361,17 +396,12 @@ class Casp(ContinualModel):
                 counter_manage_merged.update(f)
             if self.task > 1:
                 dist_class_merged_prev = self.dist_class_prev
-                class_key = list(dist_class_merged.keys())
-                temp_key = -1
                 print("dist_class_merged_prev", dist_class_merged_prev)
                 for k, value in dist_class_merged.items():
-                    temp_key += 1
                     if value > dist_class_merged_prev[k]:
                         print("kkkkkk", k)
-                        temp = value - dist_class_merged_prev[k]
-                        dist_class_merged[k] -= temp
-                        for hh in range(temp):
-                            dist_class_merged[class_key[temp_key + hh + 1]] += 1
+                        dist_class_merged = redistribute_values_v2(dist_class_merged.copy(), dist_class_merged_prev.copy(), self.list_class[self.task_class[k]].copy())
+
 
             print("dist_class_merged", dist_class_merged)
             self.dist_class_prev = dist_class_merged.copy()
