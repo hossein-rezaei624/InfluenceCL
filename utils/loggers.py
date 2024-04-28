@@ -27,14 +27,19 @@ def print_mean_accuracy(mean_acc: np.ndarray, task_number: int,
     :param setting: the setting of the benchmark
     """
     if setting == 'domain-il':
-        mean_acc, _ = mean_acc
+        mean_acc, _, mean_acc_ood, __ = mean_acc
         print('\nAccuracy for {} task(s): {} %'.format(
             task_number, round(mean_acc, 2)), file=sys.stderr)
+        print('\nOOD Accuracy for {} task(s): {} %'.format(
+            task_number, round(mean_acc_ood, 2)), file=sys.stderr)
     else:
-        mean_acc_class_il, mean_acc_task_il = mean_acc
+        mean_acc_class_il, mean_acc_task_il, mean_acc_class_il_ood, mean_acc_task_il_ood = mean_acc
         print('\nAccuracy for {} task(s): \t [Class-IL]: {} %'
               ' \t [Task-IL]: {} %\n'.format(task_number, round(
                   mean_acc_class_il, 2), round(mean_acc_task_il, 2)), file=sys.stderr)
+        print('\nOOD Accuracy for {} task(s): \t [Class-IL]: {} %'
+              ' \t [Task-IL]: {} %\n'.format(task_number, round(
+                  mean_acc_class_il_ood, 2), round(mean_acc_task_il_ood, 2)), file=sys.stderr)
 
 
 class Logger:
