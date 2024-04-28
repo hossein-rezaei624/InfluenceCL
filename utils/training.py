@@ -195,7 +195,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             model.net.train()
             _, _ = dataset_copy.get_data_loaders()
         if model.NAME != 'icarl' and model.NAME != 'pnn':
-            random_results_class, random_results_task = evaluate(model, dataset_copy)
+            random_results_class, random_results_task, random_results_class_augmented, random_results_task_augmented = evaluate(model, dataset_copy)
 
     print(file=sys.stderr)
     if hasattr(model, 'begin_train'):
