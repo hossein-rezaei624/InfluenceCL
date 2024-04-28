@@ -147,37 +147,52 @@ class Logger:
 
     def add_fwt(self, results, accs, results_mask_classes, accs_mask_classes, results_ood, accs_ood, results_mask_classes_ood, accs_mask_classes_ood):
         self.fwt = forward_transfer(results, accs)
+        self.fwt_ood = forward_transfer(results_ood, accs_ood)
         if self.setting == 'class-il':
             self.fwt_mask_classes = forward_transfer(results_mask_classes, accs_mask_classes)
+            self.fwt_mask_classes_ood = forward_transfer(results_mask_classes_ood, accs_mask_classes_ood)
 
-    def add_bwt(self, results, results_mask_classes):
+    def add_bwt(self, results, results_mask_classes, results_ood, results_mask_classes_ood):
         self.bwt = backward_transfer(results)
+        self.bwt_ood = backward_transfer(results_ood)
         self.bwt_mask_classes = backward_transfer(results_mask_classes)
+        self.bwt_mask_classes_ood = backward_transfer(results_mask_classes_ood)
 
-    def add_forgetting(self, results, results_mask_classes):
+    def add_forgetting(self, results, results_mask_classes, results_ood, results_mask_classes_ood):
         self.forgetting = forgetting(results)
+        self.forgetting_ood = forgetting(results_ood)
         self.forgetting_mask_classes = forgetting(results_mask_classes)
+        self.forgetting_mask_classes_ood = forgetting(results_mask_classes_ood)
 
-    def log(self, mean_acc: np.ndarray) -> None:
+    def log(self, mean_acc: np.ndarray, mean_acc_ood: np.ndarray) -> None:
         """
         Logs a mean accuracy value.
         :param mean_acc: mean accuracy value
         """
         if self.setting == 'general-continual':
             self.accs.append(mean_acc)
+            self.accs_ood.append(mean_acc_ood)
         elif self.setting == 'domain-il':
             mean_acc, _ = mean_acc
+            mean_acc_ood, _ = mean_acc_ood
             self.accs.append(mean_acc)
+            self.accs_ood.append(mean_acc_ood)
         else:
             mean_acc_class_il, mean_acc_task_il = mean_acc
+            mean_acc_class_il_ood, mean_acc_task_il_ood = mean_acc_ood
             self.accs.append(mean_acc_class_il)
+            self.accs_ood.append(mean_acc_class_il_ood)
             self.accs_mask_classes.append(mean_acc_task_il)
+            self.accs_mask_classes_ood.append(mean_acc_task_il_ood)
 
-    def log_fullacc(self, accs):
+    def log_fullacc(self, accs, accs_ood):
         if self.setting == 'class-il':
             acc_class_il, acc_task_il = accs
+            acc_class_il_ood, acc_task_il_ood = accs_ood
             self.fullaccs.append(acc_class_il)
+            self.fullaccs_ood.append(acc_class_il_ood)
             self.fullaccs_mask_classes.append(acc_task_il)
+            self.fullaccs_mask_classes_ood.append(acc_task_il_ood)
 
     def write(self, args: Dict[str, Any]) -> None:
         """
@@ -188,14 +203,22 @@ class Logger:
 
         for i, acc in enumerate(self.accs):
             wrargs['accmean_task' + str(i + 1)] = acc
+        for i, acc_ood in enumerate(self.accs_ood):
+            wrargs['accmean_task_ood' + str(i + 1)] = acc_ood
 
         for i, fa in enumerate(self.fullaccs):
             for j, acc in enumerate(fa):
                 wrargs['accuracy_' + str(j + 1) + '_task' + str(i + 1)] = acc
+        for i, fa_ood in enumerate(self.fullaccs_ood):
+            for j, acc_ood in enumerate(fa_ood):
+                wrargs['accuracy_' + str(j + 1) + '_task_ood' + str(i + 1)] = acc_ood
 
         wrargs['forward_transfer'] = self.fwt
+        wrargs['forward_transfer_ood'] = self.fwt_ood
         wrargs['backward_transfer'] = self.bwt
+        wrargs['backward_transfer_ood'] = self.bwt_ood
         wrargs['forgetting'] = self.forgetting
+        wrargs['forgetting_ood'] = self.forgetting_ood
 
         target_folder = base_path() + "results/"
 
@@ -217,14 +240,22 @@ class Logger:
 
             for i, acc in enumerate(self.accs_mask_classes):
                 wrargs['accmean_task' + str(i + 1)] = acc
+            for i, acc_ood in enumerate(self.accs_mask_classes_ood):
+                wrargs['accmean_task_ood' + str(i + 1)] = acc_ood
 
             for i, fa in enumerate(self.fullaccs_mask_classes):
                 for j, acc in enumerate(fa):
                     wrargs['accuracy_' + str(j + 1) + '_task' + str(i + 1)] = acc
+            for i, fa_ood in enumerate(self.fullaccs_mask_classes_ood):
+                for j, acc_ood in enumerate(fa_ood):
+                    wrargs['accuracy_' + str(j + 1) + '_task_ood' + str(i + 1)] = acc_ood
 
             wrargs['forward_transfer'] = self.fwt_mask_classes
+            wrargs['forward_transfer_ood'] = self.fwt_mask_classes_ood
             wrargs['backward_transfer'] = self.bwt_mask_classes
+            wrargs['backward_transfer_ood'] = self.bwt_mask_classes_ood
             wrargs['forgetting'] = self.forgetting_mask_classes
+            wrargs['forgetting_ood'] = self.forgetting_mask_classes_ood
 
             path = target_folder + "task-il" + "/" + self.dataset + "/"\
                 + self.model + "/logs.pyd"
