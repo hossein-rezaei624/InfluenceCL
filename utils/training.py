@@ -6,6 +6,7 @@
 ##import itertools
 
 from corruptions import *
+from torchvision.transforms import ToPILImage, PILToTensor
 
 import math
 import sys
