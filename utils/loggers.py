@@ -49,31 +49,47 @@ class Logger:
         self.fullaccs = []
         if setting_str == 'class-il':
             self.accs_mask_classes = []
+            self.accs_mask_classes_ood = []
             self.fullaccs_mask_classes = []
+            self.fullaccs_mask_classes_ood = []
         self.setting = setting_str
         self.dataset = dataset_str
         self.model = model_str
         self.fwt = None
+        self.fwt_ood = None
         self.fwt_mask_classes = None
+        self.fwt_mask_classes_ood = None
         self.bwt = None
+        self.bwt_ood = None
         self.bwt_mask_classes = None
+        self.bwt_mask_classes_ood = None
         self.forgetting = None
+        self.forgetting_ood = None
         self.forgetting_mask_classes = None
+        self.forgetting_mask_classes_ood = None
 
     def dump(self):
         dic = {
             'accs': self.accs,
             'fullaccs': self.fullaccs,
             'fwt': self.fwt,
+            'fwt_ood': self.fwt_ood,
             'bwt': self.bwt,
+            'bwt_ood': self.bwt_ood,
             'forgetting': self.forgetting,
+            'forgetting_ood': self.forgetting_ood,
             'fwt_mask_classes': self.fwt_mask_classes,
+            'fwt_mask_classes_ood': self.fwt_mask_classes_ood,
             'bwt_mask_classes': self.bwt_mask_classes,
+            'bwt_mask_classes_ood': self.bwt_mask_classes_ood,
             'forgetting_mask_classes': self.forgetting_mask_classes,
+            'forgetting_mask_classes_ood': self.forgetting_mask_classes_ood,
         }
         if self.setting == 'class-il':
             dic['accs_mask_classes'] = self.accs_mask_classes
+            dic['accs_mask_classes_ood'] = self.accs_mask_classes_ood
             dic['fullaccs_mask_classes'] = self.fullaccs_mask_classes
+            dic['fullaccs_mask_classes_ood'] = self.fullaccs_mask_classes_ood
 
         return dic
 
@@ -81,14 +97,22 @@ class Logger:
         self.accs = dic['accs']
         self.fullaccs = dic['fullaccs']
         self.fwt = dic['fwt']
+        self.fwt_ood = dic['fwt_ood']
         self.bwt = dic['bwt']
+        self.bwt_ood = dic['bwt_ood']
         self.forgetting = dic['forgetting']
+        self.forgetting_ood = dic['forgetting_ood']
         self.fwt_mask_classes = dic['fwt_mask_classes']
+        self.fwt_mask_classes_ood = dic['fwt_mask_classes_ood']
         self.bwt_mask_classes = dic['bwt_mask_classes']
+        self.bwt_mask_classes_ood = dic['bwt_mask_classes_ood']
         self.forgetting_mask_classes = dic['forgetting_mask_classes']
+        self.forgetting_mask_classes_ood = dic['forgetting_mask_classes_ood']
         if self.setting == 'class-il':
             self.accs_mask_classes = dic['accs_mask_classes']
+            self.accs_mask_classes_ood = dic['accs_mask_classes_ood']
             self.fullaccs_mask_classes = dic['fullaccs_mask_classes']
+            self.fullaccs_mask_classes_ood = dic['fullaccs_mask_classes_ood']
 
     def rewind(self, num):
         self.accs = self.accs[:-num]
