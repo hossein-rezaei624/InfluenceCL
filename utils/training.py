@@ -285,11 +285,11 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
 
     if not args.disable_log and not args.ignore_other_metrics:
-        logger.add_bwt(results, results_mask_classes)
-        logger.add_forgetting(results, results_mask_classes)
+        logger.add_bwt(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
+        logger.add_forgetting(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
         if model.NAME != 'icarl' and model.NAME != 'pnn':
-            logger.add_fwt(results, random_results_class,
-                    results_mask_classes, random_results_task)
+            logger.add_fwt(results, random_results_class, results_mask_classes, random_results_task,
+                          results_augmented, random_results_class_augmented, results_mask_classes_augmented, random_results_task_augmented)
 
     if not args.disable_log:
         logger.write(vars(args))
