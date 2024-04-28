@@ -5,6 +5,8 @@
 
 ##import itertools
 
+from corruptions import *
+
 import math
 import sys
 from argparse import Namespace
