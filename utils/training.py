@@ -219,8 +219,10 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         if t and not args.ignore_other_metrics:
             accs = evaluate(model, dataset, last=True)
             results[t-1] = results[t-1] + accs[0]
+            results_augmented[t-1] = results_augmented[t-1] + accs[2]
             if dataset.SETTING == 'class-il':
                 results_mask_classes[t-1] = results_mask_classes[t-1] + accs[1]
+                results_mask_classes_augmented[t-1] = results_mask_classes_augmented[t-1] + accs[3]
 
         scheduler = dataset.get_scheduler(model, args)
         for epoch in range(model.args.n_epochs):
