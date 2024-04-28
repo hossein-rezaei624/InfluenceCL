@@ -270,8 +270,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         print_mean_accuracy(mean_acc, t + 1, dataset.SETTING)
 
         if not args.disable_log:
-            logger.log(mean_acc)
-            logger.log_fullacc(accs)
+            logger.log(mean_acc[:2], mean_acc[2:])
+            logger.log_fullacc(accs[:2], accs[2:])
 
         if not args.nowand:
             d2={'RESULT_class_mean_accs': mean_acc[0], 'RESULT_task_mean_accs': mean_acc[1], 'RESULT_class_mean_accs_ood': mean_acc[2], 'RESULT_task_mean_accs_ood': mean_acc[3],
