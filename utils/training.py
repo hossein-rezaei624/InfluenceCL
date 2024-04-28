@@ -272,9 +272,11 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             logger.log_fullacc(accs)
 
         if not args.nowand:
-            d2={'RESULT_class_mean_accs': mean_acc[0], 'RESULT_task_mean_accs': mean_acc[1],
+            d2={'RESULT_class_mean_accs': mean_acc[0], 'RESULT_task_mean_accs': mean_acc[1], 'RESULT_class_mean_accs_ood': mean_acc[2], 'RESULT_task_mean_accs_ood': mean_acc[3],
                 **{f'RESULT_class_acc_{i}': a for i, a in enumerate(accs[0])},
-                **{f'RESULT_task_acc_{i}': a for i, a in enumerate(accs[1])}}
+                **{f'RESULT_task_acc_{i}': a for i, a in enumerate(accs[1])},
+                **{f'RESULT_class_acc_ood_{i}': a for i, a in enumerate(accs[2])},
+                **{f'RESULT_task_acc_ood_{i}': a for i, a in enumerate(accs[3])}}
 
             wandb.log(d2)
 
