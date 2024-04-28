@@ -182,6 +182,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
     model.net.to(model.device)
     results, results_mask_classes = [], []
+    results_augmented, results_mask_classes_augmented = [], []
 
     if not args.disable_log:
         logger = Logger(dataset.SETTING, dataset.NAME, model.NAME)
@@ -259,7 +260,10 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         accs = evaluate(model, dataset)
         results.append(accs[0])
         results_mask_classes.append(accs[1])
+        results_augmented.append(accs[2])
+        results_mask_classes_augmented.append(accs[3])
 
+        
         mean_acc = np.mean(accs, axis=1)
         print_mean_accuracy(mean_acc, t + 1, dataset.SETTING)
 
