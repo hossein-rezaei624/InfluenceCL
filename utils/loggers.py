@@ -46,7 +46,9 @@ class Logger:
     def __init__(self, setting_str: str, dataset_str: str,
                  model_str: str) -> None:
         self.accs = []
+        self.accs_ood = []
         self.fullaccs = []
+        self.fullaccs_ood = []
         if setting_str == 'class-il':
             self.accs_mask_classes = []
             self.accs_mask_classes_ood = []
@@ -71,7 +73,9 @@ class Logger:
     def dump(self):
         dic = {
             'accs': self.accs,
+            'accs_ood': self.accs_ood,
             'fullaccs': self.fullaccs,
+            'fullaccs_ood': self.fullaccs_ood,
             'fwt': self.fwt,
             'fwt_ood': self.fwt_ood,
             'bwt': self.bwt,
@@ -95,7 +99,9 @@ class Logger:
 
     def load(self, dic):
         self.accs = dic['accs']
+        self.accs_ood = dic['accs_ood']
         self.fullaccs = dic['fullaccs']
+        self.fullaccs_ood = dic['fullaccs_ood']
         self.fwt = dic['fwt']
         self.fwt_ood = dic['fwt_ood']
         self.bwt = dic['bwt']
@@ -116,20 +122,30 @@ class Logger:
 
     def rewind(self, num):
         self.accs = self.accs[:-num]
+        self.accs_ood = self.accs_ood[:-num]
         self.fullaccs = self.fullaccs[:-num]
+        self.fullaccs_ood = self.fullaccs_ood[:-num]
         with suppress(BaseException):
             self.fwt = self.fwt[:-num]
+            self.fwt_ood = self.fwt_ood[:-num]
             self.bwt = self.bwt[:-num]
+            self.bwt_ood = self.bwt_ood[:-num]
             self.forgetting = self.forgetting[:-num]
+            self.forgetting_ood = self.forgetting_ood[:-num]
             self.fwt_mask_classes = self.fwt_mask_classes[:-num]
+            self.fwt_mask_classes_ood = self.fwt_mask_classes_ood[:-num]
             self.bwt_mask_classes = self.bwt_mask_classes[:-num]
+            self.bwt_mask_classes_ood = self.bwt_mask_classes_ood[:-num]
             self.forgetting_mask_classes = self.forgetting_mask_classes[:-num]
+            self.forgetting_mask_classes_ood = self.forgetting_mask_classes_ood[:-num]
 
         if self.setting == 'class-il':
             self.accs_mask_classes = self.accs_mask_classes[:-num]
+            self.accs_mask_classes_ood = self.accs_mask_classes_ood[:-num]
             self.fullaccs_mask_classes = self.fullaccs_mask_classes[:-num]
+            self.fullaccs_mask_classes_ood = self.fullaccs_mask_classes_ood[:-num]
 
-    def add_fwt(self, results, accs, results_mask_classes, accs_mask_classes):
+    def add_fwt(self, results, accs, results_mask_classes, accs_mask_classes, results_ood, accs_ood, results_mask_classes_ood, accs_mask_classes_ood):
         self.fwt = forward_transfer(results, accs)
         if self.setting == 'class-il':
             self.fwt_mask_classes = forward_transfer(results_mask_classes, accs_mask_classes)
