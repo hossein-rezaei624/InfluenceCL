@@ -516,8 +516,9 @@ class Casp(ContinualModel):
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
-        print("novel_loss", novel_loss)
-        self.task_conf_first.append(novel_loss)
+        if self.epoch == 0:
+            print("novel_loss.item()", novel_loss.item())
+            self.task_conf_first.append(novel_loss.item())
         novel_loss.backward()
         self.opt.step()
         
