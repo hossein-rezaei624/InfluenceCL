@@ -160,12 +160,20 @@ class Casp(ContinualModel):
                 break
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.casp_epoch)} for class_id, __ in enumerate(self.unique_classes)}
-        self.confidence_by_sample = torch.zeros((self.args.casp_epoch, self.n_sample_per_task))
+        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.n_epochs)} for class_id, __ in enumerate(self.unique_classes)}
+        self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
+        self.predicted_epoch = 1
+        self.task_conf_first = []
     
     def end_epoch(self, dataset, train_loader):
+
+        if self.epoch == 0:
+            print("len(self.task_conf_first)", len(self.task_conf_first))
+            print("torch.mean(torch.tensor(self.task_conf_first))", torch.mean(torch.tensor(self.task_conf_first)))
+
+
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
@@ -173,7 +181,6 @@ class Casp(ContinualModel):
             for j in range(len(self.buffer)):
                 self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]].append(soft_buffer[j, self.buffer.labels[j]].item())
                     
-        
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
@@ -407,7 +414,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.args.casp_epoch:
+        if self.epoch < self.predicted_epoch:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -426,7 +433,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.args.casp_epoch:
+        if self.epoch < self.predicted_epoch:
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
@@ -434,11 +441,14 @@ class Casp(ContinualModel):
                 
                 # Update the dictionary with the confidence score for the current class for the current epoch
                 self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
-    
+
+                if self.epoch == 0:
+                    self.task_conf_first.append(soft_[i, labels[i]].item())
+            
             # Record the confidence scores for samples in the corresponding tensor
             conf_tensor = torch.tensor(confidence_batch)
             self.confidence_by_sample[self.epoch, index_] = conf_tensor
-
+    
 
         if self.epoch == (self.args.n_epochs - 1):
             soft_task = soft_1(logits)
