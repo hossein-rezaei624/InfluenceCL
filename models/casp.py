@@ -171,12 +171,12 @@ class Casp(ContinualModel):
 
         if self.epoch == 0:
             print("len(self.task_conf_first)", len(self.task_conf_first))
-            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item() * 20
+            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
             print("self.predicted_epoch", self.predicted_epoch)
             if self.predicted_epoch > self.args.n_epochs:
                 self.predicted_epoch = self.args.n_epochs
             print("self.predicted_epoch", self.predicted_epoch)
-
+            self.predicted_epoch = 4
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
