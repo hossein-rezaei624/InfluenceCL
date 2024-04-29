@@ -169,7 +169,7 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == (self.args.n_epochs - 1):
+        if self.epoch == 0:
             print("len(self.task_conf_first)", len(self.task_conf_first))
             self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
             print("self.predicted_epoch", self.predicted_epoch)
@@ -420,7 +420,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.args.n_epochs:
+        if self.epoch < self.predicted_epoch:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -439,7 +439,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.args.n_epochs:
+        if self.epoch < self.predicted_epoch:
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
@@ -448,8 +448,15 @@ class Casp(ContinualModel):
                 # Update the dictionary with the confidence score for the current class for the current epoch
                 self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
 
-                if self.epoch == (self.args.n_epochs - 1):
-                    self.task_conf_first.append(soft_[i, labels[i]].item())
+                if self.epoch == 0:
+                    ##self.task_conf_first.append(soft_[i, labels[i]].item())
+
+                    # Calculate the entropy for the i-th prediction
+                    entropy = -torch.sum(soft_[i] * torch.log(soft_[i] + 1e-9))  # Adding a small constant to avoid log(0)
+                
+                    # Append the entropy (uncertainty measure) instead of the softmax value of the true class
+                    self.task_conf_first.append(entropy.item())
+                    
             
             # Record the confidence scores for samples in the corresponding tensor
             conf_tensor = torch.tensor(confidence_batch)
