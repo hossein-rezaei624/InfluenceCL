@@ -518,7 +518,6 @@ class Casp(ContinualModel):
 
         if self.epoch == 0:
             ll = self.loss(casp_logits, labels)
-            print("ll.item()", ll.item())
             self.task_conf_first.append(ll.item())
         novel_loss.backward()
         self.opt.step()
