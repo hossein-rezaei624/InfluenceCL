@@ -146,6 +146,8 @@ class Casp(ContinualModel):
         self.dist_task_prev = None
         self.task_class = {}
         self.dist_class_prev = None
+        self.predicted_epoch = 1
+        self.task_conf_first = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -164,20 +166,18 @@ class Casp(ContinualModel):
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
-        self.predicted_epoch = 1
-        self.task_conf_first = []
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == 0:
-            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
-            print("self.predicted_epoch", self.predicted_epoch)
-            self.predicted_epoch = round(dataset.N_TASKS * self.args.casp_epoch * self.predicted_epoch)
-            if self.predicted_epoch > self.args.n_epochs:
-                self.predicted_epoch = self.args.n_epochs
-            if self.predicted_epoch < 1:
-                self.predicted_epoch = 1
-  ###          self.predicted_epoch = int(self.args.casp_epoch)
+        if self.epoch == 0 and self.task == 1:
+###            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
+###            print("self.predicted_epoch", self.predicted_epoch)
+###            self.predicted_epoch = round(dataset.N_TASKS * self.args.casp_epoch * self.predicted_epoch)
+###            if self.predicted_epoch > self.args.n_epochs:
+###                self.predicted_epoch = self.args.n_epochs
+###            if self.predicted_epoch < 1:
+###                self.predicted_epoch = 1
+            self.predicted_epoch = int(self.args.casp_epoch)
             print("The epoch number for obtaining informative samples and classes' portion is:", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -449,15 +449,15 @@ class Casp(ContinualModel):
                 # Update the dictionary with the confidence score for the current class for the current epoch
                 self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
 
-                if self.epoch == 0:
-
-                    soft_new = soft_[:, list(self.unique_classes)]
-                    
-                    # Calculate the entropy for the i-th prediction
-                    entropy = -torch.sum(soft_new[i] * torch.log(soft_new[i] + 1e-9))  # Adding a small constant to avoid log(0)
-                
-                    # Append the entropy (uncertainty measure) instead of the softmax value of the true class
-                    self.task_conf_first.append(entropy.item())
+###                if self.epoch == 0 and self.task == 1:
+###
+###                    soft_new = soft_[:, list(self.unique_classes)]
+###                    
+###                    # Calculate the entropy for the i-th prediction
+###                    entropy = -torch.sum(soft_new[i] * torch.log(soft_new[i] + 1e-9))  # Adding a small constant to avoid log(0)
+###                
+###                    # Append the entropy (uncertainty measure) instead of the softmax value of the true class
+###                    self.task_conf_first.append(entropy.item())
             
             # Record the confidence scores for samples in the corresponding tensor
             conf_tensor = torch.tensor(confidence_batch)
