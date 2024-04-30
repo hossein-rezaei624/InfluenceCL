@@ -16,7 +16,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--casp_epoch', type=int, default=1.0,
+    parser.add_argument('--casp_epoch', type=float, default=1.0,
                         help='Epoch for sample selection')
     return parser
 
