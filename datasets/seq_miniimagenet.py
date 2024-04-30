@@ -99,8 +99,8 @@ class SequentialMiniImagenet(ContinualDataset):
 
     NAME = 'seq-miniimg'
     SETTING = 'class-il'
-    N_CLASSES_PER_TASK = 20
-    N_TASKS = 5
+    N_CLASSES_PER_TASK = 10
+    N_TASKS = 10
     MEAN = (0.47313006, 0.44905752, 0.40378186)
     STD = (0.27292014, 0.26559181, 0.27953038)
     TRANSFORM = transforms.Compose(
