@@ -452,7 +452,6 @@ class Casp(ContinualModel):
                 if self.epoch == 0 and self.task == 1:
 
                     soft_new = soft_[:, list(self.unique_classes)]
-                    print("soft_new.shape", soft_new.shape)
                     
                     # Calculate the entropy for the i-th prediction
                     entropy = -torch.sum(soft_new[i] * torch.log(soft_new[i] + 1e-9))  # Adding a small constant to avoid log(0)
