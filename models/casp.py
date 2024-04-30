@@ -449,8 +449,11 @@ class Casp(ContinualModel):
                 self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
 
                 if self.epoch == 0 and self.task == 1:
+
+                    soft_new = soft_[:, list(self.unique_classes)]
+                    
                     # Calculate the entropy for the i-th prediction
-                    entropy = -torch.sum(soft_[i] * torch.log(soft_[i] + 1e-9))  # Adding a small constant to avoid log(0)
+                    entropy = -torch.sum(soft_new[i] * torch.log(soft_new[i] + 1e-9))  # Adding a small constant to avoid log(0)
                 
                     # Append the entropy (uncertainty measure) instead of the softmax value of the true class
                     self.task_conf_first.append(entropy.item())
