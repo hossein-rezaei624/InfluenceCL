@@ -172,7 +172,7 @@ class Casp(ContinualModel):
         if self.epoch == 0 and self.task == 1:
             self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
             print("self.predicted_epoch", self.predicted_epoch)
-            self.predicted_epoch = round(self.args.casp_epoch * self.predicted_epoch)
+            self.predicted_epoch = round(dataset.N_TASKS * self.args.casp_epoch * self.predicted_epoch)
             if self.predicted_epoch > self.args.n_epochs:
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 1:
