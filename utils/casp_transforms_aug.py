@@ -30,7 +30,7 @@ transforms_aug = {
     'seq-miniimg': transforms.Compose([
         transforms.ToPILImage(),
         # transforms.RandomCrop(32, padding=4),
-        transforms.RandomResizedCrop(size=84, scale=(0.2, 1.)),
+        transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
         transforms.RandomHorizontalFlip(),
         transforms.RandomApply([
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
