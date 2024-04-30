@@ -92,7 +92,7 @@ class MyMiniImagenet(MiniImagenet):
         if hasattr(self, 'logits'):
             return img, target, not_aug_img, self.logits[index]
 
-        return img, target, not_aug_img
+        return img, target, not_aug_img, index
 
 
 class SequentialMiniImagenet(ContinualDataset):
@@ -106,12 +106,17 @@ class SequentialMiniImagenet(ContinualDataset):
     TRANSFORM = transforms.Compose(
         [transforms.Resize(32),
          # remove data augmentation to reproduce results
-         # transforms.RandomCrop(32, padding=4),
-         # transforms.RandomHorizontalFlip(),
+         transforms.RandomCrop(32, padding=4),
+         transforms.RandomHorizontalFlip(),
          transforms.ToTensor(),
          transforms.Normalize(MEAN,
                               STD)])
 
+    def get_examples_number(self):
+        train_dataset = MyMiniImagenet(base_path() + 'MINIIMG', train=True,
+                                  download=True)
+        return len(train_dataset.data)
+    
     def get_data_loaders(self):
         transform = self.TRANSFORM
 
