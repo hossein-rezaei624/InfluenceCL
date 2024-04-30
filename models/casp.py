@@ -146,8 +146,6 @@ class Casp(ContinualModel):
         self.dist_task_prev = None
         self.task_class = {}
         self.dist_class_prev = None
-        self.predicted_epoch = 1
-        self.task_conf_first = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -166,10 +164,12 @@ class Casp(ContinualModel):
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
+        self.predicted_epoch = 1
+        self.task_conf_first = []
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == 0 and self.task == 1:
+        if self.epoch == 0:
             self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
             print("self.predicted_epoch", self.predicted_epoch)
             self.predicted_epoch = round(dataset.N_TASKS * self.args.casp_epoch * self.predicted_epoch)
@@ -449,7 +449,7 @@ class Casp(ContinualModel):
                 # Update the dictionary with the confidence score for the current class for the current epoch
                 self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
 
-                if self.epoch == 0 and self.task == 1:
+                if self.epoch == 0:
 
                     soft_new = soft_[:, list(self.unique_classes)]
                     
