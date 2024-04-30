@@ -76,7 +76,7 @@ class SequentialCIFAR100(ContinualDataset):
                                   (0.2675, 0.2565, 0.2761))])
 
     def get_examples_number(self):
-        train_dataset = MyCIFAR100(base_path() + 'CIFAR10', train=True,
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
                                   download=True)
         return len(train_dataset.data)
 
