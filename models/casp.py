@@ -146,6 +146,8 @@ class Casp(ContinualModel):
         self.dist_task_prev = None
         self.task_class = {}
         self.dist_class_prev = None
+        self.predicted_epoch = 1
+        self.task_conf_first = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -164,20 +166,14 @@ class Casp(ContinualModel):
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
-        self.predicted_epoch = 1
-        self.task_conf_first = []
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == 0:
-            print("len(self.task_conf_first)", len(self.task_conf_first))
-            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
-            print("self.predicted_epoch", self.predicted_epoch)
+        if self.epoch == 0 and self.task == 1:
+            self.predicted_epoch = torch.mean(self.task_conf_first).item()
             self.predicted_epoch = round(self.predicted_epoch)
-            print("self.predicted_epoch", self.predicted_epoch)
             if self.predicted_epoch > self.args.n_epochs:
                 self.predicted_epoch = self.args.n_epochs
-            print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
@@ -517,8 +513,8 @@ class Casp(ContinualModel):
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
         if self.epoch == 0:
-            ll = self.loss(casp_logits, labels)
-            self.task_conf_first.append(ll.item())
+            print("ddddddddddd", type(novel_loss))
+            self.task_conf_first.append(novel_loss)
         novel_loss.backward()
         self.opt.step()
         
