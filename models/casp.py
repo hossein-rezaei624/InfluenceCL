@@ -171,6 +171,7 @@ class Casp(ContinualModel):
 
         if self.epoch == 0 and self.task == 1:
             self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
+            print("self.predicted_epoch", self.predicted_epoch)
             self.predicted_epoch = round(self.args.casp_epoch * self.predicted_epoch)
             if self.predicted_epoch > self.args.n_epochs:
                 self.predicted_epoch = self.args.n_epochs
@@ -445,7 +446,14 @@ class Casp(ContinualModel):
                 confidence_batch.append(soft_[i,labels[i]].item())
                 
                 # Update the dictionary with the confidence score for the current class for the current epoch
-                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())                    
+                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
+
+                if self.epoch == 0 and self.task == 1:
+                    # Calculate the entropy for the i-th prediction
+                    entropy = -torch.sum(soft_[i] * torch.log(soft_[i] + 1e-9))  # Adding a small constant to avoid log(0)
+                
+                    # Append the entropy (uncertainty measure) instead of the softmax value of the true class
+                    self.task_conf_first.append(entropy.item())
             
             # Record the confidence scores for samples in the corresponding tensor
             conf_tensor = torch.tensor(confidence_batch)
@@ -505,8 +513,6 @@ class Casp(ContinualModel):
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
-        if self.epoch == 0 and self.task == 1:
-            self.task_conf_first.append(novel_loss.item())
         novel_loss.backward()
         self.opt.step()
         
