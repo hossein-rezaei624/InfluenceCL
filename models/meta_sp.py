@@ -43,11 +43,11 @@ class MetaSP(ContinualModel):
         self.buffer.reset_score()
 
 
-    def observe(self, inputs, labels, img_id, not_aug_inputs, task):
+    def observe(self, inputs, labels, img_id, not_aug_inputs):
 
         real_batch_size = inputs.shape[0]
-        task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * task
-        if task == 0:
+        task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * self.current_task
+        if self.current_task == 0:
             self.opt.zero_grad()
             outputs = self.net(inputs)
             loss = self.loss(outputs, labels)
@@ -66,11 +66,11 @@ class MetaSP(ContinualModel):
                 return loss.item()
             else:
                 self.opt.zero_grad()
-                mem_x, mem_y, mem_ids, mem_score, mem_index = self.buffer.get_data_gmed(self.args.minibatch_size, transform=self.transform, fsr=True, current_task=task)
+                mem_x, mem_y, mem_ids, mem_score, mem_index = self.buffer.get_data_gmed(self.args.minibatch_size, transform=self.transform, fsr=True, current_task=self.current_task)
                 total = torch.cat((inputs, mem_x))
                 total_labels = torch.cat((labels, mem_y))
                 subsample = self.buffer.buffer_size // 10
-                bx, by, b_ids, b_score = self.buffer.get_data(subsample, transform=self.transform, fsr=True, current_task=task)
+                bx, by, b_ids, b_score = self.buffer.get_data(subsample, transform=self.transform, fsr=True, current_task=self.current_task)
                 nx, ny = self.currentbuffer.get_data(subsample, transform=self.transform)
                 input_id, get_input_score = self.currentbuffer.get_input_score(img_id, shape=real_batch_size)
 
