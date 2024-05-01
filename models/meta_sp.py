@@ -24,8 +24,12 @@ class MetaSP(ContinualModel):
         super(MetaSP, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.current_task = 0
+        self.epoch = 0
         self.transform = None
 
+    def end_epoch(self, dataset):
+        self.epoch += 1
+    
     def end_task(self, dataset):
         replace = self.args.buffer_size // (self.current_task + 1)
         delete_ind = self.buffer.delete_data_basedscore(replace, task=self.current_task)
@@ -39,7 +43,7 @@ class MetaSP(ContinualModel):
         self.buffer.reset_score()
 
 
-    def observe(self, inputs, labels, img_id, not_aug_inputs, task, args, epoch):
+    def observe(self, inputs, labels, img_id, not_aug_inputs, task):
 
         real_batch_size = inputs.shape[0]
         task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * task
@@ -53,7 +57,7 @@ class MetaSP(ContinualModel):
             self.buffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, score=score)
             return loss.item()
         else:
-            if epoch<45:
+            if self.epoch<45:
                 self.opt.zero_grad()
                 outputs = self.net(inputs)
                 loss = self.loss(outputs, labels)
@@ -112,7 +116,7 @@ class MetaSP(ContinualModel):
                 self.buffer.replace_score(mem_score, mem_index)
                 self.times[mem_index] = self.times[mem_index] + 1
 
-                cur_epoch = epoch - 45
+                cur_epoch = self.epoch - 45
                 # store influence
                 get_input_score[:, 0] = (get_input_score[:, 0] * cur_epoch + eps_grads1[:real_batch_size]) / (cur_epoch + 1)
                 get_input_score[:, 1] = (get_input_score[:, 1] * cur_epoch + eps_grads2[:real_batch_size]) / (cur_epoch + 1)
