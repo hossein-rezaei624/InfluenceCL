@@ -67,18 +67,7 @@ class Gss(ContinualModel):
 
             outputs = self.net(tinputs)
             loss = self.loss(outputs, tlabels)
-            loss.backward()
-
-            
-            # Debug: Check gradients right after backward pass
-            print("Gradient Check Post-backward:")
-            for name, param in self.net.named_parameters():
-                if param.grad is not None:
-                    print(f"Gradient for {name} exists.")
-                else:
-                    print(f"Gradient for {name} is None.")
-
-            
+            loss.backward()            
             self.opt.step()
 
         self.buffer.add_data(examples=not_aug_inputs,
