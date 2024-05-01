@@ -571,6 +571,18 @@ best_args = {
                                   'batch_size': 32,
                                   'n_epochs': 50}},
 
+                    'meta_sp': {300: {'lr': 0.1,
+                                 'minibatch_size': 32,
+                                 'batch_size': 32,
+                                 'n_epochs': 50},
+                           500: {'lr': 0.1,
+                                 'minibatch_size': 32,
+                                 'batch_size': 32},
+                           1000: {'lr': 0.1,
+                                  'minibatch_size': 32,
+                                  'batch_size': 32,
+                                  'n_epochs': 50}},
+
                     
                     'gem': {300: {'lr': 0.03,
                                   'gamma': 0.5,
