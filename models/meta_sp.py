@@ -3,7 +3,7 @@ from utils.buffer_meta_sp import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
 import random
-##from utils.current_buffer import CurrentBuffer
+from utils.current_buffer import CurrentBuffer
 import higher
 from utils.min_norm_solvers import MinNormSolver, gradient_normalizers
 import numpy as np
