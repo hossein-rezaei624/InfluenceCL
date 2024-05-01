@@ -106,8 +106,8 @@ class SequentialMiniImagenet(ContinualDataset):
     TRANSFORM = transforms.Compose(
         [transforms.Resize(32),
          # remove data augmentation to reproduce results
-         transforms.RandomCrop(32, padding=4),
-         transforms.RandomHorizontalFlip(),
+         ##transforms.RandomCrop(32, padding=4),
+         ##transforms.RandomHorizontalFlip(),
          transforms.ToTensor(),
          transforms.Normalize(MEAN,
                               STD)])
