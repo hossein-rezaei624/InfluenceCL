@@ -43,7 +43,7 @@ class MetaSP(ContinualModel):
         self.buffer.reset_score()
 
 
-    def observe(self, inputs, labels, img_id, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, img_id):
 
         real_batch_size = inputs.shape[0]
         task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * self.current_task
