@@ -170,14 +170,14 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
 
         if self.epoch == 0 and self.task == 1:
-###            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
-###            print("self.predicted_epoch", self.predicted_epoch)
-###            self.predicted_epoch = round(dataset.N_TASKS * self.args.casp_epoch * self.predicted_epoch)
-###            if self.predicted_epoch > self.args.n_epochs:
-###                self.predicted_epoch = self.args.n_epochs
-###            if self.predicted_epoch < 1:
-###                self.predicted_epoch = 1
-            self.predicted_epoch = int(self.args.casp_epoch)
+            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
+            print("self.predicted_epoch", self.predicted_epoch)
+            self.predicted_epoch = round(self.predicted_epoch)
+            if self.predicted_epoch > self.args.n_epochs:
+                self.predicted_epoch = self.args.n_epochs
+            if self.predicted_epoch < 1:
+                self.predicted_epoch = 1
+###            self.predicted_epoch = int(self.args.casp_epoch)
             print("The epoch number for obtaining informative samples and classes' portion is:", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -517,6 +517,9 @@ class Casp(ContinualModel):
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
+        if self.epoch == 0 and self.task == 1:
+            self.task_conf_first.append(novel_loss.item())
+        
         novel_loss.backward()
         self.opt.step()
         
