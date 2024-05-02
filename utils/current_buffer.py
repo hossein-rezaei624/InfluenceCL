@@ -106,7 +106,7 @@ class CurrentBuffer:
         indices = torch.randperm(kmeansdata.size(0))[:num_clusters].to(self.device)
         centroids = kmeansdata[indices].clone()
     
-        for _ in range(150):  # Limit iterations for practicality
+        for _ in range(50):  # Limit iterations for practicality
             # Compute distances and assign clusters
             dists = torch.cdist(kmeansdata, centroids)
             assignments = torch.argmin(dists, dim=1)
