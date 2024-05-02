@@ -23,12 +23,12 @@ class MetaSP(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(MetaSP, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
-        self.currentbuffer = CurrentBuffer(10000, self.device)
         self.current_task = 0
         self.epoch = 0
         self.transform = None
 
     def begin_task(self, dataset):
+        self.currentbuffer = CurrentBuffer(10000, self.device)
         self.epoch = 0
     
     def end_epoch(self, dataset):
