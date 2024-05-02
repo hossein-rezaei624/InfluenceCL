@@ -200,7 +200,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
     print(file=sys.stderr)
     if hasattr(model, 'begin_train'):
-        if model.NAME == 'casp':
+        if model.NAME == 'casp' or model.NAME == 'meta_sp':
             model.begin_train(dataset)
     for t in range(dataset.N_TASKS):
         model.net.train()
