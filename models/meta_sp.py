@@ -23,10 +23,10 @@ class MetaSP(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(MetaSP, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
         self.current_task = 0
         self.epoch = 0
         self.transform = None
-        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
 
     def begin_task(self, dataset):
         self.epoch = 0
@@ -51,8 +51,9 @@ class MetaSP(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * self.current_task
-        score1 = torch.ones((real_batch_size, 3), dtype=torch.long).to(self.device)
-        self.currentbuffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, scores=score1, img_id=img_id)
+        if self.epoch == 0:
+            score1 = torch.ones((real_batch_size, 3), dtype=torch.long).to(self.device)
+            self.currentbuffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, scores=score1, img_id=img_id)
         if self.current_task == 0:
             self.opt.zero_grad()
             outputs = self.net(inputs)
@@ -63,7 +64,7 @@ class MetaSP(ContinualModel):
             self.buffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, score=score)
             return loss.item()
         else:
-            if self.epoch<45:
+            if self.epoch<5:
                 self.opt.zero_grad()
                 outputs = self.net(inputs)
                 loss = self.loss(outputs, labels)
