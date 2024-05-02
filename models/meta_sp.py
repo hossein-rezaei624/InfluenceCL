@@ -23,7 +23,6 @@ class MetaSP(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(MetaSP, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
-        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
         self.current_task = 0
         self.epoch = 0
         self.transform = None
@@ -56,7 +55,6 @@ class MetaSP(ContinualModel):
             self.opt.step()
             score = torch.ones((real_batch_size, 3), dtype=torch.long).to(self.device)
             self.buffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, score=score)
-            self.currentbuffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, scores=score, img_id=img_id)
             return loss.item()
         else:
             if self.epoch<45:
