@@ -51,6 +51,7 @@ class MetaSP(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         task_labels = torch.ones(real_batch_size, dtype=torch.long).to(self.device) * self.current_task
+        self.currentbuffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, img_id=img_id)
         if self.current_task == 0:
             self.opt.zero_grad()
             outputs = self.net(inputs)
@@ -59,7 +60,6 @@ class MetaSP(ContinualModel):
             self.opt.step()
             score = torch.ones((real_batch_size, 3), dtype=torch.long).to(self.device)
             self.buffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, score=score)
-            self.currentbuffer.add_data(examples=inputs, labels=labels, task_labels=task_labels, scores=score, img_id=img_id)
             return loss.item()
         else:
             if self.epoch<45:
