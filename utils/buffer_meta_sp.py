@@ -2,7 +2,6 @@ import torch
 import numpy as np
 from typing import Tuple
 from torchvision import transforms
-##from utils.ourskmeans import cluster
 
 
 def reservoir(num_seen_examples: int, buffer_size: int) -> int:
