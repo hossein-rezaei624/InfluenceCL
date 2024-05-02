@@ -28,7 +28,7 @@ class MetaSP(ContinualModel):
         self.transform = None
 
     def begin_task(self, dataset):
-        self.currentbuffer = CurrentBuffer(10000, self.device)
+        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
         self.epoch = 0
     
     def end_epoch(self, dataset):
