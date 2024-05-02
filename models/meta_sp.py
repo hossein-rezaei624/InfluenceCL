@@ -3,7 +3,7 @@ from utils.buffer_meta_sp import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
 import random
-##from utils.current_buffer import CurrentBuffer
+from utils.current_buffer import CurrentBuffer
 import higher
 from utils.min_norm_solvers import MinNormSolver, gradient_normalizers
 import numpy as np
@@ -23,6 +23,7 @@ class MetaSP(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(MetaSP, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
         self.current_task = 0
         self.epoch = 0
         self.transform = None
