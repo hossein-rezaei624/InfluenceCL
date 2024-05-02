@@ -99,11 +99,33 @@ class CurrentBuffer:
         for i in range(len(mem_scores)):
             self.scores[index[i]] = mem_scores[i].to(self.device)
 
-    def ourkmeans(self, replace):
-        num_centers = replace
-        kmeansdata = torch.reshape(self.examples, [self.examples.shape[0], -1])
-        centers, codes, distance = cluster(kmeansdata, num_centers, self.device)
-        return codes, distance
+
+    def ourkmeans(self, num_clusters):
+        kmeansdata = torch.reshape(self.examples, [self.examples.shape[0], -1]).to(self.device)
+        
+        # Ensure the data and initial centroids are on the correct computational device
+        indices = torch.randperm(kmeansdata.size(0))[:num_clusters].to(self.device)
+        centroids = kmeansdata[indices].clone()
+    
+        for _ in range(100):  # Limit iterations for practicality
+            # Compute distances and assign clusters
+            dists = torch.cdist(kmeansdata, centroids)
+            assignments = torch.argmin(dists, dim=1)
+    
+            # Recompute centroids
+            for i in range(num_clusters):
+                if torch.any(assignments == i):
+                    centroids[i] = kmeansdata[assignments == i].mean(dim=0)
+                else:
+                    # Reinitialize empty centroid
+                    centroids[i] = kmeansdata[torch.randint(0, kmeansdata.size(0), (1,))]
+    
+        # Compute the minimum distances for return or further use
+        min_distances = torch.min(torch.cdist(kmeansdata, centroids), dim=1)[0]
+    
+        return assignments, min_distances
+
+    
 
 
     def score(self, replace, codes):
