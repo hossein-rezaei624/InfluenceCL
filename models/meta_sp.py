@@ -26,9 +26,13 @@ class MetaSP(ContinualModel):
         self.current_task = 0
         self.epoch = 0
         self.transform = None
+        self.n_sample_per_task = None
 
+    def begin_train(self, dataset):
+        self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
+    
     def begin_task(self, dataset):
-        self.currentbuffer = CurrentBuffer(self.args.buffer_size, self.device)
+        self.currentbuffer = CurrentBuffer(self.n_sample_per_task, self.device)
         self.epoch = 0
     
     def end_epoch(self, dataset):
