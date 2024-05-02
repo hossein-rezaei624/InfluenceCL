@@ -123,7 +123,7 @@ class MetaSP(ContinualModel):
                 self.buffer.replace_score(mem_score, mem_index)
                 self.times[mem_index] = self.times[mem_index] + 1
 
-                cur_epoch = self.epoch - 45
+                cur_epoch = self.epoch - 5
                 # store influence
                 get_input_score[:, 0] = (get_input_score[:, 0] * cur_epoch + eps_grads1[:real_batch_size]) / (cur_epoch + 1)
                 get_input_score[:, 1] = (get_input_score[:, 1] * cur_epoch + eps_grads2[:real_batch_size]) / (cur_epoch + 1)
