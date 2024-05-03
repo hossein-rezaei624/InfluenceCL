@@ -116,7 +116,7 @@ class CurrentBuffer:
             next_index = torch.multinomial(probs, 1).item()
             centroids[i] = kmeansdata[next_index]
     
-        for _ in range(200):  # Limit iterations for practicality
+        for _ in range(100):  # Limit iterations for practicality
             # Compute distances and assign clusters
             dists = torch.cdist(kmeansdata, centroids)
             assignments = torch.argmin(dists, dim=1)
