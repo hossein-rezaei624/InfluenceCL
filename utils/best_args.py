@@ -1128,7 +1128,7 @@ best_args = {
                    'batch_size': 32,
                    'n_epochs': 50,
                    'optim_mom': 0, 
-                   'optim_wd': 0}
+                   'optim_wd': 0},
             2000: {'lr': 0.1,
                    'minibatch_size': 32,
                    'batch_size': 32,
@@ -1147,7 +1147,7 @@ best_args = {
                    'batch_size': 32,
                    'n_epochs': 50,
                    'optim_mom': 0, 
-                   'optim_wd': 0}
+                   'optim_wd': 0},
             2000: {'lr': 0.1,
                    'minibatch_size': 32,
                    'batch_size': 32,
@@ -1166,7 +1166,7 @@ best_args = {
                    'batch_size': 32,
                    'n_epochs': 50,
                    'optim_mom': 0, 
-                   'optim_wd': 0}
+                   'optim_wd': 0},
             2000: {'lr': 0.1, 
                    'minibatch_size': 32,
                    'batch_size': 32,
@@ -1306,7 +1306,7 @@ best_args = {
                    'batch_size': 32,
                    'n_epochs': 50,
                    'optim_mom': 0, 
-                   'optim_wd': 0}
+                   'optim_wd': 0},
             2000: {'lr': 0.1, 
                    'minibatch_size': 32,
                    'batch_size': 32,
