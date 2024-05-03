@@ -585,6 +585,32 @@ best_args = {
                                   'batch_size': 32,
                                   'n_epochs': 50}},
 
+
+                    'gdumb': {300:  {'lr': 0.1,
+                                   'minibatch_size': 32,
+                                   'batch_size': 32,
+                                   'n_epochs': 50,
+                                   'maxlr': 0.05, 
+                                   'minlr': 5e-4, 
+                                   'cutmix_alpha': 1, 
+                                   'fitting_epochs': 250},
+                            500:  {'lr': 0.1,
+                                   'minibatch_size': 32,
+                                   'batch_size': 32,
+                                   'n_epochs': 50,
+                                   'maxlr': 0.05, 
+                                   'minlr': 5e-4, 
+                                   'cutmix_alpha': 1, 
+                                   'fitting_epochs': 250},
+                            1000: {'lr': 0.1,
+                                   'minibatch_size': 32,
+                                   'batch_size': 32,
+                                   'n_epochs': 50,
+                                   'maxlr': 0.05, 
+                                   'minlr': 5e-4, 
+                                   'cutmix_alpha': 1, 
+                                   'fitting_epochs': 250}},
+
                     
                     'gem': {300: {'lr': 0.1,
                                   'gamma': 0.5,
@@ -1121,8 +1147,8 @@ best_args = {
 
         
         'gdumb': {
-            500:  {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0.9, 'optim_wd': 1e-6},
-            1000: {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0, 'optim_wd': 1e-6},
+            500:  {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0, 'optim_wd': 0},
+            1000: {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0, 'optim_wd': 0},
         },
         'lucir': {
             500: {'lr': 0.03, 'lr_finetune':0.01,  'optim_mom': 0.9, 'optim_wd': 0, 'lamda_base': 5, 'k_mr':  2, 'fitting_epochs': 20, 'mr_margin': 0.5, 'lamda_mr': 1.},
