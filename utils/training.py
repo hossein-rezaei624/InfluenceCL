@@ -178,7 +178,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
     if not args.nowand:
         assert wandb is not None, "Wandb not installed, please install it or run without wandb"
-        wandb.init(project=args.wandb_project, entity=args.wandb_entity, notes=args.notes, config=vars(args))
+        name_of_run = f"{args.model}_{args.buffer_size}_{args.dataset}"
+        wandb.init(project=args.wandb_project, entity=args.wandb_entity, notes=args.notes, config=vars(args), name=name_of_run)
         args.wandb_url = wandb.run.get_url()
 
     model.net.to(model.device)
