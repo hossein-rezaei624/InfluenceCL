@@ -1041,7 +1041,7 @@ best_args = {
                                   'n_epochs': 50,
                                   'hal_lambda': 0.1,
                                   'beta': 0.3,
-                                  'gamma': 0.1
+                                  'gamma': 0.1,
                                   'steps_on_anchors': 100,
                                   'finetuning_epochs': 1},
                             2000: {'lr': 0.03,
