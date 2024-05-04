@@ -175,7 +175,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 5
+            self.predicted_epoch = 6
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
