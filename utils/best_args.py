@@ -357,6 +357,25 @@ best_args = {
                       'minibatch_size': 10,
                       'batch_size': 10,
                       'n_epochs': 1}},
+
+
+        'casp': {300: {'lr': 0.1,
+                     'minibatch_size': 32,
+                     'batch_size': 32,
+                     'n_epochs': 50},
+               500: {'lr': 0.1,
+                     'minibatch_size': 32,
+                     'batch_size': 32,
+                     'n_epochs': 50},
+               1000: {'lr': 0.1,
+                      'minibatch_size': 32,
+                      'batch_size': 32,
+                      'n_epochs': 50}},
+
+
+
+
+        
         'mer': {300: {'lr': 0.1,
                       'minibatch_size': 128,
                       'beta': 1,
