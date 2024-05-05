@@ -175,7 +175,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 4
+            ###self.predicted_epoch = 4
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
@@ -438,7 +438,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.predicted_epoch:
-            soft_ = soft_1(logits)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
