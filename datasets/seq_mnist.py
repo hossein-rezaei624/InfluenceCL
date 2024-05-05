@@ -50,7 +50,7 @@ class MyMNIST(MNIST):
         if hasattr(self, 'logits'):
             return img, target, original_img, self.logits[index]
 
-        return img, target, original_img
+        return img, target, original_img, index
 
 
 class SequentialMNIST(ContinualDataset):
