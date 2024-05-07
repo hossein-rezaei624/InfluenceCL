@@ -1402,8 +1402,6 @@ best_args = {
                       'hal_lambda': 0.2,
                       'beta': 0.5,
                       'gamma': 0.1,
-                      'steps_on_anchors': 100,
-                      'finetuning_epochs': 1,
                       'optim_mom': 0, 
                       'optim_wd': 0},
                 1000: {'lr': 0.1,
