@@ -75,7 +75,7 @@ class GDumb(ContinualModel):
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.task = 0
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    def observe(self, inputs, labels, not_aug_inputs, index_):
         self.buffer.add_data(examples=not_aug_inputs,
                              labels=labels)
         return 0
