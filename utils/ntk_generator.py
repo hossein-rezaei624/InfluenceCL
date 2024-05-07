@@ -1,8 +1,8 @@
 # Reference: https://github.com/zalanborsos/bilevel_coresets
 import numpy as np
-##from jax import jit
-##from neural_tangents import stax
-##import jax
+from jax import jit
+from neural_tangents import stax
+import jax
 
 _, _, kernel_fn = stax.serial(
     stax.Dense(100, 1., 0.05),
