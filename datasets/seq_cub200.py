@@ -24,7 +24,6 @@ class MyCUB200(Dataset):
     IMG_SIZE = 32
     N_CLASSES = 200
     MEAN, STD = (0.4856, 0.4994, 0.4324), (0.2272, 0.2226, 0.2613)
-    TEST_TRANSFORM = transforms.Compose([transforms.Resize(IMG_SIZE), transforms.ToTensor(), transforms.Normalize(MEAN, STD)])
 
     def __init__(self, root: str, train: bool = True, transform: transforms = None,
                  target_transform: transforms = None, download: bool =True) -> None:
