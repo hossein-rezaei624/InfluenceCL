@@ -155,22 +155,35 @@ class SequentialCUB200(ContinualDataset):
         transforms.Normalize(MEAN, STD)])
     TEST_TRANSFORM = MyCUB200.TEST_TRANSFORM
 
-    def get_data_loaders(self) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+
+
+    def get_examples_number(self):
+        train_dataset = MyCUB200(base_path() + 'CUB200', train=True,
+                                  download=True)
+        return len(train_dataset.data)
+
+  
+    def get_data_loaders(self):
         transform = self.TRANSFORM
 
         test_transform = transforms.Compose(
-            [transforms.Resize((MyCUB200.IMG_SIZE, MyCUB200.IMG_SIZE)), transforms.ToTensor(), self.get_normalization_transform()])
+            [transforms.Resize(32), transforms.ToTensor(), self.get_normalization_transform()])
 
         train_dataset = MyCUB200(base_path() + 'CUB200', train=True,
                                  download=True, transform=transform)
-        test_dataset = CUB200(base_path() + 'CUB200', train=False,
+
+        train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
+        if self.args.validation:
+            train_dataset, test_dataset = get_train_val(train_dataset,
+                                                        test_transform, self.NAME)
+        else:
+            test_dataset = CUB200(base_path() + 'CUB200', train=False,
                                 download=True, transform=test_transform)
 
-        train, test = store_masked_loaders(
-            train_dataset, test_dataset, self)
-
+        train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
 
+  
 
     @staticmethod
     def get_backbone():
