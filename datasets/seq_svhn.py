@@ -21,20 +21,20 @@ from utils.conf import base_path_dataset as base_path
 
 class TSVHN(SVHN):
     """Workaround to avoid printing the already downloaded messages."""
-    def __init__(self, root, train=True, transform=None,
+    def __init__(self, root, split = 'train', transform=None,
                  target_transform=None, download=False) -> None:
         self.root = root
-        super(TSVHN, self).__init__(root, train, transform, target_transform, download=not self._check_integrity())
+        super(TSVHN, self).__init__(root, split, transform, target_transform, download=not self._check_integrity())
 
 class MySVHN(SVHN):
     """
     Overrides the CIFAR100 dataset to change the getitem function.
     """
-    def __init__(self, root, train=True, transform=None,
+    def __init__(self, root, split = 'train', transform=None,
                  target_transform=None, download=False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
-        super(MySVHN, self).__init__(root, train, transform, target_transform, not self._check_integrity())
+        super(MySVHN, self).__init__(root, split, transform, target_transform, not self._check_integrity())
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
