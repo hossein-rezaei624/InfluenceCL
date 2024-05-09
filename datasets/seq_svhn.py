@@ -25,6 +25,7 @@ class TSVHN(SVHN):
                  target_transform=None, download=False) -> None:
         self.root = root
         super(TSVHN, self).__init__(root, split, transform, target_transform, download=download)
+        self.targets = self.labels
 
 class MySVHN(SVHN):
     """
