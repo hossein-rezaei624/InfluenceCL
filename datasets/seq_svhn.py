@@ -76,7 +76,7 @@ class SequentialSVHN(ContinualDataset):
                                   (0.2675, 0.2565, 0.2761))])
 
     def get_examples_number(self):
-        train_dataset = MySVHN(base_path() + 'SVHN', train=True,
+        train_dataset = MySVHN(base_path() + 'SVHN', split = 'train',
                                   download=True)
         return len(train_dataset.data)
 
@@ -86,14 +86,14 @@ class SequentialSVHN(ContinualDataset):
         test_transform = transforms.Compose(
             [transforms.ToTensor(), self.get_normalization_transform()])
 
-        train_dataset = MySVHN(base_path() + 'SVHN', train=True,
+        train_dataset = MySVHN(base_path() + 'SVHN', split = 'train',
                                   download=True, transform=transform)
         train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                     test_transform, self.NAME)
         else:
-            test_dataset = TSVHN(base_path() + 'SVHN',train=False,
+            test_dataset = TSVHN(base_path() + 'SVHN', split = 'test',
                                    download=True, transform=test_transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
