@@ -35,6 +35,7 @@ class MySVHN(SVHN):
         self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
         super(MySVHN, self).__init__(root, split, transform, target_transform, download=download)
+        self.targets = self.labels
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
