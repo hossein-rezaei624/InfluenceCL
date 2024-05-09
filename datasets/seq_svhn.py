@@ -38,7 +38,7 @@ class MySVHN(SVHN):
         super(MySVHN, self).__init__(root, split, transform, target_transform, download=download)
         self.targets = self.labels
 
-    def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
+    def __getitem__(self, index: int):
         """
         Gets the requested element from the dataset.
         :param index: index of the element to be returned
