@@ -26,9 +26,9 @@ class MyCUB200(Dataset):
     MEAN, STD = (0.4856, 0.4994, 0.4324), (0.2272, 0.2226, 0.2613)
     TEST_TRANSFORM = transforms.Compose([transforms.Resize(IMG_SIZE), transforms.ToTensor(), transforms.Normalize(MEAN, STD)])
 
-    def __init__(self, root, train=True, transform=None,
-                 target_transform=None, download=True) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
+    def __init__(self, root: str, train: bool = True, transform: transforms = None,
+                 target_transform: transforms = None, download: bool =True) -> None:
+        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         self.train = train
         self.transform = transform
@@ -52,23 +52,16 @@ class MyCUB200(Dataset):
         self.segs = data_file['segs']
         self._return_segmask = False
 
-    def __getitem__(self, index: int) -> Tuple[type(Image), int, type(Image)]:
-        """
-        Gets the requested element from the dataset.
-
-        Args:
-            index: index of the element to be returned
-
-        Returns:
-            tuple: (image, target) where target is index of the target class.
-        """
+    def __len__(self):
+      return len(self.data)
+    
+    def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
 
         # to return a PIL Image
-        img = Image.fromarray(img, mode='RGB')
+        img = Image.fromarray(img)
         original_img = img.copy()
 
-        not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -76,16 +69,11 @@ class MyCUB200(Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        ret_tuple = [img, target, not_aug_img, self.logits[index]] if hasattr(self, 'logits') else [
-            img, target, not_aug_img]
+        if hasattr(self, 'logits'):
+            return img, target, original_img, self.logits[index]
 
-        if self._return_segmask:
-            raise "Unsupported segmentation output in training set!"
+        return img, target
 
-        return ret_tuple
-
-    def __len__(self) -> int:
-        return len(self.data)
 
 
 class MyCUB200(CUB200):
