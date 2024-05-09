@@ -74,9 +74,9 @@ class SequentialSVHN(ContinualDataset):
             [transforms.RandomCrop(32, padding=4),
              transforms.RandomHorizontalFlip(),
              transforms.ToTensor(),
-             transforms.Normalize((0.5071, 0.4867, 0.4408),
-                                  (0.2675, 0.2565, 0.2761))])
-
+             transforms.Normalize((0.4377, 0.4438, 0.4728),
+                                  (0.1201, 0.1231, 0.1052))])
+ 
     def get_examples_number(self):
         train_dataset = MySVHN(base_path() + 'SVHN', split = 'train',
                                   download=True)
@@ -119,14 +119,14 @@ class SequentialSVHN(ContinualDataset):
 
     @staticmethod
     def get_normalization_transform():
-        transform = transforms.Normalize((0.5071, 0.4867, 0.4408),
-                                         (0.2675, 0.2565, 0.2761))
+        transform = transforms.Normalize((0.4377, 0.4438, 0.4728),
+                                  (0.1201, 0.1231, 0.1052))
         return transform
 
     @staticmethod
     def get_denormalization_transform():
-        transform = DeNormalize((0.5071, 0.4867, 0.4408),
-                                (0.2675, 0.2565, 0.2761))
+        transform = DeNormalize((0.4377, 0.4438, 0.4728),
+                                  (0.1201, 0.1231, 0.1052))
         return transform
 
     @staticmethod
