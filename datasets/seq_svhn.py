@@ -24,7 +24,7 @@ class TSVHN(SVHN):
     def __init__(self, root, split = 'train', transform=None,
                  target_transform=None, download=False) -> None:
         self.root = root
-        super(TSVHN, self).__init__(root, split, transform, target_transform, download=not self._check_integrity())
+        super(TSVHN, self).__init__(root, split, transform, target_transform, download=download)
 
 class MySVHN(SVHN):
     """
@@ -34,7 +34,7 @@ class MySVHN(SVHN):
                  target_transform=None, download=False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
-        super(MySVHN, self).__init__(root, split, transform, target_transform, not self._check_integrity())
+        super(MySVHN, self).__init__(root, split, transform, target_transform, download=download)
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
