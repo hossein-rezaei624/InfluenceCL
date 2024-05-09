@@ -15,7 +15,7 @@ from datasets.utils.continual_dataset import (ContinualDataset,
 from utils.conf import base_path
 
 
-class MyCUB200(Dataset):
+class CUB200(Dataset):
     """
     Overrides dataset to change the getitem function.
     """
