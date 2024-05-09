@@ -86,7 +86,7 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        return MNISTMLP(3 * 28 * 28, SequentialMNIST.N_TASKS
+        return MNISTMLP(SequentialMNIST.N_TASKS
                         * SequentialMNIST.N_CLASSES_PER_TASK)
 
     @staticmethod
