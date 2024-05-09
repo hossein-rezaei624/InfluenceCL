@@ -128,19 +128,7 @@ class CUB200(MyCUB200):
 
 
 class SequentialCUB200(ContinualDataset):
-    """Sequential CUB200 Dataset.
 
-    Args:
-        NAME (str): name of the dataset.
-        SETTING (str): setting of the dataset.
-        N_CLASSES_PER_TASK (int): number of classes per task.
-        N_TASKS (int): number of tasks.
-        SIZE (tuple): size of the images.
-        MEAN (tuple): mean of the dataset.
-        STD (tuple): standard deviation of the dataset.
-        TRANSFORM (torchvision.transforms): transformation to apply to the data.
-        TEST_TRANSFORM (torchvision.transforms): transformation to apply to the test data.
-    """
     NAME = 'seq-cub200'
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 20
@@ -148,13 +136,11 @@ class SequentialCUB200(ContinualDataset):
     SIZE = (MyCUB200.IMG_SIZE, MyCUB200.IMG_SIZE)
     MEAN, STD = (0.4856, 0.4994, 0.4324), (0.2272, 0.2226, 0.2613)
     TRANSFORM = transforms.Compose([
-        transforms.Resize(MyCUB200.IMG_SIZE),
-        transforms.RandomCrop(MyCUB200.IMG_SIZE, padding=4),
+        transforms.Resize(32),
+        transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(MEAN, STD)])
-    TEST_TRANSFORM = MyCUB200.TEST_TRANSFORM
-
 
 
     def get_examples_number(self):
