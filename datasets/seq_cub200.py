@@ -41,10 +41,18 @@ class CUB200(Dataset):
                 print('Downloading dataset')
                 download(ln, filename=os.path.join(root, 'cub_200_2011.zip'), unzip=True, unzip_path=root, clean=True)
 
-        data_file = np.load(os.path.join(root, 'train_data.npz' if self.train else 'test_data.npz'), allow_pickle=True)
+      #  data_file = np.load(os.path.join(root, 'train_data.npz' if self.train else 'test_data.npz'), allow_pickle=True)
+#
+ #       self.data = data_file['data']
+  #      self.targets = torch.from_numpy(data_file['targets']).long()
 
-        self.data = data_file['data']
-        self.targets = torch.from_numpy(data_file['targets']).long()
+  
+        self.data = np.load(os.path.join(
+            root, '%s_x.npy' %
+                  ('train' if self.train else 'test')))
+        self.targets = np.load(os.path.join(
+            root, '%s_y.npy' %
+                  ('train' if self.train else 'test')))
 
 
     def __len__(self):
