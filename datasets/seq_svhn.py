@@ -64,7 +64,7 @@ class MySVHN(SVHN):
 
 class SequentialSVHN(ContinualDataset):
 
-    NAME = 'seq-SVHN'
+    NAME = 'seq-svhn'
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 2
     N_TASKS = 5
