@@ -38,7 +38,7 @@ class MySVHN(SVHN):
         super(MySVHN, self).__init__(root, split, transform, target_transform, download=download)
         self.targets = self.labels
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
         Gets the requested element from the dataset.
         :param index: index of the element to be returned
@@ -47,7 +47,7 @@ class MySVHN(SVHN):
         img, target = self.data[index], self.targets[index]
 
         # to return a PIL Image
-        img = Image.fromarray(img)
+        img = Image.fromarray(img, mode='RGB')
         original_img = img.copy()
 
         not_aug_img = self.not_aug_transform(original_img)
