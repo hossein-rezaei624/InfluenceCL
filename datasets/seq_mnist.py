@@ -38,7 +38,7 @@ class MyMNIST(MNIST):
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img)
+        img = Image.fromarray(img.numpy())
         original_img = self.not_aug_transform(img.copy())
 
         if self.transform is not None:
