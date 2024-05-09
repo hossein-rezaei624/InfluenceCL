@@ -24,7 +24,7 @@ class MyMNIST(MNIST):
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor(), transforms.Grayscale(num_output_channels=3)])
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
@@ -59,19 +59,26 @@ class SequentialMNIST(ContinualDataset):
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 2
     N_TASKS = 5
-    TRANSFORM = None
+    TRANSFORM = transforms.Compose([transforms.ToTensor(), 
+                                    transforms.Grayscale(num_output_channels=3), 
+                                    transforms.Normalize((0.1309, 0.1309, 0.1309),(0.3085, 0.3085, 0.3085))])
 
     def get_data_loaders(self):
-        transform = transforms.Compose([transforms.ToTensor(), transforms.Grayscale(num_output_channels=3), 
-                                       transforms.Normalize((0.1309, 0.1309, 0.1309),(0.3085, 0.3085, 0.3085))])
+        transform = self.TRANSFORM
+
+        test_transform = transforms.Compose(
+            [transforms.ToTensor(), transforms.Grayscale(num_output_channels=3), self.get_normalization_transform()])
+      
         train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
+        train_dataset.not_aug_transform = test_transform
+      
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
-                                                        transform, self.NAME)
+                                                        test_transform, self.NAME)
         else:
             test_dataset = MNIST(base_path() + 'MNIST',
-                                 train=False, download=True, transform=transform)
+                                 train=False, download=True, transform=test_transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
