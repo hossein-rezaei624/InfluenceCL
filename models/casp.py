@@ -477,7 +477,7 @@ class Casp(ContinualModel):
         
         else:
             mem_x, mem_y = self.buffer.get_data(
-                self.args.minibatch_size, transform=self.transform)
+                self.args.minibatch_size, transform=None)
         
             mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
