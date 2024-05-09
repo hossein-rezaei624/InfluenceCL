@@ -9,7 +9,6 @@ from PIL import Image
 from torch.utils.data.dataset import Dataset
 
 
-from backbone.ResNet50 import resnet50
 from datasets.transforms.denormalization import DeNormalize
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
