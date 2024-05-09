@@ -33,7 +33,7 @@ class MySVHN(SVHN):
     """
     def __init__(self, root, split = 'train', transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
+        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         super(MySVHN, self).__init__(root, split, transform, target_transform, download=download)
         self.targets = self.labels
