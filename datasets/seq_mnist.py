@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 from backbone.MNISTMLP import MNISTMLP
 from PIL import Image
 from torchvision.datasets import MNIST
-
+from datasets.transforms.denormalization import DeNormalize
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
 from datasets.utils.validation import get_train_val
@@ -62,7 +62,8 @@ class SequentialMNIST(ContinualDataset):
     TRANSFORM = None
 
     def get_data_loaders(self):
-        transform = transforms.Compose([transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1))])
+        transform = transforms.Compose([transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), 
+                                       transforms.Normalize((0.1309, 0.1309, 0.1309),(0.3085, 0.3085, 0.3085))])
         train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
         if self.args.validation:
@@ -90,19 +91,27 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_normalization_transform():
-        return None
+        transform = transforms.Normalize((0.1309, 0.1309, 0.1309),
+                                  (0.3085, 0.3085, 0.3085))
+        return transform
 
     @staticmethod
     def get_denormalization_transform():
-        return None
+        transform = DeNormalize((0.1309, 0.1309, 0.1309),
+                                  (0.3085, 0.3085, 0.3085))
+        return transform
 
+    @staticmethod
+    def get_epochs():
+        return 50  
+  
     @staticmethod
     def get_scheduler(model, args):
         return None
 
     @staticmethod
     def get_batch_size():
-        return 64
+        return 32
 
     @staticmethod
     def get_minibatch_size():
