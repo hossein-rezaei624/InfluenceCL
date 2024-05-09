@@ -8,11 +8,10 @@ import torchvision.transforms as transforms
 from PIL import Image
 from torch.utils.data.dataset import Dataset
 
-
+from backbone.ResNet18 import resnet18
 from datasets.transforms.denormalization import DeNormalize
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
-from utils import smart_joint
 from utils.conf import base_path
 
 
@@ -25,7 +24,7 @@ class MyCUB200(Dataset):
     MEAN, STD = (0.4856, 0.4994, 0.4324), (0.2272, 0.2226, 0.2613)
 
     def __init__(self, root: str, train: bool = True, transform: transforms = None,
-                 target_transform: transforms = None, download: bool =True) -> None:
+                 target_transform: transforms = None, download: bool =False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         self.train = train
@@ -40,15 +39,13 @@ class MyCUB200(Dataset):
                 from onedrivedownloader import download
                 ln = '<iframe src="https://onedrive.live.com/embed?cid=D3924A2D106E0039&resid=D3924A2D106E0039%21110&authkey=AIEfi5nlRyY1yaE" width="98" height="120" frameborder="0" scrolling="no"></iframe>'
                 print('Downloading dataset')
-                download(ln, filename=smart_joint(root, 'cub_200_2011.zip'), unzip=True, unzip_path=root, clean=True)
+                download(ln, filename=os.path.join(root, 'cub_200_2011.zip'), unzip=True, unzip_path=root, clean=True)
 
-        data_file = np.load(smart_joint(root, 'train_data.npz' if train else 'test_data.npz'), allow_pickle=True)
+        data_file = np.load(os.path.join(root, 'train_data.npz' if self.train else 'test_data.npz'), allow_pickle=True)
 
         self.data = data_file['data']
         self.targets = torch.from_numpy(data_file['targets']).long()
-        self.classes = data_file['classes']
-        self.segs = data_file['segs']
-        self._return_segmask = False
+
 
     def __len__(self):
       return len(self.data)
