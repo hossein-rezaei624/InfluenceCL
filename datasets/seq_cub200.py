@@ -133,7 +133,6 @@ class SequentialCUB200(ContinualDataset):
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 20
     N_TASKS = 10
-    SIZE = (MyCUB200.IMG_SIZE, MyCUB200.IMG_SIZE)
     MEAN, STD = (0.4856, 0.4994, 0.4324), (0.2272, 0.2226, 0.2613)
     TRANSFORM = transforms.Compose([
         transforms.Resize(32),
