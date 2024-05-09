@@ -24,7 +24,7 @@ class MyMNIST(MNIST):
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.ToTensor()
+        self.not_aug_transform = transforms.Compose([transforms.Grayscale(num_output_channels=3), transforms.ToTensor(),])
         super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
@@ -62,7 +62,7 @@ class SequentialMNIST(ContinualDataset):
     TRANSFORM = None
 
     def get_data_loaders(self):
-        transform = transforms.ToTensor()
+        transform = transforms.Compose([transforms.Grayscale(num_output_channels=3), transforms.ToTensor(),])
         train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
         if self.args.validation:
