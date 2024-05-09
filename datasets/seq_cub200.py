@@ -171,36 +171,42 @@ class SequentialCUB200(ContinualDataset):
 
         return train, test
 
-    @staticmethod
-    def get_transform():
-        transform = transforms.Compose(
-            [transforms.ToPILImage(), SequentialCUB200.TRANSFORM])
-        return transform
 
     @staticmethod
-    def get_backbone(hookme=False):
-        num_classes = SequentialCUB200.N_CLASSES_PER_TASK * SequentialCUB200.N_TASKS
-        return resnet50(num_classes, pretrained=True)
+    def get_backbone():
+      return resnet18(SequentialCUB200.N_CLASSES_PER_TASK * SequentialCUB200.N_TASKS)
 
     @staticmethod
     def get_loss():
-        return F.cross_entropy
+      return F.cross_entropy
+  
+    def get_transform(self):
+      transform = transforms.Compose([transforms.ToPILImage(), SequentialCUB200.TRANSFORM])
+      return transform
 
     @staticmethod
     def get_normalization_transform():
-        transform = transforms.Normalize(
-            SequentialCUB200.MEAN, SequentialCUB200.STD)
-        return transform
+      transform = transforms.Normalize(SequentialCUB200.MEAN, SequentialCUB200.STD)
+      return transform
 
     @staticmethod
     def get_denormalization_transform():
-        transform = DeNormalize(SequentialCUB200.MEAN, SequentialCUB200.STD)
-        return transform
+      transform = DeNormalize(SequentialCUB200.MEAN, SequentialCUB200.STD)
+      return transform
 
     @staticmethod
+    def get_scheduler(model, args):
+      return None
+  
+    @staticmethod
     def get_batch_size():
-        return 16
+      return 32
 
     @staticmethod
     def get_epochs():
-        return 30
+      return 50
+
+    @staticmethod
+    def get_minibatch_size():
+      return 32
+      
