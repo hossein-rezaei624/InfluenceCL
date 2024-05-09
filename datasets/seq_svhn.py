@@ -47,7 +47,7 @@ class MySVHN(SVHN):
         img, target = self.data[index], self.targets[index]
 
         # to return a PIL Image
-        img = Image.fromarray(img, mode='RGB')
+        img = Image.fromarray(img)
         original_img = img.copy()
 
         not_aug_img = self.not_aug_transform(original_img)
