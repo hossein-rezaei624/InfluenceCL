@@ -314,7 +314,7 @@ best_args = {
                          'beta': 0.5,
                          'batch_size': 128,
                          'n_epochs': 1}}},
-    'seq-mnist': {
+    'bbbbbb': {
         'sgd': {-1: {'lr': 0.03, 'batch_size': 10, 'n_epochs': 1}},
         'ewc_on': {-1: {'lr': 0.03,
                         'e_lambda': 90,
@@ -531,7 +531,7 @@ best_args = {
                          'beta': 0.5,
                          'batch_size': 10,
                          'n_epochs': 1}}},
-    'seq-svhn': {'sgd': {-1: {'lr': 0.1,
+    'seq-mnist': {'sgd': {-1: {'lr': 0.1,
                                  'batch_size': 32,
                                  'n_epochs': 50}},
                     'ewc_on': {-1: {'lr': 0.03,
