@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
+import math
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -149,7 +150,7 @@ class Casp(ContinualModel):
         self.task_conf_first = []
 
     def begin_train(self, dataset):
-        self.n_sample_per_task = round(dataset.get_examples_number()/dataset.N_TASKS)
+        self.n_sample_per_task = math.ceil(dataset.get_examples_number()/dataset.N_TASKS)
     
     def begin_task(self, dataset, train_loader):
         self.epoch = 0
