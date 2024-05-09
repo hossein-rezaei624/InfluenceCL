@@ -87,7 +87,7 @@ class SequentialSVHN(ContinualDataset):
         transform = self.TRANSFORM
 
         test_transform = transforms.Compose(
-            [transforms.ToTensor(), self.get_normalization_transform()])
+            [transforms.Resize(32), transforms.ToTensor(), self.get_normalization_transform()])
 
         train_dataset = MySVHN(base_path() + 'SVHN', split = 'train',
                                   download=True, transform=transform)
