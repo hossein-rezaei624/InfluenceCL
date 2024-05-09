@@ -60,15 +60,15 @@ class SequentialMNIST(ContinualDataset):
     N_CLASSES_PER_TASK = 2
     N_TASKS = 5
     TRANSFORM = transforms.Compose([transforms.Resize(32),
-                                    transforms.Grayscale(num_output_channels=3), 
                                     transforms.ToTensor(), 
+                                    transforms.Lambda(lambda x: x.repeat(3, 1, 1)), 
                                     transforms.Normalize((0.1309, 0.1309, 0.1309),(0.3085, 0.3085, 0.3085))])
 
     def get_data_loaders(self):
         transform = self.TRANSFORM
 
         test_transform = transforms.Compose(
-            [transforms.Resize(32), transforms.Grayscale(num_output_channels=3), transforms.ToTensor(), self.get_normalization_transform()])
+            [transforms.Resize(32), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), self.get_normalization_transform()])
       
         train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
