@@ -151,10 +151,13 @@ class SequentialCUB200(ContinualDataset):
     def get_loss():
       return F.cross_entropy
   
-    def get_transform(self):
-      transform = transforms.Compose([transforms.ToPILImage(), SequentialCUB200.TRANSFORM])
-      return transform
 
+    def get_transform(self):
+        transform = transforms.Compose(  # weaken random crop to reproduce results
+            [transforms.RandomCrop(32, padding=1), transforms.RandomHorizontalFlip()])
+        return transform
+
+  
     @staticmethod
     def get_normalization_transform():
       transform = transforms.Normalize(SequentialCUB200.MEAN, SequentialCUB200.STD)
