@@ -338,7 +338,7 @@ class Casp(ContinualModel):
             condition = [dist[k] for k in range(len(dist))]
         
             # Check if any class exceeds its allowed number of samples
-            check_bound = self.n_sample_per_task/len(self.unique_classes)
+            check_bound = math.ceil(self.n_sample_per_task/len(self.unique_classes))
             for i in range(len(condition)):
                 if condition[i] > check_bound:
                     # Redistribute the excess samples
