@@ -24,7 +24,7 @@ class MyMNIST(MNIST):
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose(transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.ToTensor()])
+        self.not_aug_transform = transforms.Compose([transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.ToTensor()])
         super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
