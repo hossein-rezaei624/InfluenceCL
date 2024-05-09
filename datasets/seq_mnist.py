@@ -24,7 +24,7 @@ class MyMNIST(MNIST):
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1))])
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
@@ -38,7 +38,7 @@ class MyMNIST(MNIST):
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img.numpy())
+        img = Image.fromarray(img.numpy(), mode='L')
         original_img = self.not_aug_transform(img.copy())
 
         if self.transform is not None:
