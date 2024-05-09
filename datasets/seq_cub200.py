@@ -88,27 +88,22 @@ class MyCUB200(Dataset):
         return len(self.data)
 
 
-class CUB200(MyCUB200):
+class MyCUB200(CUB200):
     """Base CUB200 dataset."""
 
-    def __init__(self, root, train=True, transform=None, target_transform=None, download=False) -> None:
-        super().__init__(root, train=train, transform=transform,
-                         target_transform=target_transform, download=download)
+    def __init__(self, root: str, train: bool = True, transform: transforms = None, 
+                 target_transform: transforms = None, download: bool = False) -> None:
+        super(MyCUB200, self).__init__(
+          root, train, transform, target_transform, download)
 
-    def __getitem__(self, index: int, ret_segmask=False) -> Tuple[type(Image), int, type(Image)]:
-        """
-        Gets the requested element from the dataset.
-
-        Args:
-            index: index of the element to be returned
-
-        Returns:
-            tuple: (image, target) where target is index of the target class.
-        """
+    def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
 
         # to return a PIL Image
-        img = Image.fromarray(img, mode='RGB')
+        img = Image.fromarray(img)
+        original_img = img.copy()
+
+        not_aug_img = self.not_aug_transform(original_img)
 
         if self.transform is not None:
             img = self.transform(img)
@@ -116,15 +111,10 @@ class CUB200(MyCUB200):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        ret_tuple = [img, target, self.logits[index]] if hasattr(self, 'logits') else [img, target]
+        if hasattr(self, 'logits'):
+            return img, target, not_aug_img, self.logits[index]
 
-        if ret_segmask or self._return_segmask:
-            seg = self.segs[index]
-            seg = Image.fromarray(seg, mode='L')
-            seg = transforms.ToTensor()(transforms.CenterCrop((MyCUB200.IMG_SIZE, MyCUB200.IMG_SIZE))(seg))[0]
-            ret_tuple.append((seg > 0).int())
-
-        return ret_tuple
+        return img, target, not_aug_img, index
 
 
 class SequentialCUB200(ContinualDataset):
