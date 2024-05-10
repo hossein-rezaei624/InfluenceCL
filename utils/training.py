@@ -107,7 +107,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                             # For functions returning tensors
                             img_processed = PILToTensor()(function(batch_x_pil)).to(dtype=batch_x.dtype).to("cuda") / 255.0
                         else:
-                            print("aaaaaaaaaaaaaaaa", torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").shape)
+                            print("aaaaaaaaaaaaaaaa", torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").unsqueeze(2).shape)
                             # For functions returning images
                             img_processed = torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").unsqueeze(2).permute(2, 0, 1)
         
