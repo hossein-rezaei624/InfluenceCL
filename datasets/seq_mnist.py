@@ -63,7 +63,7 @@ class SequentialFashionMNIST(ContinualDataset):
 
 
     def get_examples_number(self):
-        train_dataset = MyFashionMNIST(base_path() + 'MNIST', train=True,
+        train_dataset = MyFashionMNIST(base_path() + 'FashionMNIST', train=True,
                                   download=True)
         return len(train_dataset.data)
 
@@ -71,13 +71,13 @@ class SequentialFashionMNIST(ContinualDataset):
     def get_data_loaders(self):
         transform = transforms.Compose(
             [transforms.Resize(32), transforms.ToTensor()])
-        train_dataset = MyFashionMNIST(base_path() + 'MNIST',
+        train_dataset = MyFashionMNIST(base_path() + 'FashionMNIST',
                                 train=True, download=True, transform=transform)
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                         transform, self.NAME)
         else:
-            test_dataset = FashionMNIST(base_path() + 'MNIST',
+            test_dataset = FashionMNIST(base_path() + 'FashionMNIST',
                                  train=False, download=True, transform=transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
