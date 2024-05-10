@@ -61,6 +61,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
             with torch.no_grad():
                 inputs, labels = data
                 inputs, labels = inputs.to(model.device), labels.to(model.device)
+                print("inputs.shape", inputs.shape)
                 if 'class-il' not in model.COMPATIBILITY:
                     outputs = model(inputs, k)
                 else:
