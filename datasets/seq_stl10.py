@@ -25,7 +25,7 @@ class TSTL10(STL10):
                  target_transform=None, download=False) -> None:
         self.root = root
         super(TSTL10, self).__init__(root, split, folds, transform, target_transform, download=download)
-        self.targets = self.labels
+        ##self.targets = self.labels
 
 class MySTL10(STL10):
     """
@@ -36,7 +36,7 @@ class MySTL10(STL10):
         self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         super(MySTL10, self).__init__(root, split, folds, transform, target_transform, download=download)
-        self.targets = self.labels
+        ##self.targets = self.labels
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
