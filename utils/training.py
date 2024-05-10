@@ -81,6 +81,9 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 
                 batch_x = inputs
                 batch_y = labels
+
+                print("batch_x.shapeeee", batch_x.shape)
+                
                 # List to hold all the batches with distortions applied
                 all_batches = []
                 
@@ -89,8 +92,8 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 batch_x_pil_list = [to_pil(img.cpu()) for img in batch_x]  
                 
                 distortions = [
-                    pixelate, shot_noise, impulse_noise, defocus_blur, motion_blur,
-                    zoom_blur, fog, snow, elastic_transform, gaussian_noise, jpeg_compression
+                    gaussian_noise, shot_noise, impulse_noise, defocus_blur, motion_blur,
+                    zoom_blur, fog, snow, elastic_transform, pixelate, jpeg_compression
                 ]
         
                 # Process each image in the batch
@@ -101,17 +104,14 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                     # Add the original image to the list
                     augmented_images.append(batch_x[batch_idx])
 
-                    print("batch_x_pil.shape", batch_x_pil.size)
                     # Loop through the distortions and apply them to the current image
                     for function in distortions:
                         if function in [pixelate, jpeg_compression]:
-                            print("bbbbbbbbbbbbb", (PILToTensor()(function(batch_x_pil)).to(dtype=batch_x.dtype).to("cuda") / 255.0).shape)
                             # For functions returning tensors
                             img_processed = PILToTensor()(function(batch_x_pil)).to(dtype=batch_x.dtype).to("cuda") / 255.0
-                ##        else:
-                ##            print("aaaaaaaaaaaaaaaa", torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").unsqueeze(2).shape)
+                        else:
                             # For functions returning images
-                ##            img_processed = torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").unsqueeze(2).permute(2, 0, 1)
+                            img_processed = torch.tensor(function(batch_x_pil).astype(float) / 255.0, dtype=batch_x.dtype).to("cuda").permute(2, 0, 1)
         
                         # Append the distorted image
                         augmented_images.append(img_processed)
