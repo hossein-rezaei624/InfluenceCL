@@ -100,7 +100,8 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                     
                     # Add the original image to the list
                     augmented_images.append(batch_x[batch_idx])
-                    
+
+                    print("batch_x_pil.shape", batch_x_pil.shape)
                     # Loop through the distortions and apply them to the current image
                     for function in distortions:
                         if function in [pixelate, jpeg_compression]:
