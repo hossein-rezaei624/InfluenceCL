@@ -85,8 +85,8 @@ class SequentialFashionMNIST(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        return resnet18(SequentialMNIST.N_TASKS
-                        * SequentialMNIST.N_CLASSES_PER_TASK)
+        return resnet18(SequentialFashionMNIST.N_TASKS
+                        * SequentialFashionMNIST.N_CLASSES_PER_TASK)
 
     @staticmethod
     def get_transform():
