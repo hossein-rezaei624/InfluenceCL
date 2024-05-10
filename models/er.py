@@ -29,8 +29,6 @@ class Er(ContinualModel):
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         real_batch_size = inputs.shape[0]
-
-        print("inputs.shape", inputs.shape)
         
         self.opt.zero_grad()
         if not self.buffer.is_empty():
