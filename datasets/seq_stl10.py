@@ -75,9 +75,9 @@ class SequentialSTL10(ContinualDataset):
              transforms.RandomCrop(32, padding=4),
              transforms.RandomHorizontalFlip(),
              transforms.ToTensor(),
-             transforms.Normalize((0.4377, 0.4438, 0.4728),
-                                  (0.1201, 0.1231, 0.1052))])
- 
+             transforms.Normalize((0.4467, 0.4398, 0.4066),
+                                  (0.2326, 0.2300, 0.2343))])
+
     def get_examples_number(self):
         train_dataset = MySTL10(base_path() + 'STL10', split = 'train',
                                   download=True)
@@ -120,14 +120,14 @@ class SequentialSTL10(ContinualDataset):
 
     @staticmethod
     def get_normalization_transform():
-        transform = transforms.Normalize((0.4377, 0.4438, 0.4728),
-                                  (0.1201, 0.1231, 0.1052))
+        transform = transforms.Normalize((0.4467, 0.4398, 0.4066),
+                                  (0.2326, 0.2300, 0.2343))
         return transform
 
     @staticmethod
     def get_denormalization_transform():
-        transform = DeNormalize((0.4377, 0.4438, 0.4728),
-                                  (0.1201, 0.1231, 0.1052))
+        transform = DeNormalize((0.4467, 0.4398, 0.4066),
+                                  (0.2326, 0.2300, 0.2343))
         return transform
 
     @staticmethod
