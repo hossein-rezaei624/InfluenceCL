@@ -27,6 +27,33 @@ class TSTL10(STL10):
         super(TSTL10, self).__init__(root, split, folds, transform, target_transform, download=download)
         self.targets = self.labels
 
+    def __getitem__(self, index):
+        """
+        Gets the requested element from the dataset.
+        :param index: index of the element to be returned
+        :returns: tuple: (image, target) where target is index of the target class.
+        """
+        img, target = self.data[index], int(self.targets[index])
+
+        # to return a PIL Image
+        ##img = Image.fromarray(img, mode='RGB')
+        img = Image.fromarray(np.transpose(img, (1, 2, 0)))
+        original_img = img.copy()
+
+        not_aug_img = self.not_aug_transform(original_img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        if hasattr(self, 'logits'):
+            return img, target, not_aug_img, self.logits[index]
+
+        return img, target
+
+
 class MySTL10(STL10):
     """
     Overrides the CIFAR100 dataset to change the getitem function.
