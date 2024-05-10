@@ -531,7 +531,7 @@ best_args = {
                          'beta': 0.5,
                          'batch_size': 10,
                          'n_epochs': 1}}},
-    'seq-stl10': {'sgd': {-1: {'lr': 0.1,
+    'seq-cifar10': {'sgd': {-1: {'lr': 0.1,
                                  'batch_size': 32,
                                  'n_epochs': 50}},
                     'ewc_on': {-1: {'lr': 0.03,
