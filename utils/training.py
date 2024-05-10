@@ -89,8 +89,8 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 batch_x_pil_list = [to_pil(img.cpu()) for img in batch_x]  
                 
                 distortions = [
-                    gaussian_noise, shot_noise, impulse_noise, defocus_blur, motion_blur,
-                    zoom_blur, fog, snow, elastic_transform, pixelate, jpeg_compression
+                    pixelate, shot_noise, impulse_noise, defocus_blur, motion_blur,
+                    zoom_blur, fog, snow, elastic_transform, gaussian_noise, jpeg_compression
                 ]
         
                 # Process each image in the batch
