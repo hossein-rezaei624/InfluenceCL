@@ -83,6 +83,8 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 batch_y = labels
 
                 print("batch_x.shapeeee", batch_x.shape)
+                batch_x = batch_x.expand(-1, 3, -1, -1) 
+                print("batch_x.shapeeee", batch_x.shape)
                 
                 # List to hold all the batches with distortions applied
                 all_batches = []
@@ -124,6 +126,9 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 batch_x_augmented = torch.cat(all_batches, dim=0)
 
                 print("batch_x_augmented.shape", batch_x_augmented.shape)
+                batch_x_augmented = batch_x_augmented.mean(dim=1, keepdim=True)
+                print("batch_x_augmented.shape", batch_x_augmented.shape)
+                
                 # Repeat each label for the number of augmentations plus the original image
                 batch_y_augmented = batch_y.repeat_interleave(len(distortions) + 1)
                 
