@@ -47,7 +47,8 @@ class MySTL10(STL10):
         img, target = self.data[index], int(self.targets[index])
 
         # to return a PIL Image
-        img = Image.fromarray(img, mode='RGB')
+        ##img = Image.fromarray(img, mode='RGB')
+        img = Image.fromarray(np.transpose(img, (1, 2, 0)))
         original_img = img.copy()
 
         not_aug_img = self.not_aug_transform(original_img)
