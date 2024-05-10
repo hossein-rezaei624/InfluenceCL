@@ -323,6 +323,9 @@ class Casp(ContinualModel):
 ###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
             self.dist_task_prev = dist_task
+
+            print("dist_class", dist_class)
+            print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
@@ -399,6 +402,7 @@ class Casp(ContinualModel):
                         images_store.append(self.buffer.examples[i])
                     if counter_manage_merged == dist_class_merged:
                         break
+                
                 # Stack the selected images and labels
                 images_store_ = torch.stack(images_store).to(self.device)
                 labels_store_ = torch.stack(labels_store).to(self.device)
