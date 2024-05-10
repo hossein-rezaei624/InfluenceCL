@@ -22,7 +22,7 @@ from utils.conf import base_path_dataset as base_path
 class TSTL10(STL10):
     """Workaround to avoid printing the already downloaded messages."""
     def __init__(self, root, split = 'train', transform=None,
-                 target_transform=None, download=False) -> None:
+                 target_transform=None, download=False, folds=None) -> None:
         self.root = root
         super(TSTL10, self).__init__(root, split, transform, target_transform, download=download)
         self.targets = self.labels
