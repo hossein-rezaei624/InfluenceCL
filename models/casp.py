@@ -149,7 +149,7 @@ class Casp(ContinualModel):
         self.task_conf_first = []
 
     def begin_train(self, dataset):
-        self.n_sample_per_task = dataset.get_examples_number()/dataset.N_TASKS
+        self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
     
     def begin_task(self, dataset, train_loader):
         self.epoch = 0
@@ -337,7 +337,7 @@ class Casp(ContinualModel):
             condition = [dist[k] for k in range(len(dist))]
         
             # Check if any class exceeds its allowed number of samples
-            check_bound = self.n_sample_per_task/len(self.unique_classes)
+            check_bound = self.n_sample_per_task//len(self.unique_classes)
             for i in range(len(condition)):
                 if condition[i] > check_bound:
                     # Redistribute the excess samples
@@ -476,7 +476,7 @@ class Casp(ContinualModel):
         
         else:
             mem_x, mem_y = self.buffer.get_data(
-                self.args.minibatch_size, transform=self.transform)
+                self.args.minibatch_size, transform=None)
         
             mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
