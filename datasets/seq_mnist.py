@@ -114,4 +114,4 @@ class SequentialFashionMNIST(ContinualDataset):
 
     @staticmethod
     def get_minibatch_size():
-        return SequentialMNIST.get_batch_size()
+        return SequentialFashionMNIST.get_batch_size()
