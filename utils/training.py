@@ -104,6 +104,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                     # Loop through the distortions and apply them to the current image
                     for function in distortions:
                         if function in [pixelate, jpeg_compression]:
+                            print("bbbbbbbbbbbbb", (PILToTensor()(function(batch_x_pil)).to(dtype=batch_x.dtype).to("cuda") / 255.0).shape)
                             # For functions returning tensors
                             img_processed = PILToTensor()(function(batch_x_pil)).to(dtype=batch_x.dtype).to("cuda") / 255.0
                         else:
