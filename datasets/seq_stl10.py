@@ -32,7 +32,7 @@ class MySTL10(STL10):
     Overrides the CIFAR100 dataset to change the getitem function.
     """
     def __init__(self, root, split = 'train', transform=None,
-                 target_transform=None, download=False) -> None:
+                 target_transform=None, download=False, folds=None) -> None:
         self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         super(MySTL10, self).__init__(root, split, transform, target_transform, download=download)
