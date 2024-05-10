@@ -122,7 +122,8 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
         
                 # Concatenate all the augmented batches along the batch dimension
                 batch_x_augmented = torch.cat(all_batches, dim=0)
-                
+
+                print("batch_x_augmented.shape", batch_x_augmented.shape)
                 # Repeat each label for the number of augmentations plus the original image
                 batch_y_augmented = batch_y.repeat_interleave(len(distortions) + 1)
                 
