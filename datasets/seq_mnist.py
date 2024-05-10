@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 from backbone.ResNet18 import resnet18
 from PIL import Image
-from torchvision.datasets import MNIST
+from torchvision.datasets import FashionMNIST
 
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
@@ -17,7 +17,7 @@ from datasets.utils.validation import get_train_val
 from utils.conf import base_path_dataset as base_path
 
 
-class MyMNIST(MNIST):
+class MyFashionMNIST(FashionMNIST):
     """
     Overrides the MNIST dataset to change the getitem function.
     """
@@ -25,7 +25,7 @@ class MyMNIST(MNIST):
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
-        super(MyMNIST, self).__init__(root, train,
+        super(MyFashionMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
@@ -53,7 +53,7 @@ class MyMNIST(MNIST):
         return img, target, original_img, index
 
 
-class SequentialMNIST(ContinualDataset):
+class SequentialFashionMNIST(ContinualDataset):
 
     NAME = 'seq-mnist'
     SETTING = 'class-il'
@@ -63,7 +63,7 @@ class SequentialMNIST(ContinualDataset):
 
 
     def get_examples_number(self):
-        train_dataset = MyMNIST(base_path() + 'MNIST', train=True,
+        train_dataset = MyFashionMNIST(base_path() + 'MNIST', train=True,
                                   download=True)
         return len(train_dataset.data)
 
@@ -71,13 +71,13 @@ class SequentialMNIST(ContinualDataset):
     def get_data_loaders(self):
         transform = transforms.Compose(
             [transforms.Resize(32), transforms.ToTensor()])
-        train_dataset = MyMNIST(base_path() + 'MNIST',
+        train_dataset = MyFashionMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                         transform, self.NAME)
         else:
-            test_dataset = MNIST(base_path() + 'MNIST',
+            test_dataset = FashionMNIST(base_path() + 'MNIST',
                                  train=False, download=True, transform=transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
@@ -110,7 +110,7 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_batch_size():
-        return 64
+        return 32
 
     @staticmethod
     def get_minibatch_size():
