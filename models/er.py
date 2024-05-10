@@ -30,6 +30,8 @@ class Er(ContinualModel):
 
         real_batch_size = inputs.shape[0]
 
+        print("inputs.shape", inputs.shape)
+        
         self.opt.zero_grad()
         if not self.buffer.is_empty():
             buf_inputs, buf_labels = self.buffer.get_data(
