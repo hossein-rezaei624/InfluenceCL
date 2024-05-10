@@ -102,7 +102,7 @@ class ResNet(MammothBackbone):
         self.block = block
         self.num_classes = num_classes
         self.nf = nf
-        self.conv1 = conv3x3(1, nf * 1)
+        self.conv1 = conv3x3(3, nf * 1)
         self.bn1 = nn.BatchNorm2d(nf * 1)
         self.layer1 = self._make_layer(block, nf * 1, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, nf * 2, num_blocks[1], stride=2)
