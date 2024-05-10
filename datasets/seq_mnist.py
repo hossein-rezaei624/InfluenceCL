@@ -61,6 +61,13 @@ class SequentialMNIST(ContinualDataset):
     N_TASKS = 5
     TRANSFORM = None
 
+
+    def get_examples_number(self):
+        train_dataset = MyMNIST(base_path() + 'MNIST', train=True,
+                                  download=True)
+        return len(train_dataset.data)
+
+  
     def get_data_loaders(self):
         transform = transforms.Compose(
             [transforms.Resize(32), transforms.ToTensor()])
