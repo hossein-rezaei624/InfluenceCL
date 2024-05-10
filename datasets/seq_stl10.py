@@ -44,7 +44,7 @@ class MySTL10(STL10):
         :param index: index of the element to be returned
         :returns: tuple: (image, target) where target is index of the target class.
         """
-        img, target = self.data[index], self.targets[index]
+        img, target = self.data[index], int(self.targets[index])
 
         # to return a PIL Image
         img = Image.fromarray(img, mode='RGB')
