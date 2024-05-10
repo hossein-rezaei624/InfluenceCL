@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Tuple
-
+import numpy as np
 import torch.nn.functional as F
 import torch.optim
 import torchvision.transforms as transforms
