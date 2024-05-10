@@ -7,10 +7,10 @@ from typing import Tuple
 
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from backbone.ResNet18 import resnet18
+from backbone.MNISTMLP import MNISTMLP
 from PIL import Image
 from torchvision.datasets import MNIST
-from datasets.transforms.denormalization import DeNormalize
+
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
 from datasets.utils.validation import get_train_val
@@ -24,7 +24,7 @@ class MyMNIST(MNIST):
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
+        self.not_aug_transform = transforms.ToTensor()
         super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
@@ -59,34 +59,25 @@ class SequentialMNIST(ContinualDataset):
     SETTING = 'class-il'
     N_CLASSES_PER_TASK = 2
     N_TASKS = 5
-    TRANSFORM = transforms.Compose([transforms.Resize(32),
-                                    transforms.ToTensor(), 
-                                    transforms.Lambda(lambda x: x.repeat(3, 1, 1)), 
-                                    transforms.Normalize((0.1309, 0.1309, 0.1309),(0.3085, 0.3085, 0.3085))])
+    TRANSFORM = None
 
     def get_data_loaders(self):
-        transform = self.TRANSFORM
-
-        test_transform = transforms.Compose(
-            [transforms.Resize(32), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), self.get_normalization_transform()])
-      
+        transform = transforms.ToTensor()
         train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
-        train_dataset.not_aug_transform = test_transform
-      
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
-                                                        test_transform, self.NAME)
+                                                        transform, self.NAME)
         else:
             test_dataset = MNIST(base_path() + 'MNIST',
-                                 train=False, download=True, transform=test_transform)
+                                 train=False, download=True, transform=transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
 
     @staticmethod
     def get_backbone():
-        return resnet18(SequentialMNIST.N_TASKS
+        return MNISTMLP(28 * 28, SequentialMNIST.N_TASKS
                         * SequentialMNIST.N_CLASSES_PER_TASK)
 
     @staticmethod
@@ -99,27 +90,19 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_normalization_transform():
-        transform = transforms.Normalize((0.1309, 0.1309, 0.1309),
-                                  (0.3085, 0.3085, 0.3085))
-        return transform
+        return None
 
     @staticmethod
     def get_denormalization_transform():
-        transform = DeNormalize((0.1309, 0.1309, 0.1309),
-                                  (0.3085, 0.3085, 0.3085))
-        return transform
+        return None
 
-    @staticmethod
-    def get_epochs():
-        return 50  
-  
     @staticmethod
     def get_scheduler(model, args):
         return None
 
     @staticmethod
     def get_batch_size():
-        return 32
+        return 64
 
     @staticmethod
     def get_minibatch_size():
