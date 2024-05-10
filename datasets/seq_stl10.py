@@ -21,21 +21,21 @@ from utils.conf import base_path_dataset as base_path
 
 class TSTL10(STL10):
     """Workaround to avoid printing the already downloaded messages."""
-    def __init__(self, root, split = 'train', transform=None,
-                 target_transform=None, download=False, folds=None) -> None:
+    def __init__(self, root, split = 'train', folds=None, transform=None,
+                 target_transform=None, download=False) -> None:
         self.root = root
-        super(TSTL10, self).__init__(root, split, transform, target_transform, download=download)
+        super(TSTL10, self).__init__(root, split, folds, transform, target_transform, download=download)
         self.targets = self.labels
 
 class MySTL10(STL10):
     """
     Overrides the CIFAR100 dataset to change the getitem function.
     """
-    def __init__(self, root, split = 'train', transform=None,
-                 target_transform=None, download=False, folds=None) -> None:
+    def __init__(self, root, split = 'train', folds=None, transform=None,
+                 target_transform=None, download=False) -> None:
         self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
-        super(MySTL10, self).__init__(root, split, transform, target_transform, download=download)
+        super(MySTL10, self).__init__(root, split, folds, transform, target_transform, download=download)
         self.targets = self.labels
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
