@@ -23,7 +23,7 @@ class TinyImagenet(Dataset):
     """
     def __init__(self, root: str, train: bool=True, transform: transforms=None,
                 target_transform: transforms=None, download: bool=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
+        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
         self.root = root
         self.train = train
         self.transform = transform
@@ -105,7 +105,7 @@ class MyTinyImagenet(TinyImagenet):
         if hasattr(self, 'logits'):
           return img, target, not_aug_img, self.logits[index]
 
-        return img, target,  not_aug_img
+        return img, target, not_aug_img, index
 
 
 class SequentialTinyImagenet(ContinualDataset):
@@ -115,20 +115,28 @@ class SequentialTinyImagenet(ContinualDataset):
     N_CLASSES_PER_TASK = 20
     N_TASKS = 10
     TRANSFORM = transforms.Compose(
-            [transforms.RandomCrop(64, padding=4),
+            [transforms.Resize(32),
+             transforms.RandomCrop(32, padding=4),
              transforms.RandomHorizontalFlip(),
              transforms.ToTensor(),
              transforms.Normalize((0.4802, 0.4480, 0.3975),
                                   (0.2770, 0.2691, 0.2821))])
 
+    def get_examples_number(self):
+        train_dataset = MyTinyImagenet(base_path() + 'TINYIMG', train=True,
+                                  download=True)
+        return len(train_dataset.data)
+
+    
     def get_data_loaders(self):
         transform = self.TRANSFORM
 
         test_transform = transforms.Compose(
-            [transforms.ToTensor(), self.get_normalization_transform()])
+            [transforms.Resize(32), transforms.ToTensor(), self.get_normalization_transform()])
 
         train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
                                  train=True, download=True, transform=transform)
+        train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                     test_transform, self.NAME)
@@ -148,11 +156,13 @@ class SequentialTinyImagenet(ContinualDataset):
     def get_loss():
         return F.cross_entropy
 
+
     def get_transform(self):
-        transform = transforms.Compose(
-            [transforms.ToPILImage(), self.TRANSFORM])
+        transform = transforms.Compose(  # weaken random crop to reproduce results
+            [transforms.RandomCrop(32, padding=1), transforms.RandomHorizontalFlip()])
         return transform
 
+    
     @staticmethod
     def get_normalization_transform():
         transform = transforms.Normalize((0.4802, 0.4480, 0.3975),
