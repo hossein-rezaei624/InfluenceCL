@@ -7,7 +7,7 @@ from typing import Tuple
 
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from backbone.MNISTMLP import MNISTMLP
+from backbone.ResNet18 import resnet18
 from PIL import Image
 from torchvision.datasets import MNIST
 
@@ -77,7 +77,7 @@ class SequentialMNIST(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        return MNISTMLP(28 * 28, SequentialMNIST.N_TASKS
+        return resnet18(SequentialMNIST.N_TASKS
                         * SequentialMNIST.N_CLASSES_PER_TASK)
 
     @staticmethod
