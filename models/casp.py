@@ -177,7 +177,6 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            ###self.predicted_epoch = 4
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
@@ -255,9 +254,10 @@ class Casp(ContinualModel):
             positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
 
             # Extract inputs and labels using these positions
-            all_images = all_inputs[positions]
+            ###all_images = all_inputs[positions]
+            ###all_not_aug_inputs = all_not_aug_inputs[positions]
+            all_images = all_not_aug_inputs[positions]
             all_labels = all_labels[positions]
-            all_not_aug_inputs = all_not_aug_inputs[positions]
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
@@ -325,8 +325,8 @@ class Casp(ContinualModel):
 
             self.dist_task_prev = dist_task
 
-            print("dist_class", dist_class)
-            print("dist_task", dist_task)
+            ##print("dist_class", dist_class)
+            ##print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
@@ -481,7 +481,7 @@ class Casp(ContinualModel):
         
         else:
             mem_x, mem_y = self.buffer.get_data(
-                self.args.minibatch_size, transform=None)
+                self.args.minibatch_size, transform=self.transform)
         
             mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
