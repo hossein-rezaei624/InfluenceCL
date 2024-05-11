@@ -430,7 +430,6 @@ class Casp(ContinualModel):
 
         # batch update
         batch_x, batch_y = inputs, labels
-        casp_logits, _ = self.net.pcrForward(not_aug_inputs)
         batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
                                    for idx in range(batch_x.size(0))])
         batch_x = batch_x.to(self.device)
@@ -444,6 +443,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.predicted_epoch:
+            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
@@ -458,7 +458,8 @@ class Casp(ContinualModel):
     
 
         if self.epoch == (self.args.n_epochs - 1):
-            soft_task = soft_1(logits)
+            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+            soft_task = soft_1(casp_logits)
             for j in range(labels.shape[0]):
                 self.confidence_by_task[self.task_class[labels[j].item()]].append(soft_task[j, labels[j]].item())
             
