@@ -27,6 +27,10 @@ def rand_bbox(size, lam):
     return bbx1, bby1, bbx2, bby2
 
 def cutmix_data(x, y, alpha=1.0, cutmix_prob=0.5):
+
+    if np.random.rand() > cutmix_prob:
+        return x, y, y, 1.
+    
     assert(alpha > 0)
     # generate mixed sample
     lam = np.random.beta(alpha, alpha)
