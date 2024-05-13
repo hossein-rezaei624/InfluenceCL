@@ -39,7 +39,7 @@ def cutmix_data(x, y, alpha=1.0, cutmix_prob=0.5):
     index = torch.randperm(batch_size)
 
     if torch.cuda.is_available():
-        index = index.cuda()
+        index = index.to(x.device)
 
     y_a, y_b = y, y[index]
     bbx1, bby1, bbx2, bby2 = rand_bbox(x.size(), lam)
