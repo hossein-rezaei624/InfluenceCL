@@ -23,7 +23,7 @@ def get_parser() -> ArgumentParser:
                         help='Penalty weight.')
     parser.add_argument('--fitting_epochs', type=int, default=256,
                         help='Penalty weight.')
-    parser.add_argument('--cutmix_alpha', type=float, default=None,
+    parser.add_argument('--cutmix_alpha', type=float, default=1.0,
                         help='Penalty weight.')
     add_experiment_args(parser)
     return parser
