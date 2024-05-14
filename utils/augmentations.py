@@ -28,8 +28,8 @@ def rand_bbox(size, lam):
 
 def cutmix_data(x, y, alpha=1.0, cutmix_prob=0.5):
 
-    if np.random.rand() > cutmix_prob:
-        return x, y, y, 1.
+##    if np.random.rand() > cutmix_prob:
+##        return x, y, y, 1.
     
     assert(alpha > 0)
     # generate mixed sample
