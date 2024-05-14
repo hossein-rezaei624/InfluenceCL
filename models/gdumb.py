@@ -23,16 +23,16 @@ def get_parser() -> ArgumentParser:
                         help='Penalty weight.')
     parser.add_argument('--fitting_epochs', type=int, default=256,
                         help='Penalty weight.')
-    parser.add_argument('--cutmix_alpha', type=float, default=None,
+    parser.add_argument('--cutmix_alpha', type=float, default=1.0,
                         help='Penalty weight.')
     add_experiment_args(parser)
     return parser
 
 def fit_buffer(self, epochs):
-    for epoch in range(epochs):
+    optimizer = SGD(self.net.parameters(), lr=self.args.maxlr, momentum=self.args.optim_mom, weight_decay=self.args.optim_wd, nesterov=self.args.optim_nesterov)
+    scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=2, eta_min=self.args.minlr)
 
-        optimizer = SGD(self.net.parameters(), lr=self.args.maxlr, momentum=self.args.optim_mom, weight_decay=self.args.optim_wd, nesterov=self.args.optim_nesterov)
-        scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1, T_mult=2, eta_min=self.args.minlr)
+    for epoch in range(epochs):
 
         if epoch <= 0: # Warm start of 1 epoch
             for param_group in optimizer.param_groups:
