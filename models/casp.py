@@ -1,4 +1,4 @@
-import torch
+import torch #all methods are well developed and finalizedddd
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
