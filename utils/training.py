@@ -266,6 +266,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         if hasattr(model, 'end_task'):
             model.end_task(dataset)
 
+        print("model.buffer.labels", model.buffer.labels)
+        
         accs = evaluate(model, dataset)
         results.append(accs[0])
         results_mask_classes.append(accs[1])
