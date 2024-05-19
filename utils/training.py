@@ -265,8 +265,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
         if hasattr(model, 'end_task'):
             model.end_task(dataset)
-
-        print("model.buffer.labels", model.buffer.labels)
         
         accs = evaluate(model, dataset)
         results.append(accs[0])
@@ -292,6 +290,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             wandb.log(d2)
 
 
+    print("model.buffer.labels", model.buffer.labels)
 
     if not args.disable_log and not args.ignore_other_metrics:
         logger.add_bwt(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
