@@ -326,8 +326,8 @@ class Casp(ContinualModel):
 
             self.dist_task_prev = dist_task
 
-            print("dist_class", dist_class)
-            print("dist_task", dist_task)
+            ##print("dist_class", dist_class)
+            ##print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
