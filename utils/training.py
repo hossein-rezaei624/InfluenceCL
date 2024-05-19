@@ -290,12 +290,12 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             wandb.log(d2)
 
 
-    print("model.buffer.labels", model.buffer.labels)
-    ha = args.buffer_size
-    print("part 1:",  model.buffer.labels[:ha//4])
-    print("part 2:",  model.buffer.labels[ha//4:ha//2])
-    print("part 3:",  model.buffer.labels[ha//2:-ha//4])
-    print("part 4:",  model.buffer.labels[-ha//4:])
+    ##print("model.buffer.labels", model.buffer.labels)
+    ##ha = args.buffer_size
+    ##print("part 1:",  model.buffer.labels[:ha//4])
+    ##print("part 2:",  model.buffer.labels[ha//4:ha//2])
+    ##print("part 3:",  model.buffer.labels[ha//2:-ha//4])
+    ##print("part 4:",  model.buffer.labels[-ha//4:])
 
     if not args.disable_log and not args.ignore_other_metrics:
         logger.add_bwt(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
