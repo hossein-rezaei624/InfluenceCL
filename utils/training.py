@@ -291,8 +291,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
 
     print("model.buffer.labels", model.buffer.labels)
-    ha = len(model.buffer)
-    print("number of sample",ha)
+    ha = args.buffer_size
     print("part 1:",  model.buffer.labels[:ha//4])
     print("part 2:",  model.buffer.labels[ha//4:ha//2])
     print("part 3:",  model.buffer.labels[ha//2:-ha//4])
