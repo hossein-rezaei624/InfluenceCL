@@ -265,6 +265,16 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
         if hasattr(model, 'end_task'):
             model.end_task(dataset)
+
+
+        print("model.buffer.labels", model.buffer.labels)
+        ha = len(model.buffer)
+        print("number of sample",ha)
+        print("part 1:",  model.buffer.labels[:ha//4])
+        print("part 2:",  model.buffer.labels[ha//4:ha//2])
+        print("part 3:",  model.buffer.labels[ha//2:-ha//4])
+        print("part 4:",  model.buffer.labels[-ha//4:])
+
         
         accs = evaluate(model, dataset)
         results.append(accs[0])
