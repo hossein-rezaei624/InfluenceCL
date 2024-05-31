@@ -177,7 +177,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 11
+            self.predicted_epoch = 2
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -201,7 +201,8 @@ class Casp(ContinualModel):
             std_of_means_by_task = {task_id: mean_by_task[task_id] for task_id in range(self.task)}
 
 
-            self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
+            ##self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
+            self.confidence_by_sample = self.confidence_by_sample[:5]
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -217,19 +218,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            sorted_indices_2 = np.argsort(Variability.numpy())
+            ##sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
