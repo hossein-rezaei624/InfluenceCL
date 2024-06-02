@@ -177,7 +177,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 11
+            self.predicted_epoch = 1
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -201,8 +201,8 @@ class Casp(ContinualModel):
             std_of_means_by_task = {task_id: mean_by_task[task_id] for task_id in range(self.task)}
 
 
-            self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
-            ##self.confidence_by_sample = self.confidence_by_sample[:5]
+            ##self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
+            self.confidence_by_sample = self.confidence_by_sample[:5]
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
@@ -286,7 +286,7 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 - v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
             ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
@@ -428,7 +428,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.predicted_epoch: #self.predicted_epoch
+        if self.epoch < 12: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -446,7 +446,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+        if self.epoch < 12:  #self.predicted_epoch
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
