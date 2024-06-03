@@ -177,7 +177,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 11
+            self.predicted_epoch = 2
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -193,7 +193,7 @@ class Casp(ContinualModel):
             mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.std(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
             mean_by_task = {task_id: torch.std(torch.tensor(confidences)) for task_id, confidences in self.confidence_by_task.items()}
@@ -286,7 +286,7 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 - v for k, v in updated_std_of_means_by_class.items()} # comment for balance
             ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
