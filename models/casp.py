@@ -177,7 +177,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 2
+            self.predicted_epoch = 3
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty():
