@@ -163,7 +163,7 @@ class Casp(ContinualModel):
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.n_epochs)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
-        self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
+        self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.n_epochs)} for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
     
     def end_epoch(self, dataset, train_loader):
@@ -177,15 +177,16 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 11
+            self.predicted_epoch = 2
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
+        if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
             soft_buffer = soft_1(buffer_logits)
             for j in range(len(self.buffer)):
-                self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]].append(soft_buffer[j, self.buffer.labels[j]].item())
-                    
+                self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_buffer[j, self.buffer.labels[j]].item())
+
+        
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
@@ -196,10 +197,9 @@ class Casp(ContinualModel):
             std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
-            mean_by_task = {task_id: torch.std(torch.tensor(confidences)) for task_id, confidences in self.confidence_by_task.items()}
-   ####         std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.args.casp_epoch)])) for task_id in range(self.task)}
-            std_of_means_by_task = {task_id: mean_by_task[task_id] for task_id in range(self.task)}
-
+            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for task_id, confidences in self.confidence_by_task.items()}
+            std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
+            
 
             self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
             ##self.confidence_by_sample = self.confidence_by_sample[:5]
@@ -218,19 +218,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -286,8 +286,8 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
 ##            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
@@ -313,8 +313,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
@@ -461,13 +461,13 @@ class Casp(ContinualModel):
             self.confidence_by_sample[self.epoch, index_] = conf_tensor
     
 
-        if self.epoch == (self.args.n_epochs - 1):
+        if self.epoch >= (self.args.n_epochs - self.predicted_epoch):
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
             soft_task = soft_1(casp_logits)
             for j in range(labels.shape[0]):
-                self.confidence_by_task[self.task_class[labels[j].item()]].append(soft_task[j, labels[j]].item())
-            
+                self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
 
+        
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
