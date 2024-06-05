@@ -16,7 +16,9 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-
+    parser.add_argument('--n_fine_epoch', type=int,
+                        help='Epoch for strategies')
+    
     return parser
 
 
@@ -177,7 +179,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 11
+            self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty():
@@ -197,7 +199,7 @@ class Casp(ContinualModel):
             std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
-            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in confidences} for task_id, confidences in self.confidence_by_task.items()}
+            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
             
 
@@ -313,7 +315,7 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
@@ -329,8 +331,8 @@ class Casp(ContinualModel):
 
             self.dist_task_prev = dist_task
 
-            ##print("dist_class", dist_class)
-            ##print("dist_task", dist_task)
+            print("dist_class", dist_class)
+            print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
