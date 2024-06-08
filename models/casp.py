@@ -208,7 +208,7 @@ class Casp(ContinualModel):
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
-            Variability = self.confidence_by_sample.var(dim=0)
+            Variability = self.confidence_by_sample.std(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -288,13 +288,13 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
 
 
-            self.task_portion.append(((self.confidence_by_sample.std(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
+            self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
             
             updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
             print("updated_task_portion", updated_task_portion)
