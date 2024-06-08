@@ -208,7 +208,7 @@ class Casp(ContinualModel):
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
-            Variability = self.confidence_by_sample.std(dim=0)
+            Variability = self.confidence_by_sample.var(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -315,8 +315,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            ##updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
