@@ -204,11 +204,11 @@ class Casp(ContinualModel):
             
 
             ##self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
-            self.confidence_by_sample = self.confidence_by_sample[:5]
+         ###   self.confidence_by_sample = self.confidence_by_sample[:5]
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample.mean(dim=0)
-            Variability = self.confidence_by_sample.std(dim=0)
+            Confidence_mean = self.confidence_by_sample[:5].mean(dim=0)
+            Variability = self.confidence_by_sample[:5].std(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
