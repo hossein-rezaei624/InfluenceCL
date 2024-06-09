@@ -296,7 +296,7 @@ class Casp(ContinualModel):
 
             self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
             
-            updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
+            updated_task_portion = {i: 1 - value for i, value in enumerate(self.task_portion)} #complement
             dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
 
 ##            if self.task > 1:
