@@ -207,8 +207,8 @@ class Casp(ContinualModel):
          ###   self.confidence_by_sample = self.confidence_by_sample[:5]
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:7].mean(dim=0)
-            Variability = self.confidence_by_sample[:7].var(dim=0)
+            Confidence_mean = self.confidence_by_sample[:5].mean(dim=0)
+            Variability = self.confidence_by_sample[:5].std(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -288,16 +288,16 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 - v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
 
 
-          ####  self.task_portion.append(((self.confidence_by_sample.std(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
+            self.task_portion.append(((self.confidence_by_sample.std(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
             
-          ####  updated_task_portion = {i: 1 - value for i, value in enumerate(self.task_portion)} #complement
-          ####  dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
+            updated_task_portion = {i: 1 - value for i, value in enumerate(self.task_portion)} #complement
+            dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
 
 ##            if self.task > 1:
 ##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
@@ -318,8 +318,8 @@ class Casp(ContinualModel):
 
 
             ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
-            dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
+            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            ##dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
