@@ -292,7 +292,7 @@ class Casp(ContinualModel):
             ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
-
+            print("self.class_portion", self.class_portion)
 
           ####  self.task_portion.append(((self.confidence_by_sample.std(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
             
