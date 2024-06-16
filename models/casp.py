@@ -203,12 +203,12 @@ class Casp(ContinualModel):
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
             
 
-            ##self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
+            self.confidence_by_sample = self.confidence_by_sample[:self.predicted_epoch]
          ###   self.confidence_by_sample = self.confidence_by_sample[:5]
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:7].mean(dim=0)
-            Variability = self.confidence_by_sample[:7].std(dim=0)
+            Confidence_mean = self.confidence_by_sample.mean(dim=0)
+            Variability = self.confidence_by_sample.std(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -433,7 +433,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < 12: #self.predicted_epoch
+        if self.epoch < self.predicted_epoch: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -451,7 +451,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 12:  #self.predicted_epoch
+        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
             soft_ = soft_1(casp_logits)
             # Accumulate confidences
