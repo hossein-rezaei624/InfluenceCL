@@ -233,7 +233,7 @@ class Casp(ContinualModel):
         
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
-
+            print("top_indices_sorted", top_indices_sorted)
 
             # Initialize lists to hold data
             all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
@@ -257,6 +257,7 @@ class Casp(ContinualModel):
 
             # Find the positions of these indices in the shuffled order
             positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
+            print("positions", positions)
 
             # Extract inputs and labels using these positions
             ###all_images = all_inputs[positions]
