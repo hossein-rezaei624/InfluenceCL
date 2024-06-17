@@ -177,7 +177,7 @@ class Casp(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = 6
+            self.predicted_epoch = 2
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch == (self.args.n_epochs - 1) and not self.buffer.is_empty():
@@ -205,7 +205,7 @@ class Casp(ContinualModel):
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample.mean(dim=0)
-            Variability = self.confidence_by_sample.std(dim=0)
+            Variability = self.confidence_by_sample.var(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
