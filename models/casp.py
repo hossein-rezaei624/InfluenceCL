@@ -208,7 +208,7 @@ class Casp(ContinualModel):
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample[:6].mean(dim=0)
-            Variability = self.confidence_by_sample[:6].std(dim=0)
+            Variability = self.confidence_by_sample[:6].var(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
