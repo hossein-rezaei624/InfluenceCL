@@ -165,6 +165,7 @@ class Casp(ContinualModel):
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
         self.confidence_by_task = {task_id: [] for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
+        print("self.buffer.labels", self.buffer.labels)
     
     def end_epoch(self, dataset, train_loader):
 
@@ -289,6 +290,7 @@ class Casp(ContinualModel):
             updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
+            print("self.class_portion", self.class_portion)
 ##            self.task_portion.append(((self.confidence_by_sample.std(dim=1)).mean(dim=0)).item())
             
 ##            updated_task_portion = {i:value for i, value in enumerate(self.task_portion)}
@@ -328,8 +330,8 @@ class Casp(ContinualModel):
 
             self.dist_task_prev = dist_task
 
-            ##print("dist_class", dist_class)
-            ##print("dist_task", dist_task)
+            print("dist_class", dist_class)
+            print("dist_task", dist_task)
             
             # Distribute samples based on the standard deviation
             dist = dist_class.pop()
