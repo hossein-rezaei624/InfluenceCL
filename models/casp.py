@@ -39,8 +39,8 @@ class Casp(ContinualModel):
     def end_epoch(self, dataset, train_loader):
 
         
-        ##if self.epoch < self.args.n_fine_epoch:
-          ##  buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
+        if self.epoch < self.args.n_fine_epoch and not self.buffer.is_empty():
+            bu, bu_ = self.net.pcrForward(self.buffer.examples)
 
         
         self.epoch += 1
@@ -64,8 +64,8 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        #if self.epoch < 7:  #self.predicted_epoch
-         #   casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+        if self.epoch < self.args.n_fine_epoch:  #self.predicted_epoch
+            af, af_ = self.net.pcrForward(not_aug_inputs)
 
         
         if not self.buffer.is_empty():
