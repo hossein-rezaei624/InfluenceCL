@@ -433,7 +433,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < 6: #self.predicted_epoch
+        if self.epoch < 11: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -451,19 +451,20 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 6:  #self.predicted_epoch
+        if self.epoch < 11:  #self.predicted_epoch
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-            soft_ = soft_1(casp_logits)
-            # Accumulate confidences
-            for i in range(targets.shape[0]):
-                confidence_batch.append(soft_[i,labels[i]].item())
+            if self.epoch < 6:
+                soft_ = soft_1(casp_logits)
+                # Accumulate confidences
+                for i in range(targets.shape[0]):
+                    confidence_batch.append(soft_[i,labels[i]].item())
+                    
+                    # Update the dictionary with the confidence score for the current class for the current epoch
+                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
                 
-                # Update the dictionary with the confidence score for the current class for the current epoch
-                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
-            
-            # Record the confidence scores for samples in the corresponding tensor
-            conf_tensor = torch.tensor(confidence_batch)
-            self.confidence_by_sample[self.epoch, index_] = conf_tensor
+                # Record the confidence scores for samples in the corresponding tensor
+                conf_tensor = torch.tensor(confidence_batch)
+                self.confidence_by_sample[self.epoch, index_] = conf_tensor
     
 
         if self.epoch < self.predicted_epoch:
