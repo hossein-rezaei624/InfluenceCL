@@ -21,6 +21,7 @@ def get_parser() -> ArgumentParser:
     
     return parser
 
+soft_1 = nn.Softmax(dim=1)
 
 class Casp(ContinualModel):
     NAME = 'casp'
@@ -40,10 +41,11 @@ class Casp(ContinualModel):
 
         
         if self.epoch < self.args.n_fine_epoch and not self.buffer.is_empty():
-            self.net.eval()
-            with torch.no_grad():
-                bu, bu_ = self.net.pcrForward(self.buffer.examples)
-            self.net.train()
+            #self.net.eval()
+            #with torch.no_grad():
+            bu, bu_ = self.net.pcrForward(self.buffer.examples)
+            asa = soft_1(bu)
+            #self.net.train()
 
         
         self.epoch += 1
@@ -68,10 +70,11 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.args.n_fine_epoch:  #self.predicted_epoch
-            self.net.eval()
-            with torch.no_grad():
-                af, af_ = self.net.pcrForward(not_aug_inputs)
-            self.net.train()
+            #self.net.eval()
+            #with torch.no_grad():
+            af, af_ = self.net.pcrForward(not_aug_inputs)
+            soft_ss = soft_1(af)
+            #self.net.train()
 
         
         if not self.buffer.is_empty():
