@@ -454,17 +454,16 @@ class Casp(ContinualModel):
         if self.epoch < 7:  #self.predicted_epoch
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
             soft_ = soft_1(casp_logits)
-            if self.epoch < 6:
-                # Accumulate confidences
-                for i in range(targets.shape[0]):
-                    confidence_batch.append(soft_[i,labels[i]].item())
-                    
-                    # Update the dictionary with the confidence score for the current class for the current epoch
-                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
+            # Accumulate confidences
+            for i in range(targets.shape[0]):
+                confidence_batch.append(soft_[i,labels[i]].item())
                 
-                # Record the confidence scores for samples in the corresponding tensor
-                conf_tensor = torch.tensor(confidence_batch)
-                self.confidence_by_sample[self.epoch, index_] = conf_tensor
+                # Update the dictionary with the confidence score for the current class for the current epoch
+                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
+            
+            # Record the confidence scores for samples in the corresponding tensor
+            conf_tensor = torch.tensor(confidence_batch)
+            self.confidence_by_sample[self.epoch, index_] = conf_tensor
     
 
         if self.epoch < self.predicted_epoch:
