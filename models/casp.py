@@ -69,12 +69,12 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < 6:  #self.predicted_epoch
-        #    self.net.eval()
-        #    with torch.no_grad():
-            af, af_ = self.net.pcrForward(not_aug_inputs)
-            soft_ss = soft_1(af)
-        #    self.net.train()
+        if self.epoch < 14:  #self.predicted_epoch
+            self.net.eval()
+            with torch.no_grad():
+                af, af_ = self.net.pcrForward(not_aug_inputs)
+                soft_ss = soft_1(af)
+            self.net.train()
 
         
         if not self.buffer.is_empty():
