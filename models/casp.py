@@ -451,19 +451,23 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
+        
         if self.epoch < self.args.n_epochs:  #self.predicted_epoch
-            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-            soft_ = soft_1(casp_logits)
-            # Accumulate confidences
-            for i in range(targets.shape[0]):
-                confidence_batch.append(soft_[i,labels[i]].item())
+            self.net.eval()
+            with torch.no_grad():
+                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+                soft_ = soft_1(casp_logits)
+                # Accumulate confidences
+                for i in range(targets.shape[0]):
+                    confidence_batch.append(soft_[i,labels[i]].item())
+                    
+                    # Update the dictionary with the confidence score for the current class for the current epoch
+                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
                 
-                # Update the dictionary with the confidence score for the current class for the current epoch
-                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
-            
-            # Record the confidence scores for samples in the corresponding tensor
-            conf_tensor = torch.tensor(confidence_batch)
-            self.confidence_by_sample[self.epoch, index_] = conf_tensor
+                # Record the confidence scores for samples in the corresponding tensor
+                conf_tensor = torch.tensor(confidence_batch)
+                self.confidence_by_sample[self.epoch, index_] = conf_tensor
+            self.net.train()
     
 
         if self.epoch < self.predicted_epoch:
