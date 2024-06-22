@@ -185,10 +185,13 @@ class Casp(ContinualModel):
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch < self.predicted_epoch and not self.buffer.is_empty():
-            buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
-            soft_buffer = soft_1(buffer_logits)
-            for j in range(len(self.buffer)):
-                self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
+            self.net.eval()
+            with torch.no_grad():
+                buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
+                soft_buffer = soft_1(buffer_logits)
+                for j in range(len(self.buffer)):
+                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
+            self.net.train()
         
         self.epoch += 1
         
@@ -317,8 +320,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            ##updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
@@ -470,10 +473,13 @@ class Casp(ContinualModel):
     
 
         if self.epoch < self.predicted_epoch:
-            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-            soft_task = soft_1(casp_logits)
-            for j in range(labels.shape[0]):
-                self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
+            self.net.eval()
+            with torch.no_grad():
+                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+                soft_task = soft_1(casp_logits)
+                for j in range(labels.shape[0]):
+                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
+            self.net.train()
         
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
