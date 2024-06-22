@@ -204,8 +204,8 @@ class Casp(ContinualModel):
             
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
-            Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
+            Confidence_mean = self.confidence_by_sample[:5].mean(dim=0)
+            Variability = self.confidence_by_sample[:5].var(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -217,19 +217,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -431,7 +431,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.predicted_epoch: #self.predicted_epoch
+        if self.epoch < 11: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -449,7 +449,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+        if self.epoch < 11:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
