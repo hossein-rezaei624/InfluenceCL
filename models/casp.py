@@ -433,7 +433,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.args.n_epochs: #self.predicted_epoch
+        if self.epoch < 11: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -452,7 +452,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         
-        if self.epoch < self.args.n_epochs:  #self.predicted_epoch
+        if self.epoch < 11:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
