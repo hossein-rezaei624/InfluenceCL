@@ -320,7 +320,7 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ##updated_std_of_means_by_task = {k: 1 - v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
@@ -435,7 +435,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.args.n_epochs: #self.predicted_epoch
+        if self.epoch < 11: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -454,7 +454,7 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         
-        if self.epoch < self.args.n_epochs:  #self.predicted_epoch
+        if self.epoch < 11:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
