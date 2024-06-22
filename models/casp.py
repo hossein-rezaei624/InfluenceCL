@@ -1,4 +1,4 @@
-import torch
+import torch ##yes
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
@@ -21,9 +21,6 @@ def get_parser() -> ArgumentParser:
     
     return parser
 
-
-    
-soft_1 = nn.Softmax(dim=1)
 
 def distribute_samples(probabilities, M):
     # Normalize the probabilities
@@ -184,11 +181,11 @@ class Casp(ContinualModel):
             self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch < self.args.n_epochs and not self.buffer.is_empty():
+        if self.epoch < self.predicted_epoch and not self.buffer.is_empty():
             self.net.eval()
             with torch.no_grad():
                 buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
-                soft_buffer = soft_1(buffer_logits)
+                soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
                 for j in range(len(self.buffer)):
                     self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
             self.net.train()
@@ -320,8 +317,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
@@ -435,7 +432,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < 11: #self.predicted_epoch
+        if self.epoch < self.args.n_epochs: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -454,11 +451,11 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         
-        if self.epoch < 11:  #self.predicted_epoch
+        if self.epoch < self.args.n_epochs:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_ = soft_1(casp_logits)
+                soft_ = nn.functional.softmax(casp_logits, dim=1)
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
                     confidence_batch.append(soft_[i,labels[i]].item())
@@ -472,11 +469,11 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch < self.args.n_epochs:
+        if self.epoch < self.predicted_epoch:
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_task = soft_1(casp_logits)
+                soft_task = nn.functional.softmax(casp_logits, dim=1)
                 for j in range(labels.shape[0]):
                     self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
             self.net.train()
