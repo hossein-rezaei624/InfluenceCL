@@ -184,7 +184,7 @@ class Casp(ContinualModel):
             self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch < self.predicted_epoch and not self.buffer.is_empty():
+        if self.epoch < self.args.n_epochs and not self.buffer.is_empty():
             self.net.eval()
             with torch.no_grad():
                 buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
@@ -472,7 +472,7 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch < self.predicted_epoch:
+        if self.epoch < self.args.n_epochs:
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
