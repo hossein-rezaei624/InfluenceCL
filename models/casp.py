@@ -182,13 +182,10 @@ class Casp(ContinualModel):
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch < self.predicted_epoch and not self.buffer.is_empty():
-            self.net.eval()
-            with torch.no_grad():
-                buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
-                soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
-                for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
-            self.net.train()
+            buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
+            soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
+            for j in range(len(self.buffer)):
+                self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
         
         self.epoch += 1
         
@@ -452,31 +449,25 @@ class Casp(ContinualModel):
 
         
         if self.epoch < self.args.n_epochs:  #self.predicted_epoch
-            self.net.eval()
-            with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_ = nn.functional.softmax(casp_logits, dim=1)
-                # Accumulate confidences
-                for i in range(targets.shape[0]):
-                    confidence_batch.append(soft_[i,labels[i]].item())
-                    
-                    # Update the dictionary with the confidence score for the current class for the current epoch
-                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
+            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+            soft_ = nn.functional.softmax(casp_logits, dim=1)
+            # Accumulate confidences
+            for i in range(targets.shape[0]):
+                confidence_batch.append(soft_[i,labels[i]].item())
                 
-                # Record the confidence scores for samples in the corresponding tensor
-                conf_tensor = torch.tensor(confidence_batch)
-                self.confidence_by_sample[self.epoch, index_] = conf_tensor
-            self.net.train()
+                # Update the dictionary with the confidence score for the current class for the current epoch
+                self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
+            
+            # Record the confidence scores for samples in the corresponding tensor
+            conf_tensor = torch.tensor(confidence_batch)
+            self.confidence_by_sample[self.epoch, index_] = conf_tensor
     
 
         if self.epoch < self.predicted_epoch:
-            self.net.eval()
-            with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_task = nn.functional.softmax(casp_logits, dim=1)
-                for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
-            self.net.train()
+            casp_logits, _ = self.net.pcrForward(not_aug_inputs)
+            soft_task = nn.functional.softmax(casp_logits, dim=1)
+            for j in range(labels.shape[0]):
+                self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
         
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
