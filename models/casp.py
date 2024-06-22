@@ -22,6 +22,8 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
+soft_1 = nn.Softmax(dim=1)
+
 def distribute_samples(probabilities, M):
     # Normalize the probabilities
     total_probability = sum(probabilities.values())
@@ -183,7 +185,7 @@ class Casp(ContinualModel):
         
         if self.epoch < self.predicted_epoch and not self.buffer.is_empty():
             buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
-            soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
+            soft_buffer = soft_1(buffer_logits)
             for j in range(len(self.buffer)):
                 self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
         
@@ -450,7 +452,7 @@ class Casp(ContinualModel):
         
         if self.epoch < self.args.n_epochs:  #self.predicted_epoch
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-            soft_ = nn.functional.softmax(casp_logits, dim=1)
+            soft_ = soft_1(casp_logits)
             # Accumulate confidences
             for i in range(targets.shape[0]):
                 confidence_batch.append(soft_[i,labels[i]].item())
@@ -465,7 +467,7 @@ class Casp(ContinualModel):
 
         if self.epoch < self.predicted_epoch:
             casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-            soft_task = nn.functional.softmax(casp_logits, dim=1)
+            soft_task = soft_1(casp_logits)
             for j in range(labels.shape[0]):
                 self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
         
