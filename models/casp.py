@@ -204,8 +204,8 @@ class Casp(ContinualModel):
             
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
-            Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
+            Confidence_mean = self.confidence_by_sample[:5].mean(dim=0)
+            Variability = self.confidence_by_sample[:5].var(dim=0)
 
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
@@ -285,8 +285,8 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
             print("updated_std_of_means_by_class", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
@@ -315,8 +315,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            ##updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
@@ -431,7 +431,7 @@ class Casp(ContinualModel):
 
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.predicted_epoch: #self.predicted_epoch
+        if self.epoch < 11: #self.predicted_epoch
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
@@ -449,7 +449,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+        if self.epoch < 11:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
