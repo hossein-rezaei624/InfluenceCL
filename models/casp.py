@@ -199,7 +199,7 @@ class Casp(ContinualModel):
             std_of_means_by_class = {class_id: torch.var(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
-            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
+            mean_by_task = {task_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
             
             
@@ -315,7 +315,7 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
