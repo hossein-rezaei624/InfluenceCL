@@ -179,13 +179,13 @@ class Casp(ContinualModel):
             self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch < self.predicted_epoch and not self.buffer.is_empty(): #here was
+        if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty(): #here was
             self.net.eval()
             with torch.no_grad():
                 buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
                 soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
                 for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
+                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_buffer[j, self.buffer.labels[j]].item())
             self.net.train()
 
         
@@ -200,7 +200,7 @@ class Casp(ContinualModel):
 
 
             mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
-            std_of_means_by_task = {task_id: torch.var(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
+            std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
             
             
             # Compute mean and variability of confidences for each sample
@@ -285,8 +285,8 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1/v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1/v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
             print("updated_std_of_means_by_class", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
@@ -316,8 +316,8 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
-            updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
+            updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
@@ -468,13 +468,13 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch < self.predicted_epoch:
+        if self.epoch >= (self.args.n_epochs - self.predicted_epoch):
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
                 soft_task = nn.functional.softmax(casp_logits, dim=1)
                 for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
+                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
             self.net.train()
 
         
