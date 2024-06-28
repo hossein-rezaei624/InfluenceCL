@@ -179,13 +179,13 @@ class Casp(ContinualModel):
             self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty(): #here was
+        if self.epoch < self.predicted_epoch and not self.buffer.is_empty(): #here was
             self.net.eval()
             with torch.no_grad():
                 buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
                 soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
                 for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_buffer[j, self.buffer.labels[j]].item())
+                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
             self.net.train()
 
         
@@ -468,13 +468,13 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch):
+        if self.epoch < self.predicted_epoch:
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
                 soft_task = nn.functional.softmax(casp_logits, dim=1)
                 for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
+                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
             self.net.train()
 
         
