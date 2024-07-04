@@ -429,7 +429,7 @@ class Casp(ContinualModel):
             self.buffer.examples = all_images_
             print("self.buffer.labels", self.buffer.labels)
 
-        if self.epoch == self.args.n_epochs and self.task == 10:
+        if self.epoch == self.args.n_epochs and self.task == 1:
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
             images_display = [self.buffer.examples[j] for j in range(500)]
@@ -438,7 +438,7 @@ class Casp(ContinualModel):
             grid = torchvision.utils.make_grid(images_display, nrow=25)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_image_simple.png')
+            torchvision.utils.save_image(grid, 'grid_image_simpleplus.png')
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
