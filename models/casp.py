@@ -224,9 +224,9 @@ class Casp(ContinualModel):
             
         
         
-            top_indices_sorted = sorted_indices_1 #hard
+            ##top_indices_sorted = sorted_indices_1 #hard
             
-            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
             ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
@@ -438,7 +438,7 @@ class Casp(ContinualModel):
             grid = torchvision.utils.make_grid(images_display, nrow=25)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_image_hard.png')
+            torchvision.utils.save_image(grid, 'grid_image_simple.png')
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
