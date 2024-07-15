@@ -217,19 +217,19 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
 
             # Initialize lists to hold data
@@ -427,18 +427,7 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-            print("self.buffer.labels", self.buffer.labels)
-
-        if self.epoch == self.args.n_epochs and self.task == 1:
-
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display = [self.buffer.examples[j] for j in range(500)]
-    
-            # Make a grid from these images
-            grid = torchvision.utils.make_grid(images_display, nrow=25)  # Adjust nrow based on actual images
             
-            # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_image_simpleplus.png')
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
