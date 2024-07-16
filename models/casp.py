@@ -398,6 +398,11 @@ class Casp(ContinualModel):
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
             ttt = []
+            print("type(selected_data[0])", type(selected_data[0]))
+            print("type(selected_data[0][0])", type(selected_data[0][0]))
+            print("type(selected_data[0][1])", type(selected_data[0][1]))
+            print("selected_data[0][0].shape", selected_data[0][0].shape)
+            print("selected_data[0][1].shape", selected_data[0][1].shape)
             for array1, array2 in selected_data:
                 print(array1.shape, array2.shape)
                 ttt.extend(array2)
