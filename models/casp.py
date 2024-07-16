@@ -397,7 +397,7 @@ class Casp(ContinualModel):
                 else:
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
-            print("selected_data", selected_data, "\n", "selected_data.shape", len(selected_data), selected_data[0],
+            print("selected_data.shape", len(selected_data), selected_data[0],
                   "\n", "type(selected_data)", type(selected_data))
 
             
