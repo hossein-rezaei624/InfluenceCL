@@ -397,6 +397,15 @@ class Casp(ContinualModel):
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
 
+            # Extracting images and labels into separate lists
+            images11 = [data[0] for data in selected_data]  # data[0] is the image tensor
+            labels11 = [data[1] for data in selected_data]  # data[1] is the label tensor
+
+            # Convert lists of tensors to single tensors
+            all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
+            all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
+
+            print("all_images_.shape, all_labels_.shape", all_images_.shape, all_labels_.shape)
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
