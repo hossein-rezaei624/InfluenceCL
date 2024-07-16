@@ -399,7 +399,7 @@ class Casp(ContinualModel):
 
             ttt = []
             for index, array in enumerate(selected_data):
-                print(index.shape)
+                print(index, array)
                 ttt.extend(array)
             print(len(ttt), ttt)    
                         
