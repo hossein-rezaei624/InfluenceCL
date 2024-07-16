@@ -378,7 +378,7 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images_list_).to(self.device)
             all_labels_ = torch.stack(labels_list_).to(self.device)
 
-            print(all_images_.shape, type(all_images_), all_labels_.shape, type(all_labels_))
+            print(all_images_[0].shape, type(all_images_[0]), all_labels_[0].shape, type(all_labels_[0]))
 
             # Assuming train_loader is defined and each batch consists of (inputs, labels)
             class_samples = defaultdict(list)
@@ -397,7 +397,7 @@ class Casp(ContinualModel):
                 else:
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
-            print(type(selected_data), type(selected_data[0]), type(selected_data[0][0]), type(selected_data[0][1]))
+            print(type(selected_data), type(selected_data[0]), type(selected_data[0][0]), type(selected_data[0][1]), selected_data[0][0].shape)
 
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
