@@ -387,25 +387,41 @@ class Casp(ContinualModel):
             self.dist_class_prev = dist_class_merged.copy()
             self.dist_class_prev.update(dist_last)
             if not self.buffer.is_empty():
-                # Initialize new lists for adjusted images and labels
-                images_store = []
-                labels_store = []
+
+
+                # Assuming train_loader is defined and each batch consists of (inputs, labels)
+                class_samples_buffer = defaultdict(list)
                 
-                # Iterate over all_labels and select most challening images for each class based on the class variability
-                for i in range(len(self.buffer)):
-                    if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
-                        counter_manage_merged[self.buffer.labels[i].item()] += 1
-                        labels_store.append(self.buffer.labels[i])
-                        images_store.append(self.buffer.examples[i])
-                    if counter_manage_merged == dist_class_merged:
-                        break
+                for input, label in zip(self.buffer.examples, self.buffer.labels):
+                    class_samples_buffer[label.item()].append((input, label))
+    
+                desired_samples_buffer = dist_class_merged
+                selected_data_buffer = []
                 
-                # Stack the selected images and labels
-                images_store_ = torch.stack(images_store).to(self.device)
-                labels_store_ = torch.stack(labels_store).to(self.device)
-                
+                for label, samples in class_samples_buffer.items():
+                    n_samples = desired_samples_buffer[label]
+                    if len(samples) >= n_samples:
+                        selected_data_buffer.extend(random.sample(samples, n_samples))
+                    else:
+                        print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
+    
+    
+                # Extracting images and labels into separate lists
+                images11_buffer = [data[0] for data in selected_data_buffer]  # data[0] is the image tensor
+                labels11_buffer = [data[1] for data in selected_data_buffer]  # data[1] is the label tensor
+    
+                # Convert lists of tensors to single tensors
+                images_store_ = torch.stack(images11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
+                labels_store_ = torch.stack(labels11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
+
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
+
+
+
+
+
+            
 
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
@@ -415,6 +431,8 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
+
+            print("self.buffer.labels", self.buffer.labels)
             
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
