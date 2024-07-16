@@ -404,7 +404,9 @@ class Casp(ContinualModel):
             print("type(selected_data[0][0])", type(selected_data[0][0]))
             print("type(selected_data[0][1])", type(selected_data[0][1]))
             print("selected_data[0][0].shape", selected_data[0][0].shape)
-            print("selected_data[0][1].shape", selected_data[0][1].shape)
+            print("selected_data[0][0].shape", selected_data[0][0].shape)
+            print("selected_data[0][0]", selected_data[0][0])
+            print("selected_data[0][1]", selected_data[0][1])
             for array1, array2 in selected_data:
                 print(array1.shape, array2.shape)
                 ttt.extend(array2)
