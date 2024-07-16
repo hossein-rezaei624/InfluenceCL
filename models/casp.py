@@ -360,16 +360,7 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
             all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
 
-
-
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            images_display = [all_images_[j] for j in range(1000)]
-    
-            # Make a grid from these images
-            grid = torchvision.utils.make_grid(images_display, nrow=35)  # Adjust nrow based on actual images
-            
-            # Save grid image with unique name for each batch
-            torchvision.utils.save_image(grid, 'grid_imageRandom.png')
+            print("all_labels_", all_labels_)
 
 
 
