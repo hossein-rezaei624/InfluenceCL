@@ -1,4 +1,4 @@
-import torch ## edit
+import torch
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
@@ -9,6 +9,10 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
+
+from collections import defaultdict
+import random
+
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -231,6 +235,7 @@ class Casp(ContinualModel):
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
+            
 
             # Initialize lists to hold data
             all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
@@ -372,7 +377,30 @@ class Casp(ContinualModel):
             # Stack the selected images and labels
             all_images_ = torch.stack(images_list_).to(self.device)
             all_labels_ = torch.stack(labels_list_).to(self.device)
-        
+
+
+
+            # Assuming train_loader is defined and each batch consists of (inputs, labels)
+            class_samples = defaultdict(list)
+            
+            for inputs_1, labels_1, not_aug_inputs_1, indices_1 in train_loader:
+                for input, label in zip(inputs_1, labels_1):
+                    class_samples[label.item()].append((input, label))
+
+            desired_samples = condition
+            selected_data = []
+            
+            for label, samples in class_samples.items():
+                n_samples = desired_samples[self.mapping[label]]
+                if len(samples) >= n_samples:
+                    selected_data.extend(random.sample(samples, n_samples))
+                else:
+                    print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
+
+            print("selected_data", selected_data, "\n", "selected_data.shape", selected_data.shape,
+                  "\n", "type(selected_data)", type(selected_data))
+
+            
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
