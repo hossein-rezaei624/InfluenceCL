@@ -406,9 +406,9 @@ class Casp(ContinualModel):
             print("selected_data[0][0].shape", selected_data[0][0].shape)
             print("selected_data[0][1]", selected_data[0][1])
             for array1, array2 in selected_data:
-                print(array1.shape, array2.shape)
+                print("array1.shape, array2.shape", array1.shape, array2.shape)
                 ttt.append(array2)
-            print(len(ttt), ttt)
+            print("len(ttt)", len(ttt))
                         
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
