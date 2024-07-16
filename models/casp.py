@@ -333,7 +333,6 @@ class Casp(ContinualModel):
                     break
         
 
-
             # Assuming train_loader is defined and each batch consists of (inputs, labels)
             class_samples = defaultdict(list)
             
@@ -359,8 +358,6 @@ class Casp(ContinualModel):
             # Convert lists of tensors to single tensors
             all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
             all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
-
-            print("from trainloaderrrrr", all_images_.shape)
             
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
@@ -415,14 +412,9 @@ class Casp(ContinualModel):
                 images_store_ = torch.stack(images11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
                 labels_store_ = torch.stack(labels11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
 
-                print("from bufferrrr", images_store_.shape)
 
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
-
-
-                print("summmmmmm", all_images_.shape)
-
 
             
 
