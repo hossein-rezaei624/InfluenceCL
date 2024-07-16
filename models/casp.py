@@ -360,9 +360,6 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
             all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
 
-            print("all_labels_", all_labels_)
-
-
 
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
