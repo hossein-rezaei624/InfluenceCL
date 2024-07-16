@@ -398,7 +398,7 @@ class Casp(ContinualModel):
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
             ttt = []
-            for index, array1, array2 in enumerate(selected_data):
+            for array1, array2 in selected_data:
                 print(array1.shape, array2.shape)
                 ttt.extend(array2)
             print(len(ttt), ttt)
