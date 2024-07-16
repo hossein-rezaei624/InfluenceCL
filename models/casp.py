@@ -366,7 +366,7 @@ class Casp(ContinualModel):
             images_display = [all_images_[j] for j in range(500)]
     
             # Make a grid from these images
-            grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            grid = torchvision.utils.make_grid(images_display, nrow=50)  # Adjust nrow based on actual images
             
             # Save grid image with unique name for each batch
             torchvision.utils.save_image(grid, 'grid_imageRandom.png')
