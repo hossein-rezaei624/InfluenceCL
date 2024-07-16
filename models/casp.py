@@ -397,10 +397,12 @@ class Casp(ContinualModel):
                 else:
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
-            print("selected_data.shape", len(selected_data), selected_data[0],
-                  "\n", "type(selected_data)", type(selected_data))
-
-            
+            ttt = []
+            for index, array in enumerate(selected_data):
+                print(index.shape, array.shape)
+                ttt.extend(array)
+            print(len(ttt), ttt)    
+                        
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
