@@ -399,6 +399,7 @@ class Casp(ContinualModel):
 
             ttt = []
             print("selected_data[0]", selected_data[0])
+            print("len(selected_data[0])", len(selected_data[0]))
             print("type(selected_data[0])", type(selected_data[0]))
             print("type(selected_data[0][0])", type(selected_data[0][0]))
             print("type(selected_data[0][1])", type(selected_data[0][1]))
