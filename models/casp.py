@@ -360,7 +360,8 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
             all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
 
-
+            print("from trainloaderrrrr", all_images_.shape)
+            
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
@@ -414,11 +415,13 @@ class Casp(ContinualModel):
                 images_store_ = torch.stack(images11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
                 labels_store_ = torch.stack(labels11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
 
+                print("from bufferrrr", images_store_.shape)
+
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
 
 
-
+                print("summmmmmm", all_images_.shape)
 
 
             
@@ -431,8 +434,6 @@ class Casp(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-
-            print("self.buffer.labels", self.buffer.labels)
             
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
