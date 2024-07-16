@@ -398,17 +398,9 @@ class Casp(ContinualModel):
                     print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
 
             ttt = []
-            print("len(selected_data[0])", len(selected_data[0]))
-            print("type(selected_data[0])", type(selected_data[0]))
-            print("type(selected_data[0][0])", type(selected_data[0][0]))
-            print("type(selected_data[0][1])", type(selected_data[0][1]))
-            print("selected_data[0][0].shape", selected_data[0][0].shape)
-            print("selected_data[0][0].shape", selected_data[0][0].shape)
-            print("selected_data[0][1]", selected_data[0][1])
             for array1, array2 in selected_data:
-                print("array1.shape, array2.shape", array1.shape, array2.shape)
-                ttt.append(array2)
-            print("len(ttt)", len(ttt))
+                ttt.append(array2.item())
+            print("len(ttt)", len(ttt), ttt)
                         
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
