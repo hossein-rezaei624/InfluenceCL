@@ -237,35 +237,6 @@ class Casp(ContinualModel):
 
             
 
-            # Initialize lists to hold data
-            all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
-            
-            # Collect all data
-            for data_1 in train_loader:
-                inputs_1, labels_1, not_aug_inputs_1, indices_1 = data_1
-                all_inputs.append(inputs_1)
-                all_labels.append(labels_1)
-                all_not_aug_inputs.append(not_aug_inputs_1)
-                all_indices.append(indices_1)
-            
-            # Concatenate all collected items to form complete arrays            
-            all_inputs = torch.cat(all_inputs, dim=0)
-            all_labels = torch.cat(all_labels, dim=0)
-            all_not_aug_inputs = torch.cat(all_not_aug_inputs, dim=0)
-            all_indices = torch.cat(all_indices, dim=0)
-
-            # Convert sorted_indices_2 to a tensor for indexing
-            top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
-
-            # Find the positions of these indices in the shuffled order
-            positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
-
-            # Extract inputs and labels using these positions
-            ###all_images = all_inputs[positions]
-            ###all_not_aug_inputs = all_not_aug_inputs[positions]
-            all_images = all_not_aug_inputs[positions]
-            all_labels = all_labels[positions]
-
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
             ##images_display = [all_images[j] for j in range(100)]
@@ -361,22 +332,6 @@ class Casp(ContinualModel):
                     condition = distribute_excess(condition, check_bound)
                     break
         
-            # Initialize new lists for adjusted images and labels
-            images_list_ = []
-            labels_list_ = []
-        
-            # Iterate over all_labels and select most challening images for each class based on the class variability
-            for i in range(all_labels.shape[0]):
-                if counter_class[self.mapping[all_labels[i].item()]] < condition[self.mapping[all_labels[i].item()]]:
-                    counter_class[self.mapping[all_labels[i].item()]] += 1
-                    labels_list_.append(all_labels[i])
-                    images_list_.append(all_images[i])
-                if counter_class == condition:
-                    break
-        
-            # Stack the selected images and labels
-            all_images_ = torch.stack(images_list_).to(self.device)
-            all_labels_ = torch.stack(labels_list_).to(self.device)
 
 
             # Assuming train_loader is defined and each batch consists of (inputs, labels)
@@ -405,7 +360,19 @@ class Casp(ContinualModel):
             all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
             all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
 
-            print("all_images_.shape, all_labels_.shape", all_images_.shape, all_labels_.shape)
+
+
+            # Extract the first 12 images to display (or fewer if there are less than 12 images)
+            images_display = [all_images_[j] for j in range(500)]
+    
+            # Make a grid from these images
+            grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            
+            # Save grid image with unique name for each batch
+            torchvision.utils.save_image(grid, 'grid_imageRandom.png')
+
+
+
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
