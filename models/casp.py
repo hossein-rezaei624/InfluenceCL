@@ -197,10 +197,10 @@ class Casp(ContinualModel):
         
         if self.epoch == self.args.n_epochs:
             # Calculate mean confidence by class
-            mean_by_class = {class_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
+            mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.mean(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_class = {class_id: torch.var(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
             mean_by_task = {task_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
