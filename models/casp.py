@@ -268,7 +268,7 @@ class Casp(ContinualModel):
             self.class_portion.append(updated_std_of_means_by_class)
             
 
-            self.task_portion.append(((self.confidence_by_sample.var(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
+            self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].var(dim=0)).item())
             
             updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
             print("updated_task_portion", updated_task_portion)
