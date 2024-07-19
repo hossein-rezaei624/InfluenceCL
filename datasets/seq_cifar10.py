@@ -101,7 +101,8 @@ class SequentialCIFAR10(ContinualDataset):
 
     @staticmethod
     def get_transform():
-        transform = transforms.RandomHorizontalFlip()  # remove random crop to reproduce results
+        transform = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()])  # remove random crop to reproduce results
         return transform
 
     @staticmethod
