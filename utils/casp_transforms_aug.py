@@ -15,7 +15,7 @@ transforms_aug = {
         transforms.ToTensor(),
         # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
         ]),
-    'seq-cifar10': transforms.Compose([
+    'seq-tinyimg': transforms.Compose([
         transforms.ToPILImage(),
         # transforms.RandomCrop(32, padding=4),
         transforms.RandomResizedCrop(size=32, scale=(0.2, 1.)),
