@@ -207,6 +207,8 @@ class Casp(ContinualModel):
             Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
             Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
 
+            print("Variability", Variability)
+
             ##plt.scatter(Variability, Confidence_mean, s = 2)
             
             ##plt.xlabel("Variability") 
