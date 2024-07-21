@@ -224,7 +224,9 @@ class Casp(ContinualModel):
             # Sort indices based on the variability
             sorted_indices_2 = np.argsort(Variability.numpy())
             
-        
+
+            print("sorted_indices_2", sorted_indices_2)
+            
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
