@@ -293,11 +293,11 @@ class Casp(ContinualModel):
             self.class_portion.append(updated_std_of_means_by_class)
             
 
-            ###self.task_portion.append(((self.confidence_by_sample.var(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
+            self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].mean(dim=0)).item())
             
-            ###updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
-            ###print("updated_task_portion", updated_task_portion)
-            ###dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
+            updated_task_portion = {i: 1/value for i, value in enumerate(self.task_portion)} #complement
+            print("updated_task_portion", updated_task_portion)
+            dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
 
 ##            if self.task > 1:
 ##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
@@ -317,10 +317,10 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ###updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             ##updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
-            print("updated_std_of_means_by_task", updated_std_of_means_by_task)
-            dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
+            ###print("updated_std_of_means_by_task", updated_std_of_means_by_task)
+            ###dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
                 dist_task = adjust_values_integer_include_all(dist_task_before.copy(), self.dist_task_prev)
