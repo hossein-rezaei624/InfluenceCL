@@ -36,3 +36,4 @@ def set_random_seed(seed: int) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    print("we are in seeeeeeeeeeeeeeeed")
