@@ -589,7 +589,7 @@ best_args = {
                                   'gamma': 0.1,
                                   'steps_on_anchors': 100,
                                   'finetuning_epochs': 1},
-                            500: {'lr': 0.03,
+                            500: {'lr': 0.1,
                                   'minibatch_size': 32,
                                   'batch_size': 32,
                                   'n_epochs': 50,
