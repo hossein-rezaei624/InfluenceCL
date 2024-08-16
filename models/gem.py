@@ -28,7 +28,7 @@ def get_parser() -> ArgumentParser:
             del parser._actions[i]
             break
 
-    parser.add_argument('--gamma', type=float, default=None,
+    parser.add_argument('--gamma', type=float, default=0.5,
                         help='Margin parameter for GEM.')
     return parser
 
