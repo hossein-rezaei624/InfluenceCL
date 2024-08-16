@@ -1046,17 +1046,64 @@ best_args = {
     'seq-cifar100': {
         'sgd': {-1: {'lr': 0.03, 'optim_mom': 0, 'optim_wd': 0}},
         'er': {
-            500: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0},
-            1000: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0}
+            500: {'lr': 0.1},
+            1000: {'lr': 0.1},
+            2000: {'lr': 0.1}
         },
         'soif': {
-            500: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0},
-            1000: {'lr': 0.1, 'optim_mom': 0, 'optim_wd': 0}
+            500: {'lr': 0.1},
+            1000: {'lr': 0.1},
+            2000: {'lr': 0.1}
+        },
+        'casp': {
+            500: {'lr': 0.1},
+            1000: {'lr': 0.1},
+            2000: {'lr': 0.1}
+        },
+        'meta_sp': {
+            500: {'lr': 0.1},
+            1000: {'lr': 0.1},
+            2000: {'lr': 0.1}
         },
         'gdumb': {
             500:  {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0.9, 'optim_wd': 1e-6},
             1000: {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0, 'optim_wd': 1e-6},
+            2000: {'lr': 0.1, 'maxlr': 0.05, 'minlr': 5e-4, 'cutmix_alpha': 1, 'fitting_epochs': 250, 'optim_mom': 0, 'optim_wd': 1e-6}
         },
+      'gem': {500: {'lr': 0.03,
+                    'gamma': 0.5},
+              1000: {'lr': 0.03,
+                    'gamma': 0.5},
+              2000: {'lr': 0.03,
+                    'gamma': 0.5}},
+      'agem': {500: {'lr': 0.03},
+               1000: {'lr': 0.03},
+               2000: {'lr': 0.03}},
+
+      'hal': {500: {'lr': 0.1,
+                    'hal_lambda': 0.1,
+                    'beta': 0.3,
+                    'gamma': 0.1},
+              1000: {'lr': 0.1,
+                    'hal_lambda': 0.1,
+                    'beta': 0.3,
+                    'gamma': 0.1},
+              2000: {'lr': 0.1,
+                     'hal_lambda': 0.1,
+                     'beta': 0.3,
+                     'gamma': 0.1}},
+
+        'gss': {500: {'lr': 0.03,
+                      'gss_minibatch_size': 32,
+                      'batch_num': 1},
+                1000: {'lr': 0.03,
+                      'gss_minibatch_size': 32,
+                      'batch_num': 1},
+                2000: {'lr': 0.03,
+                      'gss_minibatch_size': 32,
+                      'batch_num': 1}},
+        
+        
         'lucir': {
             500: {'lr': 0.03, 'lr_finetune':0.01,  'optim_mom': 0.9, 'optim_wd': 0, 'lamda_base': 5, 'k_mr':  2, 'fitting_epochs': 20, 'mr_margin': 0.5, 'lamda_mr': 1.},
             1000: {'lr': 0.03, 'lr_finetune':0.01,  'optim_mom': 0.9, 'optim_wd': 0, 'lamda_base': 5, 'k_mr':  2, 'fitting_epochs': 20, 'mr_margin': 0.5, 'lamda_mr': 1.},
