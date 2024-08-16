@@ -7,9 +7,9 @@ from typing import Tuple
 
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-from backbone.ResNet18 import resnet18
+from backbone.MNISTMLP import MNISTMLP
 from PIL import Image
-from torchvision.datasets import FashionMNIST
+from torchvision.datasets import MNIST
 
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
@@ -17,15 +17,15 @@ from datasets.utils.validation import get_train_val
 from utils.conf import base_path_dataset as base_path
 
 
-class MyFashionMNIST(FashionMNIST):
+class MyMNIST(MNIST):
     """
     Overrides the MNIST dataset to change the getitem function.
     """
 
     def __init__(self, root, train=True, transform=None,
                  target_transform=None, download=False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
-        super(MyFashionMNIST, self).__init__(root, train,
+        self.not_aug_transform = transforms.ToTensor()
+        super(MyMNIST, self).__init__(root, train,
                                       transform, target_transform, download)
 
     def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
@@ -50,10 +50,10 @@ class MyFashionMNIST(FashionMNIST):
         if hasattr(self, 'logits'):
             return img, target, original_img, self.logits[index]
 
-        return img, target, original_img, index
+        return img, target, original_img
 
 
-class SequentialFashionMNIST(ContinualDataset):
+class SequentialMNIST(ContinualDataset):
 
     NAME = 'seq-mnist'
     SETTING = 'class-il'
@@ -61,23 +61,15 @@ class SequentialFashionMNIST(ContinualDataset):
     N_TASKS = 5
     TRANSFORM = None
 
-
-    def get_examples_number(self):
-        train_dataset = MyFashionMNIST(base_path() + 'FashionMNIST', train=True,
-                                  download=True)
-        return len(train_dataset.data)
-
-  
     def get_data_loaders(self):
-        transform = transforms.Compose(
-            [transforms.Resize(32), transforms.ToTensor()])
-        train_dataset = MyFashionMNIST(base_path() + 'FashionMNIST',
+        transform = transforms.ToTensor()
+        train_dataset = MyMNIST(base_path() + 'MNIST',
                                 train=True, download=True, transform=transform)
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
                                                         transform, self.NAME)
         else:
-            test_dataset = FashionMNIST(base_path() + 'FashionMNIST',
+            test_dataset = MNIST(base_path() + 'MNIST',
                                  train=False, download=True, transform=transform)
 
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
@@ -85,8 +77,8 @@ class SequentialFashionMNIST(ContinualDataset):
 
     @staticmethod
     def get_backbone():
-        return resnet18(SequentialFashionMNIST.N_TASKS
-                        * SequentialFashionMNIST.N_CLASSES_PER_TASK)
+        return MNISTMLP(28 * 28, SequentialMNIST.N_TASKS
+                        * SequentialMNIST.N_CLASSES_PER_TASK)
 
     @staticmethod
     def get_transform():
@@ -110,8 +102,8 @@ class SequentialFashionMNIST(ContinualDataset):
 
     @staticmethod
     def get_batch_size():
-        return 32
+        return 64
 
     @staticmethod
     def get_minibatch_size():
-        return SequentialFashionMNIST.get_batch_size()
+        return SequentialMNIST.get_batch_size()
