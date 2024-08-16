@@ -106,9 +106,9 @@ class SequentialCIFAR10(ContinualDataset):
         return transform
 
     @staticmethod
-    def get_backbone():
+    def get_backbone(args):
         return resnet18(SequentialCIFAR10.N_CLASSES_PER_TASK
-                        * SequentialCIFAR10.N_TASKS)
+                        * SequentialCIFAR10.N_TASKS, args)
 
     @staticmethod
     def get_loss():
