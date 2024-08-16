@@ -51,7 +51,7 @@ def train(args: Namespace):
 
 
     dataset = get_dataset(args)
-    backbone = dataset.get_backbone()
+    backbone = dataset.get_backbone(args)
     loss = dataset.get_loss()
     model = get_model(args, backbone, loss, dataset.get_transform())
     model.net.to(model.device)
