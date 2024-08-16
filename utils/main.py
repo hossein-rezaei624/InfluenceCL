@@ -116,7 +116,7 @@ def main(args=None):
     if hasattr(importlib.import_module('models.' + args.model), 'Buffer') and args.minibatch_size is None:
         args.minibatch_size = dataset.get_minibatch_size()
 
-    backbone = dataset.get_backbone()
+    backbone = dataset.get_backbone(args)
     loss = dataset.get_loss()
     model = get_model(args, backbone, loss, dataset.get_transform())
 
