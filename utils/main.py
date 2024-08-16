@@ -85,16 +85,6 @@ def parse_args():
     return args
 
 def main(args=None):
-
-    # set up seed
-    numpy.random.seed(0)
-    random.seed(0)
-    torch.manual_seed(0)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(0)
-        torch.cuda.manual_seed(0)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
     
     lecun_fix()
     if args is None:
