@@ -89,7 +89,7 @@ class ResNet(MammothBackbone):
     """
 
     def __init__(self, block: BasicBlock, num_blocks: List[int],
-                 num_classes: int, nf: int) -> None:
+                 num_classes: int, nf: int, args) -> None:
         """
         Instantiates the layers of the network.
         :param block: the basic ResNet block
@@ -109,7 +109,8 @@ class ResNet(MammothBackbone):
         self.layer3 = self._make_layer(block, nf * 4, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, nf * 8, num_blocks[3], stride=2)
         self.linear = nn.Linear(nf * 8 * block.expansion, num_classes)
-        self.pcrLinear = cosLinear(nf * 8 * block.expansion, num_classes)
+        if args.model == 'casp':
+            self.pcrLinear = cosLinear(nf * 8 * block.expansion, num_classes)
 
         self._features = nn.Sequential(self.conv1,
                                        self.bn1,
@@ -174,11 +175,11 @@ class ResNet(MammothBackbone):
         return logits, out
 
 
-def resnet18(nclasses: int, nf: int=64) -> ResNet:
+def resnet18(nclasses, args, nf=64) -> ResNet:
     """
     Instantiates a ResNet18 network.
     :param nclasses: number of output classes
     :param nf: number of filters
     :return: ResNet network
     """
-    return ResNet(BasicBlock, [2, 2, 2, 2], nclasses, nf)
+    return ResNet(BasicBlock, [2, 2, 2, 2], nclasses, nf, args)
