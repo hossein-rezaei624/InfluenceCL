@@ -137,9 +137,9 @@ class SequentialMiniImagenet(ContinualDataset):
         return train, test
 
     @staticmethod
-    def get_backbone():
+    def get_backbone(args):
         return resnet18(SequentialMiniImagenet.N_CLASSES_PER_TASK
-                        * SequentialMiniImagenet.N_TASKS)
+                        * SequentialMiniImagenet.N_TASKS, args)
 
     @staticmethod
     def get_loss():
