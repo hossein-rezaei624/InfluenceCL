@@ -59,7 +59,7 @@ class MyCIFAR100(CIFAR100):
         if hasattr(self, 'logits'):
             return img, target, not_aug_img, self.logits[index]
 
-        return img, target, not_aug_img
+        return img, target, not_aug_img, index
 
 
 class SequentialCIFAR100(ContinualDataset):
@@ -76,7 +76,7 @@ class SequentialCIFAR100(ContinualDataset):
                                   (0.2675, 0.2565, 0.2761))])
 
     def get_examples_number(self):
-        train_dataset = MyCIFAR100(base_path() + 'CIFAR10', train=True,
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
                                   download=True)
         return len(train_dataset.data)
 
@@ -107,9 +107,9 @@ class SequentialCIFAR100(ContinualDataset):
         return transform
 
     @staticmethod
-    def get_backbone():
+    def get_backbone(args):
         return resnet18(SequentialCIFAR100.N_CLASSES_PER_TASK
-                        * SequentialCIFAR100.N_TASKS)
+                        * SequentialCIFAR100.N_TASKS, args)
 
     @staticmethod
     def get_loss():
@@ -142,4 +142,3 @@ class SequentialCIFAR100(ContinualDataset):
     @staticmethod
     def get_scheduler(model, args):
         return None
-
