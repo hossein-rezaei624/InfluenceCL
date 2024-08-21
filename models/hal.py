@@ -43,7 +43,7 @@ class HAL(ContinualModel):
         self.anchor_optimization_steps = 100
         self.finetuning_epochs = 1
         self.dataset = get_dataset(args)
-        self.spare_model = self.dataset.get_backbone()
+        self.spare_model = self.dataset.get_backbone(args)
         self.spare_model.to(self.device)
         self.spare_opt = SGD(self.spare_model.parameters(), lr=self.args.lr)
 
