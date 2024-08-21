@@ -139,12 +139,6 @@ class SequentialCIFAR100(ContinualDataset):
     def get_minibatch_size():
         return SequentialCIFAR100.get_batch_size()
 
-#    @staticmethod
-#    def get_scheduler(model, args):
-#        return None
-
     @staticmethod
-    def get_scheduler(model, args) -> torch.optim.lr_scheduler:
-        model.opt = torch.optim.SGD(model.net.parameters(), lr=args.lr, weight_decay=args.optim_wd, momentum=args.optim_mom)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(model.opt, [35, 45], gamma=0.1, verbose=False)
-        return scheduler
+    def get_scheduler(model, args):
+        return None
