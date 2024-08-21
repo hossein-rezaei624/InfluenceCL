@@ -103,7 +103,7 @@ class SequentialCIFAR100(ContinualDataset):
     @staticmethod
     def get_transform():
         transform = transforms.Compose(
-            [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()])
+            [transforms.ToPILImage(), SequentialCIFAR100.TRANSFORM])
         return transform
 
     @staticmethod
