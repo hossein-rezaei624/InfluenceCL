@@ -11,6 +11,8 @@ from models.utils.continual_model import ContinualModel
 from utils.args import *
 from utils.buffer import Buffer
 
+import math
+
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via A-GEM.')
@@ -41,12 +43,19 @@ class AGem(ContinualModel):
     def end_task(self, dataset):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
         loader = dataset.train_loader
-        cur_y, cur_x, __ = next(iter(loader))[1:]
+        list_x = []
+        list_y = []
+        for i in range(math.ceil(samples_per_task/self.args.batch_size)):
+            y, x, __ = next(iter(loader))[1:]
+            list_x.extend(x)
+            list_y.extend(y)
+        cur_x = torch.stack(list_x, dim=0)[:samples_per_task]
+        cur_y = torch.stack(list_y, dim=0)[:samples_per_task]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device)
         )
-
+    
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         self.zero_grad()
