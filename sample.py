@@ -1,23 +1,25 @@
-# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
+# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-
-import numpy as np
 import torch
-
-from models.gem import overwrite_grad, store_grad
-from models.utils.continual_model import ContinualModel
-from utils.args import *
+import numpy as np
 from utils.buffer import Buffer
+from models.gem import overwrite_grad
+from models.gem import store_grad
+from utils.args import *
+from models.utils.continual_model import ContinualModel
 
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via A-GEM.')
+    parser.add_argument('--iba', action="store_true",
+                        help='Activates Independent Buffer Augmentation.')
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
     return parser
+
 
 def project(gxy: torch.Tensor, ger: torch.Tensor) -> torch.Tensor:
     corr = torch.dot(gxy, ger) / torch.dot(ger, ger)
@@ -37,17 +39,18 @@ class AGem(ContinualModel):
             self.grad_dims.append(param.data.numel())
         self.grad_xy = torch.Tensor(np.sum(self.grad_dims)).to(self.device)
         self.grad_er = torch.Tensor(np.sum(self.grad_dims)).to(self.device)
+        self.transform = transform if self.args.iba else None
 
     def end_task(self, dataset):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
-        loader = dataset.train_loader
-        cur_y, cur_x, __ = next(iter(loader))[1:]
+        loader = dataset.not_aug_dataloader(self.args, samples_per_task)
+        cur_x, cur_y = next(iter(loader))[:2]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device)
         )
 
-    def observe(self, inputs, labels, not_aug_inputs, index_):
+    def observe(self, inputs, labels, not_aug_inputs):
 
         self.zero_grad()
         p = self.net.forward(inputs)
@@ -57,7 +60,8 @@ class AGem(ContinualModel):
         if not self.buffer.is_empty():
             store_grad(self.parameters, self.grad_xy, self.grad_dims)
 
-            buf_inputs, buf_labels = self.buffer.get_data(self.args.minibatch_size, transform=self.transform)
+            buf_inputs, buf_labels = self.buffer.get_data(self.args.minibatch_size,
+                                                          transform=self.transform)
             self.net.zero_grad()
             buf_outputs = self.net.forward(buf_inputs)
             penalty = self.loss(buf_outputs, buf_labels)
