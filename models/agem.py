@@ -42,9 +42,6 @@ class AGem(ContinualModel):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
         loader = dataset.train_loader
         cur_y, cur_x, __ = next(iter(loader))[1:]
-        print("cur_y", cur_y[0])
-        print("cur_x", cur_x[0])
-        print("__", __[0])
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device)
