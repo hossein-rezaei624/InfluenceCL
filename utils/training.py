@@ -156,7 +156,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             model.end_task(dataset)
 
 
-        print("model.buffer.labels",  model.buffer.labels[:500])
+        print("model.buffer.labels",  model.buffer.labels[:100])
         print("model.buffer.labels.shape", model.buffer.labels.shape)
         
 
