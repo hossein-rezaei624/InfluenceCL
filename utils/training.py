@@ -124,11 +124,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             if args.model == 'joint':
                 continue
             for i, data in enumerate(train_loader):
-
-                if epoch == 0 and i == 0:
-                    print("task number", t)
-                    print("labels", data[1])
-                
                 if args.debug_mode and i > 3:
                     break
                 if hasattr(dataset.train_loader.dataset, 'logits'):
