@@ -2,23 +2,24 @@
 # All rights reserved.
 #
 # This source code is licensed under the license found in the
-# LICENSE file in the gem_license file in the root of this source tree.
+# LICENSE file in the GEM_LICENSE file in the root of this source tree.
+from sys import platform
+if platform == "linux" or platform == "linux2":
+    import quadprog
 
 import numpy as np
+import math
 import torch
-try:
-    import quadprog
-except:
-    print('Warning: GEM and A-GEM cannot be used on Windows (quadprog required)')
-
 from models.utils.continual_model import ContinualModel
-from utils.args import *
-from utils.buffer import Buffer
 
+from utils.buffer import Buffer
+from utils.args import *
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
                                         ' Gradient Episodic Memory.')
+    parser.add_argument('--iba', action="store_true",
+                        help='Activates Independent Buffer Augmentation.')
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
@@ -31,7 +32,6 @@ def get_parser() -> ArgumentParser:
     parser.add_argument('--gamma', type=float, default=None,
                         help='Margin parameter for GEM.')
     return parser
-
 
 def store_grad(params, grads, grad_dims):
     """
@@ -101,6 +101,7 @@ class Gem(ContinualModel):
         super(Gem, self).__init__(backbone, loss, args, transform)
         self.current_task = 0
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.transform = transform
 
         # Allocate temporary synaptic memory
         self.grad_dims = []
@@ -109,6 +110,7 @@ class Gem(ContinualModel):
 
         self.grads_cs = []
         self.grads_da = torch.zeros(np.sum(self.grad_dims)).to(self.device)
+        self.transform = transform if self.args.iba else None
 
     def end_task(self, dataset):
         self.current_task += 1
@@ -118,8 +120,8 @@ class Gem(ContinualModel):
         # add data to the buffer
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
-        loader = dataset.train_loader
-        cur_y, cur_x = next(iter(loader))[1:]
+        loader = dataset.not_aug_dataloader(self.args, samples_per_task)
+        cur_x, cur_y = next(iter(loader))[:2]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device),
@@ -139,10 +141,20 @@ class Gem(ContinualModel):
                 self.opt.zero_grad()
                 cur_task_inputs = buf_inputs[buf_task_labels == tt]
                 cur_task_labels = buf_labels[buf_task_labels == tt]
-                cur_task_outputs = self.forward(cur_task_inputs)
-                penalty = self.loss(cur_task_outputs, cur_task_labels)
-                penalty.backward()
+
+                for i in range(math.ceil(len(cur_task_inputs) / self.args.batch_size)):
+                    cur_task_outputs = self.forward(
+                        cur_task_inputs[i * self.args.batch_size:(i + 1) * self.args.batch_size])
+                    penalty = self.loss(cur_task_outputs,
+                                        cur_task_labels[i * self.args.batch_size:(i + 1) * self.args.batch_size],
+                                        reduction='sum') / cur_task_inputs.shape[0]
+                    penalty.backward()
                 store_grad(self.parameters, self.grads_cs[tt], self.grad_dims)
+
+                # cur_task_outputs = self.forward(cur_task_inputs)
+                # penalty = self.loss(cur_task_outputs, cur_task_labels)
+                # penalty.backward()
+                # store_grad(self.parameters, self.grads_cs[tt], self.grad_dims)
 
         # now compute the grad on the current data
         self.opt.zero_grad()
@@ -154,6 +166,7 @@ class Gem(ContinualModel):
         if not self.buffer.is_empty():
             # copy gradient
             store_grad(self.parameters, self.grads_da, self.grad_dims)
+
 
             dot_prod = torch.mm(self.grads_da.unsqueeze(0),
                             torch.stack(self.grads_cs).T)
