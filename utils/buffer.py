@@ -11,6 +11,7 @@ import torch
 from torchvision import transforms
 
 from datasets.utils.continual_dataset import ContinualDataset
+from models.utils.continual_model import ContinualModel
 
 
 def icarl_replay(self, dataset, val_set_split=0):
