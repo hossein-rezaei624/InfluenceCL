@@ -1,204 +1,101 @@
-"""
-This module contains a version of the reservoir buffer that is specifically designed for the GSS model.
-"""
-
-# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
+# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Tuple
+import math
 
-import numpy as np
 import torch
-import torch.nn.functional as F
-from torchvision import transforms
+import torch.nn as nn
 
 
-class Buffer:
+def xavier(m: nn.Module) -> None:
     """
-    The memory buffer of rehearsal method.
+    Applies Xavier initialization to linear modules.
+
+    :param m: the module to be initialized
+
+    Example::
+        >>> net = nn.Sequential(nn.Linear(10, 10), nn.ReLU())
+        >>> net.apply(xavier)
     """
+    if m.__class__.__name__ == 'Linear':
+        fan_in = m.weight.data.size(1)
+        fan_out = m.weight.data.size(0)
+        std = 1.0 * math.sqrt(2.0 / (fan_in + fan_out))
+        a = math.sqrt(3.0) * std
+        m.weight.data.uniform_(-a, a)
+        if m.bias is not None:
+            m.bias.data.fill_(0.0)
 
-    def __init__(self, buffer_size, device, minibatch_size, model=None):
-        self.buffer_size = buffer_size
-        self.device = device
-        self.num_seen_examples = 0
-        self.attributes = ['examples', 'labels']
-        self.model = model
-        self.minibatch_size = minibatch_size
-        self.cache = {}
-        self.fathom = 0
-        self.fathom_mask = None
-        self.reset_fathom()
 
-        self.conterone = 0
+def num_flat_features(x: torch.Tensor) -> int:
+    """
+    Computes the total number of items except the first dimension.
 
-    def reset_fathom(self):
-        self.fathom = 0
-        self.fathom_mask = torch.randperm(min(self.num_seen_examples, self.examples.shape[0] if hasattr(self, 'examples') else self.num_seen_examples))
+    :param x: input tensor
+    :return: number of item from the second dimension onward
+    """
+    size = x.size()[1:]
+    num_features = 1
+    for ff in size:
+        num_features *= ff
+    return num_features
 
-    def get_grad_score(self, batch_x, batch_y, X, Y, indices):
-        g = self.model.get_grads(batch_x, batch_y)
-        G = []
-        for x, y, idx in zip(X, Y, indices):
-            if idx in self.cache:
-                grd = self.cache[idx]
-            else:
-                grd = self.model.get_grads(x.unsqueeze(0), y.unsqueeze(0))
-                self.cache[idx] = grd
-            G.append(grd)
-        G = torch.cat(G).to(g.device)
-        c_score = 0
-        grads_at_a_time = 5
-        # let's split this so your gpu does not melt. You're welcome.
-        for it in range(int(np.ceil(G.shape[0] / grads_at_a_time))):
-            tmp = F.cosine_similarity(g, G[it * grads_at_a_time: (it + 1) * grads_at_a_time], dim=1).max().item() + 1
-            c_score = max(c_score, tmp)
-        return c_score
+class MammothBackbone(nn.Module):
 
-    def functional_reservoir(self, x, y, batch_c, bigX=None, bigY=None, indices=None):
-        if self.num_seen_examples < self.buffer_size:
-            return self.num_seen_examples, batch_c
+    def __init__(self, **kwargs) -> None:
+        super(MammothBackbone, self).__init__()
 
-        elif batch_c < 1:
-            single_c = self.get_grad_score(x.unsqueeze(0), y.unsqueeze(0), bigX, bigY, indices)
-            s = self.scores.cpu().numpy()
-            i = np.random.choice(np.arange(0, self.buffer_size), size=1, p=s / s.sum())[0]
-            rand = np.random.rand(1)[0]
-            # print(rand, s[i] / (s[i] + c))
-            if rand < s[i] / (s[i] + single_c):
-                return i, single_c
-
-        return -1, 0
-
-    def init_tensors(self, examples: torch.Tensor, labels: torch.Tensor) -> None:
+    def forward(self, x: torch.Tensor, returnt='out') -> torch.Tensor:
         """
-        Initializes just the required tensors.
-
-        Args:
-            examples: tensor containing the images
-            labels: tensor containing the labels
-            logits: tensor containing the outputs of the network
-            task_labels: tensor containing the task labels
+        Compute a forward pass.
+        :param x: input tensor (batch_size, *input_shape)
+        :param returnt: return type (a string among 'out', 'features', 'all')
+        :return: output tensor (output_classes)
         """
-        for attr_str in self.attributes:
-            attr = eval(attr_str)
-            if attr is not None and not hasattr(self, attr_str):
-                typ = torch.int64 if attr_str.endswith('els') else torch.float32
-                setattr(self, attr_str, torch.zeros((self.buffer_size,
-                        *attr.shape[1:]), dtype=typ, device=self.device))
-        self.scores = torch.zeros((self.buffer_size, *attr.shape[1:]),
-                                  dtype=torch.float32, device=self.device)
+        raise NotImplementedError
 
-    def add_data(self, examples, labels=None):
+    def features(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward(x, returnt='features')
+
+    def get_params(self) -> torch.Tensor:
         """
-        Adds the data to the memory buffer according to the reservoir strategy.
-
-        Args:
-            examples: tensor containing the images
-            labels: tensor containing the labels
-            logits: tensor containing the outputs of the network
-            task_labels: tensor containing the task labels
+        Returns all the parameters concatenated in a single tensor.
+        :return: parameters tensor (??)
         """
-        if not hasattr(self, 'examples'):
-            self.init_tensors(examples, labels)
+        params = []
+        for pp in list(self.parameters()):
+            params.append(pp.view(-1))
+        return torch.cat(params)
 
-        # compute buffer score
-        if self.num_seen_examples > 0:
-            bigX, bigY, indices = self.get_data(min(self.minibatch_size, self.num_seen_examples), give_index=True,
-                                                random=True)
-            c = self.get_grad_score(examples, labels, bigX, bigY, indices)
-        else:
-            bigX, bigY, indices = None, None, None
-            c = 0.1
-
-        for i in range(examples.shape[0]):
-            index, score = self.functional_reservoir(examples[i], labels[i], c, bigX, bigY, indices)
-            self.num_seen_examples += 1
-            if index >= 0:
-                self.examples[index] = examples[i].to(self.device)
-                if labels is not None:
-                    self.labels[index] = labels[i].to(self.device)
-                self.scores[index] = score
-                if index in self.cache:
-                    del self.cache[index]
-
-    def drop_cache(self):
-        self.cache = {}
-
-    def get_data(self, size: int, transform: transforms = None, give_index=False, random=False) -> Tuple:
+    def set_params(self, new_params: torch.Tensor) -> None:
         """
-        Random samples a batch of size items.
-
-        Args:
-            size: the number of requested items
-            transform: the transformation to be applied (data augmentation)
-
-        Returns:
-            a tuple with the requested items
+        Sets the parameters to a given value.
+        :param new_params: concatenated values to be set (??)
         """
+        assert new_params.size() == self.get_params().size()
+        progress = 0
+        for pp in list(self.parameters()):
+            cand_params = new_params[progress: progress +
+                torch.tensor(pp.size()).prod()].view(pp.size())
+            progress += torch.tensor(pp.size()).prod()
+            pp.data = cand_params
 
-        if size > self.examples.shape[0]:
-            size = self.examples.shape[0]
-
-        if random:
-            choice = np.random.choice(min(self.num_seen_examples, self.examples.shape[0]),
-                                      size=min(size, self.num_seen_examples),
-                                      replace=False)
-        else:
-            choice = np.arange(self.fathom, min(self.fathom + size, self.examples.shape[0], self.num_seen_examples))
-            choice = self.fathom_mask[choice]
-            self.fathom += len(choice)
-            if self.fathom >= self.examples.shape[0] or self.fathom >= self.num_seen_examples:
-                self.fathom = 0
-        if transform is None:
-            def transform(x): return x
-        ret_tuple = (torch.stack([transform(ee.cpu())
-                                  for ee in self.examples[choice]]).to(self.device),)
-        for attr_str in self.attributes[1:]:
-            if hasattr(self, attr_str):
-                attr = getattr(self, attr_str)
-                ret_tuple += (attr[choice],)
-        if give_index:
-            ret_tuple += (choice,)
-
-        return ret_tuple
-
-    def is_empty(self) -> bool:
+    def get_grads(self) -> torch.Tensor:
         """
-        Returns true if the buffer is empty, false otherwise.
+        Returns all the gradients concatenated in a single tensor.
+        :return: gradients tensor (??)
         """
-        if self.num_seen_examples == 0:
-            return True
-        else:
-            return False
+        return torch.cat(self.get_grads_list())
 
-    def get_all_data(self, transform: transforms = None) -> Tuple:
+    def get_grads_list(self):
         """
-        Return all the items in the memory buffer.
+        Returns a list containing the gradients (a tensor for each layer).
+        :return: gradients list
+        """
+        grads = []
+        for pp in list(self.parameters()):
+            grads.append(pp.grad.view(-1))
 
-        Args:
-            transform: the transformation to be applied (data augmentation)
-
-        Returns:
-            a tuple with all the items in the memory buffer
-        """
-        if transform is None:
-            def transform(x): return x
-        ret_tuple = (torch.stack([transform(ee.cpu())
-                                  for ee in self.examples]).to(self.device),)
-        for attr_str in self.attributes[1:]:
-            if hasattr(self, attr_str):
-                attr = getattr(self, attr_str)
-                ret_tuple += (attr,)
-        return ret_tuple
-
-    def empty(self) -> None:
-        """
-        Set all the tensors to None.
-        """
-        for attr_str in self.attributes:
-            if hasattr(self, attr_str):
-                delattr(self, attr_str)
-        self.num_seen_examples = 0
+        return grads
