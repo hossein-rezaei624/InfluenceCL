@@ -13,9 +13,7 @@ except:
 
 from models.utils.continual_model import ContinualModel
 from utils.args import *
-from utils.buffer import Buffer
-
-import math
+from utils.buffer import Buffer, fill_buffer_new
 
 
 def get_parser() -> ArgumentParser:
@@ -113,31 +111,14 @@ class Gem(ContinualModel):
         self.grads_da = torch.zeros(np.sum(self.grad_dims)).to(self.device)
 
     def end_task(self, dataset):
-        self.current_task += 1
         self.grads_cs.append(torch.zeros(
             np.sum(self.grad_dims)).to(self.device))
 
-        # add data to the buffer
-        samples_per_task = self.args.buffer_size // dataset.N_TASKS
+        fill_buffer_new(self.buffer, dataset, self.current_task, required_attributes=['examples', 'labels', 'task_labels'])
 
-        loader = dataset.train_loader
+        self.current_task += 1
 
-        list_x = []
-        list_y = []
-        for i in range(math.ceil(samples_per_task/self.args.batch_size)):
-            y, x, __ = next(iter(loader))[1:]
-            list_x.extend(x)
-            list_y.extend(y)
-        cur_x = torch.stack(list_x, dim=0)[:samples_per_task]
-        cur_y = torch.stack(list_y, dim=0)[:samples_per_task]
-        
-        self.buffer.add_data(
-            examples=cur_x.to(self.device),
-            labels=cur_y.to(self.device),
-            task_labels=torch.ones(samples_per_task,
-                dtype=torch.long).to(self.device) * (self.current_task - 1)
-        )
-    
+
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         if not self.buffer.is_empty():
