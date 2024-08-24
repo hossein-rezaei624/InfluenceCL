@@ -128,6 +128,15 @@ class Buffer:
                 setattr(self, attr_str, torch.zeros((self.buffer_size,
                         *attr.shape[1:]), dtype=typ, device=self.device))
 
+
+    @property
+    def used_attributes(self):
+        """
+        Returns a list of attributes that are currently being used by the object.
+        """
+        return [attr_str for attr_str in self.attributes if hasattr(self, attr_str)]
+
+    
     def add_data(self, examples, labels=None, logits=None, task_labels=None):
         """
         Adds the data to the memory buffer according to the reservoir strategy.
