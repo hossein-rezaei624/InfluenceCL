@@ -10,6 +10,8 @@ import numpy as np
 import torch
 from torchvision import transforms
 
+from datasets.utils.continual_dataset import ContinualDataset
+
 
 def icarl_replay(self, dataset, val_set_split=0):
     """
