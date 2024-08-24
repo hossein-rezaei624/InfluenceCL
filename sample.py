@@ -1,146 +1,77 @@
-# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
+# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import math
+from abc import abstractmethod
+from argparse import Namespace
 
 import torch
 import torch.nn as nn
+import torchvision
+from torch.optim import SGD
 
+from utils.conf import get_device
+from utils.magic import persistent_locals
 
-def xavier(m: nn.Module) -> None:
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
+class ContinualModel(nn.Module):
     """
-    Applies Xavier initialization to linear modules.
-
-    Args:
-        m: the module to be initialized
-
-    Example::
-        >>> net = nn.Sequential(nn.Linear(10, 10), nn.ReLU())
-        >>> net.apply(xavier)
+    Continual learning model.
     """
-    if m.__class__.__name__ == 'Linear':
-        fan_in = m.weight.data.size(1)
-        fan_out = m.weight.data.size(0)
-        std = 1.0 * math.sqrt(2.0 / (fan_in + fan_out))
-        a = math.sqrt(3.0) * std
-        m.weight.data.uniform_(-a, a)
-        if m.bias is not None:
-            m.bias.data.fill_(0.0)
+    NAME = None
+    COMPATIBILITY = []
 
+    def __init__(self, backbone: nn.Module, loss: nn.Module,
+                args: Namespace, transform: torchvision.transforms) -> None:
+        super(ContinualModel, self).__init__()
 
-def num_flat_features(x: torch.Tensor) -> int:
-    """
-    Computes the total number of items except the first (batch) dimension.
+        self.net = backbone
+        self.loss = loss
+        self.args = args
+        self.transform = transform
+        self.opt = SGD(self.net.parameters(), lr=self.args.lr)
+        self.device = get_device()
 
-    Args:
-        x: input tensor
-
-    Returns:
-        number of item from the second dimension onward
-    """
-    size = x.size()[1:]
-    num_features = 1
-    for ff in size:
-        num_features *= ff
-    return num_features
-
-
-class MammothBackbone(nn.Module):
-    """
-    A backbone module for the Mammoth model.
-
-    Args:
-        **kwargs: additional keyword arguments
-
-    Methods:
-        forward: Compute a forward pass.
-        features: Get the features of the input tensor (same as forward but with returnt='features').
-        get_params: Returns all the parameters concatenated in a single tensor.
-        set_params: Sets the parameters to a given value.
-        get_grads: Returns all the gradients concatenated in a single tensor.
-        get_grads_list: Returns a list containing the gradients (a tensor for each layer).
-    """
-
-    def __init__(self, **kwargs) -> None:
-        super(MammothBackbone, self).__init__()
-        self.device = torch.device('cpu') if 'device' not in kwargs else kwargs['device']
-
-    def to(self, device, *args, **kwargs):
-        super(MammothBackbone, self).to(device, *args, **kwargs)
-        self.device = device
-        return self
-
-    def forward(self, x: torch.Tensor, returnt='out') -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Compute a forward pass.
-
-        Args:
-            x: input tensor (batch_size, *input_shape)
-            returnt: return type (a string among `out`, `features`, `both`, or `all`)
-
-        Returns:
-            output tensor
+        Computes a forward pass.
+        :param x: batch of inputs
+        :param task_label: some models require the task label
+        :return: the result of the computation
         """
-        raise NotImplementedError
+        return self.net(x)
 
-    def features(self, x: torch.Tensor) -> torch.Tensor:
+    def meta_observe(self, *args, **kwargs):
+        if wandb is not None and not self.args.nowand:
+            pl = persistent_locals(self.observe)
+            ret = pl(*args, **kwargs)
+            self.autolog_wandb(pl.locals)
+        else:
+            ret = self.observe(*args, **kwargs)
+        return ret
+
+    @abstractmethod
+    def observe(self, inputs: torch.Tensor, labels: torch.Tensor,
+                not_aug_inputs: torch.Tensor, index_: torch.Tensor) -> float:
         """
-        Compute the features of the input tensor.
-
-        Args:
-            x: input tensor
-
-        Returns:
-            features tensor
+        Compute a training step over a given batch of examples.
+        :param inputs: batch of examples
+        :param labels: ground-truth labels
+        :param kwargs: some methods could require additional parameters
+        :return: the value of the loss function
         """
-        return self.forward(x, returnt='features')
+        pass
 
-    def get_params(self) -> torch.Tensor:
+    def autolog_wandb(self, locals):
         """
-        Returns all the parameters concatenated in a single tensor.
-
-        Returns:
-            parameters tensor
+        All variables starting with "_wandb_" or "loss" in the observe function
+        are automatically logged to wandb upon return if wandb is installed.
         """
-        params = []
-        for pp in list(self.parameters()):
-            params.append(pp.view(-1))
-        return torch.cat(params)
-
-    def set_params(self, new_params: torch.Tensor) -> None:
-        """
-        Sets the parameters to a given value.
-
-        Args:
-            new_params: concatenated values to be set
-        """
-        assert new_params.size() == self.get_params().size()
-        progress = 0
-        for pp in list(self.parameters()):
-            cand_params = new_params[progress: progress +
-                                     torch.tensor(pp.size()).prod()].view(pp.size())
-            progress += torch.tensor(pp.size()).prod()
-            pp.data = cand_params
-
-    def get_grads(self) -> torch.Tensor:
-        """
-        Returns all the gradients concatenated in a single tensor.
-
-        Returns:
-            gradients tensor
-        """
-        return torch.cat(self.get_grads_list())
-
-    def get_grads_list(self):
-        """
-        Returns a list containing the gradients (a tensor for each layer).
-
-        Returns:
-            gradients list
-        """
-        grads = []
-        for pp in list(self.parameters()):
-            grads.append(pp.grad.view(-1))
-        return grads
+        if not self.args.nowand and not self.args.debug_mode:
+            wandb.log({k: (v.item() if isinstance(v, torch.Tensor) and v.dim() == 0 else v)
+                      for k, v in locals.items() if k.startswith('_wandb_') or k.startswith('loss')})
