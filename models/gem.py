@@ -15,8 +15,6 @@ from models.utils.continual_model import ContinualModel
 from utils.args import *
 from utils.buffer import Buffer
 
-import math
-
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -121,23 +119,15 @@ class Gem(ContinualModel):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
         loader = dataset.train_loader
-
-        list_x = []
-        list_y = []
-        for i in range(math.ceil(samples_per_task/self.args.batch_size)):
-            y, x, __ = next(iter(loader))[1:]
-            list_x.extend(x)
-            list_y.extend(y)
-        cur_x = torch.stack(list_x, dim=0)[:samples_per_task]
-        cur_y = torch.stack(list_y, dim=0)[:samples_per_task]
-        
+        cur_y, cur_x, __ = next(iter(loader))[1:]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device),
             task_labels=torch.ones(samples_per_task,
                 dtype=torch.long).to(self.device) * (self.current_task - 1)
         )
-    
+
+
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         if not self.buffer.is_empty():
