@@ -249,7 +249,7 @@ def fill_buffer_new(buffer: Buffer, dataset: ContinualDataset, t_idx: int, net: 
     else:
         assert not use_herding, "Herding strategy requires a model instance"
 
-    device = net.device if net is not None else get_device()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_seen_classes = dataset.N_CLASSES_PER_TASK * (t_idx + 1) if isinstance(dataset.N_CLASSES_PER_TASK, int) else \
         sum(dataset.N_CLASSES_PER_TASK[:t_idx + 1])
