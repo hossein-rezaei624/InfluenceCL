@@ -16,7 +16,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--batch_num', type=int, required=True, default=1,
+    parser.add_argument('--batch_num', type=int, required=True,
                         help='Number of batches extracted from the buffer.')
     parser.add_argument('--gss_minibatch_size', type=int, default=None,
                         help='The batch size of the gradient comparison.')
@@ -48,7 +48,7 @@ class Gss(ContinualModel):
             grads = grads.unsqueeze(0)
         return grads
 
-    def observe(self, inputs, labels, not_aug_inputs, index_):
+    def observe(self, inputs, labels, not_aug_inputs):
 
         real_batch_size = inputs.shape[0]
         self.buffer.drop_cache()
@@ -67,7 +67,7 @@ class Gss(ContinualModel):
 
             outputs = self.net(tinputs)
             loss = self.loss(outputs, tlabels)
-            loss.backward()            
+            loss.backward()
             self.opt.step()
 
         self.buffer.add_data(examples=not_aug_inputs,
