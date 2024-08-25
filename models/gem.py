@@ -13,7 +13,7 @@ except:
 
 from models.utils.continual_model import ContinualModel
 from utils.args import *
-from utils.buffer import Buffer, fill_buffer_new
+from utils.buffer import Buffer
 
 
 def get_parser() -> ArgumentParser:
@@ -111,12 +111,21 @@ class Gem(ContinualModel):
         self.grads_da = torch.zeros(np.sum(self.grad_dims)).to(self.device)
 
     def end_task(self, dataset):
+        self.current_task += 1
         self.grads_cs.append(torch.zeros(
             np.sum(self.grad_dims)).to(self.device))
 
-        fill_buffer_new(self.buffer, dataset, self.current_task, required_attributes=['examples', 'labels', 'task_labels'])
+        # add data to the buffer
+        samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
-        self.current_task += 1
+        loader = dataset.train_loader
+        cur_y, cur_x, __ = next(iter(loader))[1:]
+        self.buffer.add_data(
+            examples=cur_x.to(self.device),
+            labels=cur_y.to(self.device),
+            task_labels=torch.ones(samples_per_task,
+                dtype=torch.long).to(self.device) * (self.current_task - 1)
+        )
 
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
