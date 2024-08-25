@@ -1,182 +1,144 @@
-# Copyright 2017-present, Facebook, Inc.
+# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
-#
 # This source code is licensed under the license found in the
-# LICENSE file in the GEM_LICENSE file in the root of this source tree.
-from sys import platform
-if platform == "linux" or platform == "linux2":
-    import quadprog
+# LICENSE file in the root directory of this source tree.
 
-import numpy as np
-import math
-import torch
-from models.utils.continual_model import ContinualModel
+from typing import Tuple
 
-from utils.buffer import Buffer
-from utils.args import *
+import torch.nn.functional as F
+import torch.optim
+import torchvision.transforms as transforms
+from backbone.ResNet18 import resnet18
+from PIL import Image
+from torchvision.datasets import CIFAR100
 
-def get_parser() -> ArgumentParser:
-    parser = ArgumentParser(description='Continual learning via'
-                                        ' Gradient Episodic Memory.')
-    parser.add_argument('--iba', action="store_true",
-                        help='Activates Independent Buffer Augmentation.')
-    add_management_args(parser)
-    add_experiment_args(parser)
-    add_rehearsal_args(parser)
-    # remove minibatch_size from parser
-    for i in range(len(parser._actions)):
-        if parser._actions[i].dest == 'minibatch_size':
-            del parser._actions[i]
-            break
+from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.continual_dataset import (ContinualDataset,
+                                              store_masked_loaders)
+from datasets.utils.validation import get_train_val
+from utils.conf import base_path_dataset as base_path
 
-    parser.add_argument('--gamma', type=float, default=None,
-                        help='Margin parameter for GEM.')
-    return parser
 
-def store_grad(params, grads, grad_dims):
+class TCIFAR100(CIFAR100):
+    """Workaround to avoid printing the already downloaded messages."""
+    def __init__(self, root, train=True, transform=None,
+                 target_transform=None, download=False) -> None:
+        self.root = root
+        super(TCIFAR100, self).__init__(root, train, transform, target_transform, download=not self._check_integrity())
+
+class MyCIFAR100(CIFAR100):
     """
-        This stores parameter gradients of past tasks.
-        pp: parameters
-        grads: gradients
-        grad_dims: list with number of parameters per layers
+    Overrides the CIFAR100 dataset to change the getitem function.
     """
-    # store the gradients
-    grads.fill_(0.0)
-    count = 0
-    for param in params():
-        if param.grad is not None:
-            begin = 0 if count == 0 else sum(grad_dims[:count])
-            end = np.sum(grad_dims[:count + 1])
-            grads[begin: end].copy_(param.grad.data.view(-1))
-        count += 1
+    def __init__(self, root, train=True, transform=None,
+                 target_transform=None, download=False) -> None:
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
+        self.root = root
+        super(MyCIFAR100, self).__init__(root, train, transform, target_transform, not self._check_integrity())
+
+    def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
+        """
+        Gets the requested element from the dataset.
+        :param index: index of the element to be returned
+        :returns: tuple: (image, target) where target is index of the target class.
+        """
+        img, target = self.data[index], self.targets[index]
+
+        # to return a PIL Image
+        img = Image.fromarray(img, mode='RGB')
+        original_img = img.copy()
+
+        not_aug_img = self.not_aug_transform(original_img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        if hasattr(self, 'logits'):
+            return img, target, not_aug_img, self.logits[index]
+
+        return img, target, not_aug_img, index
 
 
-def overwrite_grad(params, newgrad, grad_dims):
-    """
-        This is used to overwrite the gradients with a new gradient
-        vector, whenever violations occur.
-        pp: parameters
-        newgrad: corrected gradient
-        grad_dims: list storing number of parameters at each layer
-    """
-    count = 0
-    for param in params():
-        if param.grad is not None:
-            begin = 0 if count == 0 else sum(grad_dims[:count])
-            end = sum(grad_dims[:count + 1])
-            this_grad = newgrad[begin: end].contiguous().view(
-                param.grad.data.size())
-            param.grad.data.copy_(this_grad)
-        count += 1
+class SequentialCIFAR100(ContinualDataset):
 
+    NAME = 'seq-cifar100'
+    SETTING = 'class-il'
+    N_CLASSES_PER_TASK = 10
+    N_TASKS = 10
+    TRANSFORM = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4),
+             transforms.RandomHorizontalFlip(),
+             transforms.ToTensor(),
+             transforms.Normalize((0.5071, 0.4867, 0.4408),
+                                  (0.2675, 0.2565, 0.2761))])
 
-def project2cone2(gradient, memories, margin=0.5, eps=1e-3):
-    """
-        Solves the GEM dual QP described in the paper given a proposed
-        gradient "gradient", and a memory of task gradients "memories".
-        Overwrites "gradient" with the final projected update.
+    def get_examples_number(self):
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                  download=True)
+        return len(train_dataset.data)
 
-        input:  gradient, p-vector
-        input:  memories, (t * p)-vector
-        output: x, p-vector
-    """
-    memories_np = memories.cpu().t().double().numpy()
-    gradient_np = gradient.cpu().contiguous().view(-1).double().numpy()
-    n_rows = memories_np.shape[0]
-    self_prod = np.dot(memories_np, memories_np.transpose())
-    self_prod = 0.5 * (self_prod + self_prod.transpose()) + np.eye(n_rows) * eps
-    grad_prod = np.dot(memories_np, gradient_np) * -1
-    G = np.eye(n_rows)
-    h = np.zeros(n_rows) + margin
-    v = quadprog.solve_qp(self_prod, grad_prod, G, h)[0]
-    x = np.dot(v, memories_np) + gradient_np
-    gradient.copy_(torch.from_numpy(x).view(-1, 1))
+    def get_data_loaders(self):
+        transform = self.TRANSFORM
 
+        test_transform = transforms.Compose(
+            [transforms.ToTensor(), self.get_normalization_transform()])
 
-class Gem(ContinualModel):
-    NAME = 'gem'
-    COMPATIBILITY = ['class-il', 'domain-il', 'task-il']
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                  download=True, transform=transform)
+        train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
+        if self.args.validation:
+            train_dataset, test_dataset = get_train_val(train_dataset,
+                                                    test_transform, self.NAME)
+        else:
+            test_dataset = TCIFAR100(base_path() + 'CIFAR100',train=False,
+                                   download=True, transform=test_transform)
 
-    def __init__(self, backbone, loss, args, transform):
-        super(Gem, self).__init__(backbone, loss, args, transform)
-        self.current_task = 0
-        self.buffer = Buffer(self.args.buffer_size, self.device)
-        self.transform = transform
+        train, test = store_masked_loaders(train_dataset, test_dataset, self)
 
-        # Allocate temporary synaptic memory
-        self.grad_dims = []
-        for pp in self.parameters():
-            self.grad_dims.append(pp.data.numel())
+        return train, test
 
-        self.grads_cs = []
-        self.grads_da = torch.zeros(np.sum(self.grad_dims)).to(self.device)
-        self.transform = transform if self.args.iba else None
+    @staticmethod
+    def get_transform():
+        transform = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()])
+        return transform
 
-    def end_task(self, dataset):
-        self.current_task += 1
-        self.grads_cs.append(torch.zeros(
-            np.sum(self.grad_dims)).to(self.device))
+    @staticmethod
+    def get_backbone(args):
+        return resnet18(SequentialCIFAR100.N_CLASSES_PER_TASK
+                        * SequentialCIFAR100.N_TASKS, args)
 
-        # add data to the buffer
-        samples_per_task = self.args.buffer_size // dataset.N_TASKS
+    @staticmethod
+    def get_loss():
+        return F.cross_entropy
 
-        loader = dataset.not_aug_dataloader(self.args, samples_per_task)
-        cur_x, cur_y = next(iter(loader))[:2]
-        self.buffer.add_data(
-            examples=cur_x.to(self.device),
-            labels=cur_y.to(self.device),
-            task_labels=torch.ones(samples_per_task,
-                dtype=torch.long).to(self.device) * (self.current_task - 1)
-        )
+    @staticmethod
+    def get_normalization_transform():
+        transform = transforms.Normalize((0.5071, 0.4867, 0.4408),
+                                         (0.2675, 0.2565, 0.2761))
+        return transform
 
+    @staticmethod
+    def get_denormalization_transform():
+        transform = DeNormalize((0.5071, 0.4867, 0.4408),
+                                (0.2675, 0.2565, 0.2761))
+        return transform
 
-    def observe(self, inputs, labels, not_aug_inputs):
+    @staticmethod
+    def get_epochs():
+        return 50
 
-        if not self.buffer.is_empty():
-            buf_inputs, buf_labels, buf_task_labels = self.buffer.get_data(
-                self.args.buffer_size, transform=self.transform)
+    @staticmethod
+    def get_batch_size():
+        return 32
 
-            for tt in buf_task_labels.unique():
-                # compute gradient on the memory buffer
-                self.opt.zero_grad()
-                cur_task_inputs = buf_inputs[buf_task_labels == tt]
-                cur_task_labels = buf_labels[buf_task_labels == tt]
+    @staticmethod
+    def get_minibatch_size():
+        return SequentialCIFAR100.get_batch_size()
 
-                for i in range(math.ceil(len(cur_task_inputs) / self.args.batch_size)):
-                    cur_task_outputs = self.forward(
-                        cur_task_inputs[i * self.args.batch_size:(i + 1) * self.args.batch_size])
-                    penalty = self.loss(cur_task_outputs,
-                                        cur_task_labels[i * self.args.batch_size:(i + 1) * self.args.batch_size],
-                                        reduction='sum') / cur_task_inputs.shape[0]
-                    penalty.backward()
-                store_grad(self.parameters, self.grads_cs[tt], self.grad_dims)
-
-                # cur_task_outputs = self.forward(cur_task_inputs)
-                # penalty = self.loss(cur_task_outputs, cur_task_labels)
-                # penalty.backward()
-                # store_grad(self.parameters, self.grads_cs[tt], self.grad_dims)
-
-        # now compute the grad on the current data
-        self.opt.zero_grad()
-        outputs = self.forward(inputs)
-        loss = self.loss(outputs, labels)
-        loss.backward()
-
-        # check if gradient violates buffer constraints
-        if not self.buffer.is_empty():
-            # copy gradient
-            store_grad(self.parameters, self.grads_da, self.grad_dims)
-
-
-            dot_prod = torch.mm(self.grads_da.unsqueeze(0),
-                            torch.stack(self.grads_cs).T)
-            if (dot_prod < 0).sum() != 0:
-                project2cone2(self.grads_da.unsqueeze(1),
-                              torch.stack(self.grads_cs).T, margin=self.args.gamma)
-                # copy gradients back
-                overwrite_grad(self.parameters, self.grads_da,
-                               self.grad_dims)
-
-        self.opt.step()
-
-        return loss.item()
+    @staticmethod
+    def get_scheduler(model, args):
+        return None
