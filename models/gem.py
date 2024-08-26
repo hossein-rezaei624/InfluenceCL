@@ -119,7 +119,7 @@ class Gem(ContinualModel):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
         loader = dataset.not_aug_dataloader(samples_per_task)
-        cur_y, cur_x, __ = next(iter(loader))[1:]
+        cur_x, cur_y = next(iter(loader))[:2]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device),
