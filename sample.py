@@ -4,10 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import torch
-
-from models.utils.continual_model import ContinualModel
-from utils.args import add_management_args, add_experiment_args, add_rehearsal_args, ArgumentParser
 from utils.gss_buffer import Buffer as Buffer
+from utils.args import *
+from models.utils.continual_model import ContinualModel
 
 
 def get_parser() -> ArgumentParser:
