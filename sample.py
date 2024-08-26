@@ -1,143 +1,144 @@
-# Copyright 2020-present, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Davide Abati, Simone Calderara.
+# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from abc import abstractmethod
-from argparse import Namespace
-from torch import nn as nn
-from torchvision.transforms import transforms
-from torch.utils.data import DataLoader
 from typing import Tuple
-from torchvision import datasets
-import numpy as np
+
+import torch.nn.functional as F
+import torch.optim
+import torchvision.transforms as transforms
+from backbone.ResNet18 import resnet18
+from PIL import Image
+from torchvision.datasets import CIFAR100
+
+from datasets.transforms.denormalization import DeNormalize
+from datasets.utils.continual_dataset import (ContinualDataset,
+                                              store_masked_loaders)
+from datasets.utils.validation import get_train_val
+from utils.conf import base_path_dataset as base_path
 
 
-class ContinualDataset:
+class TCIFAR100(CIFAR100):
+    """Workaround to avoid printing the already downloaded messages."""
+    def __init__(self, root, train=True, transform=None,
+                 target_transform=None, download=False) -> None:
+        self.root = root
+        super(TCIFAR100, self).__init__(root, train, transform, target_transform, download=not self._check_integrity())
+
+class MyCIFAR100(CIFAR100):
     """
-    Continual learning evaluation setting.
+    Overrides the CIFAR100 dataset to change the getitem function.
     """
-    NAME = None
-    SETTING = None
-    N_CLASSES_PER_TASK = None
-    N_TASKS = None
-    TRANSFORM = None
+    def __init__(self, root, train=True, transform=None,
+                 target_transform=None, download=False) -> None:
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
+        self.root = root
+        super(MyCIFAR100, self).__init__(root, train, transform, target_transform, not self._check_integrity())
 
-    def __init__(self, args: Namespace) -> None:
+    def __getitem__(self, index: int) -> Tuple[Image.Image, int, Image.Image]:
         """
-        Initializes the train and test lists of dataloaders.
-        :param args: the arguments which contains the hyperparameters
+        Gets the requested element from the dataset.
+        :param index: index of the element to be returned
+        :returns: tuple: (image, target) where target is index of the target class.
         """
-        self.train_loader = None
-        self.test_loaders = []
-        self.i = 0
-        self.args = args
+        img, target = self.data[index], self.targets[index]
 
-    @abstractmethod
-    def get_data_loaders(self) -> Tuple[DataLoader, DataLoader]:
-        """
-        Creates and returns the training and test loaders for the current task.
-        The current training loader and all test loaders are stored in self.
-        :return: the current training and test loaders
-        """
-        pass
+        # to return a PIL Image
+        img = Image.fromarray(img, mode='RGB')
+        original_img = img.copy()
 
-    @abstractmethod
-    def not_aug_dataloader(self, batch_size: int) -> DataLoader:
-        """
-        Returns the dataloader of the current task,
-        not applying data augmentation.
-        :param batch_size: the batch size of the loader
-        :return: the current training loader
-        """
-        pass
+        not_aug_img = self.not_aug_transform(original_img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        if hasattr(self, 'logits'):
+            return img, target, not_aug_img, self.logits[index]
+
+        return img, target, not_aug_img, index
+
+
+class SequentialCIFAR100(ContinualDataset):
+
+    NAME = 'seq-cifar100'
+    SETTING = 'class-il'
+    N_CLASSES_PER_TASK = 10
+    N_TASKS = 10
+    TRANSFORM = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4),
+             transforms.RandomHorizontalFlip(),
+             transforms.ToTensor(),
+             transforms.Normalize((0.5071, 0.4867, 0.4408),
+                                  (0.2675, 0.2565, 0.2761))])
+
+    def get_examples_number(self):
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                  download=True)
+        return len(train_dataset.data)
+
+    def get_data_loaders(self):
+        transform = self.TRANSFORM
+
+        test_transform = transforms.Compose(
+            [transforms.ToTensor(), self.get_normalization_transform()])
+
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                  download=True, transform=transform)
+        train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
+        if self.args.validation:
+            train_dataset, test_dataset = get_train_val(train_dataset,
+                                                    test_transform, self.NAME)
+        else:
+            test_dataset = TCIFAR100(base_path() + 'CIFAR100',train=False,
+                                   download=True, transform=test_transform)
+
+        train, test = store_masked_loaders(train_dataset, test_dataset, self)
+
+        return train, test
 
     @staticmethod
-    @abstractmethod
-    def get_backbone() -> nn.Module:
-        """
-        Returns the backbone to be used for to the current dataset.
-        """
-        pass
+    def get_transform():
+        transform = transforms.Compose(
+            [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()])
+        return transform
 
     @staticmethod
-    @abstractmethod
-    def get_transform() -> transforms:
-        """
-        Returns the transform to be used for to the current dataset.
-        """
-        pass
+    def get_backbone(args):
+        return resnet18(SequentialCIFAR100.N_CLASSES_PER_TASK
+                        * SequentialCIFAR100.N_TASKS, args)
 
     @staticmethod
-    @abstractmethod
-    def get_loss() -> nn.functional:
-        """
-        Returns the loss to be used for to the current dataset.
-        """
-        pass
+    def get_loss():
+        return F.cross_entropy
 
     @staticmethod
-    @abstractmethod
-    def get_normalization_transform() -> transforms:
-        """
-        Returns the transform used for normalizing the current dataset.
-        """
-        pass
+    def get_normalization_transform():
+        transform = transforms.Normalize((0.5071, 0.4867, 0.4408),
+                                         (0.2675, 0.2565, 0.2761))
+        return transform
 
     @staticmethod
-    @abstractmethod
-    def get_denormalization_transform() -> transforms:
-        """
-        Returns the transform used for denormalizing the current dataset.
-        """
-        pass
+    def get_denormalization_transform():
+        transform = DeNormalize((0.5071, 0.4867, 0.4408),
+                                (0.2675, 0.2565, 0.2761))
+        return transform
 
+    @staticmethod
+    def get_epochs():
+        return 50
 
-def store_masked_loaders(train_dataset: datasets, test_dataset: datasets,
-                    setting: ContinualDataset) -> Tuple[DataLoader, DataLoader]:
-    """
-    Divides the dataset into tasks.
-    :param train_dataset: train dataset
-    :param test_dataset: test dataset
-    :param setting: continual learning setting
-    :return: train and test loaders
-    """
-    train_mask = np.logical_and(np.array(train_dataset.targets) >= setting.i,
-        np.array(train_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
-    test_mask = np.logical_and(np.array(test_dataset.targets) >= setting.i,
-        np.array(test_dataset.targets) < setting.i + setting.N_CLASSES_PER_TASK)
+    @staticmethod
+    def get_batch_size():
+        return 32
 
-    train_dataset.data = train_dataset.data[train_mask]
-    test_dataset.data = test_dataset.data[test_mask]
+    @staticmethod
+    def get_minibatch_size():
+        return SequentialCIFAR100.get_batch_size()
 
-    train_dataset.targets = np.array(train_dataset.targets)[train_mask]
-    test_dataset.targets = np.array(test_dataset.targets)[test_mask]
-
-    train_loader = DataLoader(train_dataset,
-                              batch_size=setting.args.batch_size, shuffle=True, num_workers=4)
-    test_loader = DataLoader(test_dataset,
-                             batch_size=setting.args.batch_size, shuffle=False, num_workers=4)
-    setting.test_loaders.append(test_loader)
-    setting.train_loader = train_loader
-
-    setting.i += setting.N_CLASSES_PER_TASK
-    return train_loader, test_loader
-
-
-def get_previous_train_loader(train_dataset: datasets, batch_size: int,
-                              setting: ContinualDataset) -> DataLoader:
-    """
-    Creates a dataloader for the previous task.
-    :param train_dataset: the entire training set
-    :param batch_size: the desired batch size
-    :param setting: the continual dataset at hand
-    :return: a dataloader
-    """
-    train_mask = np.logical_and(np.array(train_dataset.targets) >=
-        setting.i - setting.N_CLASSES_PER_TASK, np.array(train_dataset.targets)
-        < setting.i - setting.N_CLASSES_PER_TASK + setting.N_CLASSES_PER_TASK)
-
-    train_dataset.data = train_dataset.data[train_mask]
-    train_dataset.targets = np.array(train_dataset.targets)[train_mask]
-
-    return DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    @staticmethod
+    def get_scheduler(model, args):
+        return None
