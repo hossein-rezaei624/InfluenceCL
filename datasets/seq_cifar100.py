@@ -15,6 +15,7 @@ from torchvision.datasets import CIFAR100
 from datasets.transforms.denormalization import DeNormalize
 from datasets.utils.continual_dataset import (ContinualDataset,
                                               store_masked_loaders)
+from datasets.utils.continual_dataset import get_previous_train_loader
 from datasets.utils.validation import get_train_val
 from utils.conf import base_path_dataset as base_path
 
@@ -100,6 +101,15 @@ class SequentialCIFAR100(ContinualDataset):
 
         return train, test
 
+    def not_aug_dataloader(self, batch_size):
+        transform = transforms.Compose([transforms.ToTensor(), self.get_normalization_transform()])
+
+        train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
+                                  download=True, transform=transform)
+        train_loader = get_previous_train_loader(train_dataset, batch_size, self)
+
+        return train_loader
+  
     @staticmethod
     def get_transform():
         transform = transforms.Compose(
