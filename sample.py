@@ -4,16 +4,14 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the gem_license file in the root of this source tree.
 
+import quadprog
+
 import numpy as np
 import torch
-try:
-    import quadprog
-except:
-    print('Warning: GEM and A-GEM cannot be used on Windows (quadprog required)')
-
 from models.utils.continual_model import ContinualModel
-from utils.args import *
+
 from utils.buffer import Buffer
+from utils.args import *
 
 
 def get_parser() -> ArgumentParser:
@@ -28,7 +26,7 @@ def get_parser() -> ArgumentParser:
             del parser._actions[i]
             break
 
-    parser.add_argument('--gamma', type=float, default=0.5,
+    parser.add_argument('--gamma', type=float, default=None,
                         help='Margin parameter for GEM.')
     return parser
 
@@ -118,8 +116,8 @@ class Gem(ContinualModel):
         # add data to the buffer
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
-        loader = dataset.train_loader
-        cur_y, cur_x, __ = next(iter(loader))[1:]
+        loader = dataset.not_aug_dataloader(samples_per_task)
+        cur_y, cur_x = next(iter(loader))[1:]
         self.buffer.add_data(
             examples=cur_x.to(self.device),
             labels=cur_y.to(self.device),
@@ -127,8 +125,7 @@ class Gem(ContinualModel):
                 dtype=torch.long).to(self.device) * (self.current_task - 1)
         )
 
-
-    def observe(self, inputs, labels, not_aug_inputs, index_):
+    def observe(self, inputs, labels, not_aug_inputs):
 
         if not self.buffer.is_empty():
             buf_inputs, buf_labels, buf_task_labels = self.buffer.get_data(
