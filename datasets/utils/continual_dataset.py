@@ -41,6 +41,17 @@ class ContinualDataset:
         """
         raise NotImplementedError
 
+
+    def not_aug_dataloader(self, batch_size: int) -> DataLoader:
+        """
+        Returns the dataloader of the current task,
+        not applying data augmentation.
+        :param batch_size: the batch size of the loader
+        :return: the current training loader
+        """
+        raise NotImplementedError
+
+    
     @staticmethod
     def get_backbone() -> nn.Module:
         """
