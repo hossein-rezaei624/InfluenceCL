@@ -119,6 +119,12 @@ class Gem(ContinualModel):
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
         loader = dataset.train_loader
+        loader1 = dataset.train_loader
+
+        a, b, c = next(iter(loader))[1:]
+        a1, b1, c1 = next(iter(loader1))[1:]
+        print("first loader indexes:", c)
+        print("second loader indexes:", c1)
 
         list_x = []
         list_y = []
