@@ -9,6 +9,7 @@ from PIL import Image
 import os
 from datasets.utils.validation import get_train_val
 from datasets.utils.continual_dataset import ContinualDataset, store_masked_loaders
+from datasets.utils.continual_dataset import get_previous_train_loader
 from datasets.transforms.denormalization import DeNormalize
 
 
@@ -136,6 +137,17 @@ class SequentialMiniImagenet(ContinualDataset):
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
 
+
+    def not_aug_dataloader(self, batch_size):
+        transform = transforms.Compose([transforms.ToTensor(), self.get_normalization_transform()])
+
+        train_dataset = MyMiniImagenet(base_path() + 'MINIIMG', train=True,
+                                  download=True, transform=transform)
+        train_loader = get_previous_train_loader(train_dataset, batch_size, self)
+
+        return train_loader
+
+    
     @staticmethod
     def get_backbone(args):
         return resnet18(SequentialMiniImagenet.N_CLASSES_PER_TASK
