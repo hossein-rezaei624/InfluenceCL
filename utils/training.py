@@ -247,6 +247,12 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     loss = model.meta_observe(inputs, labels, not_aug_inputs, logits)
                 else:
                     inputs, labels, not_aug_inputs, index_ = data
+
+                    if i == 0 and epoch == 0:
+                        print("in first epoch:", index_)
+                    if i == 0 and epoch == 1:
+                        print("in finall epoch:", index_)
+                    
                     inputs, labels = inputs.to(model.device), labels.to(
                         model.device)
                     not_aug_inputs = not_aug_inputs.to(model.device)
