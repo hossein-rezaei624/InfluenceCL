@@ -147,6 +147,15 @@ class SequentialTinyImagenet(ContinualDataset):
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
 
+    def not_aug_dataloader(self, batch_size):
+        transform = transforms.Compose([transforms.ToTensor(), self.get_normalization_transform()])
+
+        train_dataset = MyTinyImagenet(base_path() + 'TINYIMG', train=True,
+                                  download=True, transform=transform)
+        train_loader = get_previous_train_loader(train_dataset, batch_size, self)
+
+        return train_loader
+    
     @staticmethod
     def get_backbone(args):
         return resnet18(SequentialTinyImagenet.N_CLASSES_PER_TASK
