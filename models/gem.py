@@ -118,26 +118,8 @@ class Gem(ContinualModel):
         # add data to the buffer
         samples_per_task = self.args.buffer_size // dataset.N_TASKS
 
-        loader = dataset.train_loader
-        loader1 = dataset.train_loader
-
-        a, b, c = next(iter(loader))[1:]
-        a1, b1, c1 = next(iter(loader1))[1:]
-        print("first loader indexes:", c)
-        print("second loader indexes:", c1)
-
-        list_x = []
-        list_y = []
-        
-        # Iterate through the entire loader and collect the last samples
-        for batch in loader:
-            y, x, __ = batch[1:]
-            list_x.extend(x)
-            list_y.extend(y)
-        
-        # Now extract the last samples_per_task samples
-        cur_x = torch.stack(list_x, dim=0)[-samples_per_task:]
-        cur_y = torch.stack(list_y, dim=0)[-samples_per_task:]
+        loader = dataset.not_aug_dataloader(samples_per_task)
+        cur_x, cur_y = next(iter(loader))[:2]
         
         self.buffer.add_data(
             examples=cur_x.to(self.device),
