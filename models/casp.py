@@ -482,16 +482,15 @@ class Casp(ContinualModel):
             
             ##feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
-            ##feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
-            ##feas_normalized = feas.div(feas_norm + 0.000001)
+            feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
+            feas_normalized = feas.div(feas_norm + 0.000001)
 
             ##feas_aug_norm = torch.norm(feas_aug, p=2, dim=1).unsqueeze(1).expand_as(feas_aug)
             ##feas_aug_normalized = feas_aug.div(feas_aug_norm + 0.000001)
             ##cos_features = torch.cat([feas_normalized.unsqueeze(1), feas_aug_normalized.unsqueeze(1)], dim=1)
-            ##PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            ##novel_loss += PSC(features=cos_features, labels=batch_y_combine)
-            if self.epoch == 100:
-                print("yesss")
+            
+            PSC = SupConLoss(temperature=0.09, contrast_mode='all')
+            novel_loss += PSC(features=feas_normalized.reshape((real_batch_size,2,512)), labels=batch_y)
 
         
         else:
@@ -510,18 +509,25 @@ class Casp(ContinualModel):
             mem_logits, mem_fea= self.net.pcrForward(mem_x_combine)
             novel_loss += self.loss(mem_logits, mem_y_combine)
 
-            ##combined_feas = torch.cat([mem_fea, feas])
+            combined_feas = torch.cat([mem_fea, feas])
             ##combined_labels = torch.cat((mem_y_combine, batch_y_combine))
+            combined_labels = torch.cat((mem_y, batch_y))
+        
             ##combined_feas_aug = self.net.pcrLinear.L.weight[combined_labels]
 
-            ##combined_feas_norm = torch.norm(combined_feas, p=2, dim=1).unsqueeze(1).expand_as(combined_feas)
-            ##combined_feas_normalized = combined_feas.div(combined_feas_norm + 0.000001)
+            combined_feas_norm = torch.norm(combined_feas, p=2, dim=1).unsqueeze(1).expand_as(combined_feas)
+            combined_feas_normalized = combined_feas.div(combined_feas_norm + 0.000001)
 
             ##combined_feas_aug_norm = torch.norm(combined_feas_aug, p=2, dim=1).unsqueeze(1).expand_as(combined_feas_aug)
             ##combined_feas_aug_normalized = combined_feas_aug.div(combined_feas_aug_norm + 0.000001)
             ##cos_features = torch.cat([combined_feas_normalized.unsqueeze(1), combined_feas_aug_normalized.unsqueeze(1)], dim=1)
-            ##PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            ##novel_loss += PSC(features=cos_features, labels=combined_labels)
+
+            ac = torch.cat([combined_feas[:real_batch_size,:], combined_feas[(2*real_batch_size):(3*real_batch_size),:]], dim=0)
+            bd = torch.cat([combined_feas[real_batch_size:(2*real_batch_size),:], combined_feas[(-1*real_batch_size):,:]], dim=0)
+            acbd = torch.cat([ac.unsqueeze(1), bd.unsqueeze(1)], dim=1)
+            
+            PSC = SupConLoss(temperature=0.09, contrast_mode='all')
+            novel_loss += PSC(features=acbd, labels=combined_labels)
 
         if self.epoch == 0 and self.task == 1:
             self.task_conf_first.append(novel_loss.item())
