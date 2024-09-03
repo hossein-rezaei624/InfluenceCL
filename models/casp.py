@@ -525,6 +525,10 @@ class Casp(ContinualModel):
             ac = torch.cat([combined_feas[:real_batch_size,:], combined_feas[(2*real_batch_size):(3*real_batch_size),:]], dim=0)
             bd = torch.cat([combined_feas[real_batch_size:(2*real_batch_size),:], combined_feas[(-1*real_batch_size):,:]], dim=0)
             acbd = torch.cat([ac.unsqueeze(1), bd.unsqueeze(1)], dim=1)
+            print("ac.shape", ac.shape)
+            print("bd.shape", bd.shape)
+            print("acbd.shape", acbd.shape)
+            
             
             PSC = SupConLoss(temperature=0.09, contrast_mode='all')
             novel_loss += PSC(features=acbd, labels=combined_labels)
