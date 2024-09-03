@@ -507,7 +507,7 @@ class Casp(ContinualModel):
 
 
             mem_logits, mem_fea= self.net.pcrForward(mem_x_combine)
-            novel_loss += self.loss(mem_logits, mem_y_combine)
+            ####novel_loss += self.loss(mem_logits, mem_y_combine)
 
             combined_feas = torch.cat([mem_fea, feas])
             ##combined_labels = torch.cat((mem_y_combine, batch_y_combine))
