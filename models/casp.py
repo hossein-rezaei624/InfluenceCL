@@ -522,11 +522,15 @@ class Casp(ContinualModel):
             ##combined_feas_aug_normalized = combined_feas_aug.div(combined_feas_aug_norm + 0.000001)
             ##cos_features = torch.cat([combined_feas_normalized.unsqueeze(1), combined_feas_aug_normalized.unsqueeze(1)], dim=1)
 
-            ac = torch.cat([combined_feas_normalized[:real_batch_size,:], 
-                            combined_feas_normalized[(2*real_batch_size):(3*real_batch_size),:]], dim=0)
-            bd = torch.cat([combined_feas_normalized[real_batch_size:(2*real_batch_size),:], 
+            ac = torch.cat([combined_feas_normalized[:self.args.minibatch_size,:], 
+                            combined_feas_normalized[(2*self.args.minibatch_size):(2*self.args.minibatch_size + real_batch_size),:]], dim=0)
+            bd = torch.cat([combined_feas_normalized[self.args.minibatch_size:(2*self.args.minibatch_size),:], 
                             combined_feas_normalized[(-1*real_batch_size):,:]], dim=0)
-            acbd = torch.cat([ac.unsqueeze(1), bd.unsqueeze(1)], dim=1)            
+            acbd = torch.cat([ac.unsqueeze(1), bd.unsqueeze(1)], dim=1)
+
+            print("ac.shape", ac.shape)
+            print("bd.shape", bd.shape)
+            print("acbd.shape", acbd.shape)
             
             PSC = SupConLoss(temperature=0.09, contrast_mode='all')
             novel_loss += PSC(features=acbd, labels=combined_labels)
