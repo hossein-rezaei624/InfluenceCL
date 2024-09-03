@@ -490,6 +490,8 @@ class Casp(ContinualModel):
             ##cos_features = torch.cat([feas_normalized.unsqueeze(1), feas_aug_normalized.unsqueeze(1)], dim=1)
             ##PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             ##novel_loss += PSC(features=cos_features, labels=batch_y_combine)
+            if self.epoch == 100:
+                print("yesss")
 
         
         else:
