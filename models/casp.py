@@ -436,10 +436,10 @@ class Casp(ContinualModel):
 
         original_labels = copy.deepcopy(labels)
 
-        ###if self.epoch >= 30:
-            ###self.net.eval()
-            ###inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
-            ###self.net.train()
+        if self.epoch >= 0:
+            self.net.eval()
+            inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
+            self.net.train()
 
         
         real_batch_size = inputs.shape[0]
