@@ -436,7 +436,7 @@ class Casp(ContinualModel):
 
         original_labels = copy.deepcopy(labels)
 
-        if self.epoch >= 35:
+        if self.epoch >= 0:
             self.net.eval()
             inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
             self.net.train()
