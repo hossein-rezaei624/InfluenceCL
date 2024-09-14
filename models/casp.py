@@ -436,10 +436,10 @@ class Casp(ContinualModel):
 
         original_labels = copy.deepcopy(labels)
 
-        if self.epoch >= 20:
-            self.net.eval()
-            inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
-            self.net.train()
+        ###if self.epoch >= 15:
+            ###self.net.eval()
+            ###inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
+            ###self.net.train()
 
         
         real_batch_size = inputs.shape[0]
@@ -510,7 +510,7 @@ class Casp(ContinualModel):
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
 
-            if self.epoch >= 20:
+            if self.epoch >= 15:
                 self.net.eval()
                 mem_x, mem_y = sara(model=self.net, forward=self.net.pcrForward,inputs=mem_x, labels=mem_y)
                 self.net.train()
