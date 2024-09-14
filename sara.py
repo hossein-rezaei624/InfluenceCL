@@ -49,7 +49,7 @@ def sara(model,
             # targeted params could be differ from other attack based apporaches
             targeted_eps = 0.03
             targeted_apha = 8/255
-            targeted_steps = 25
+            targeted_steps = 15
             attack = PGD(model, eps=targeted_eps, alpha=targeted_apha, steps=targeted_steps, random_start=True)
             
             #### apply attack for misclassified samples
