@@ -510,7 +510,7 @@ class Casp(ContinualModel):
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
 
-            if self.epoch >= 35:
+            if self.epoch >= 15:
                 self.net.eval()
                 mem_x, mem_y = sara(model=self.net, forward=self.net.pcrForward,inputs=mem_x, labels=mem_y)
                 self.net.train()
