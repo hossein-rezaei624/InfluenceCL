@@ -10,7 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
 
-from sara import *
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -432,20 +431,11 @@ class Casp(ContinualModel):
             
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
-
-
-        original_labels = copy.deepcopy(labels)
-
-        ###if self.epoch >= 15:
-            ###self.net.eval()
-            ###inputs, labels = sara(model=self.net, forward=self.net.pcrForward,inputs=inputs, labels=labels)
-            ###self.net.train()
-
         
         real_batch_size = inputs.shape[0]
         
         if self.epoch < self.predicted_epoch: #self.predicted_epoch
-            targets = torch.tensor([self.mapping[val.item()] for val in original_labels]).to(self.device)
+            targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
         # batch update
@@ -469,10 +459,10 @@ class Casp(ContinualModel):
                 soft_ = nn.functional.softmax(casp_logits, dim=1)
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
-                    confidence_batch.append(soft_[i,original_labels[i]].item())
+                    confidence_batch.append(soft_[i,labels[i]].item())
                     
                     # Update the dictionary with the confidence score for the current class for the current epoch
-                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, original_labels[i]].item())
+                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
                 
                 # Record the confidence scores for samples in the corresponding tensor
                 conf_tensor = torch.tensor(confidence_batch)
@@ -485,8 +475,8 @@ class Casp(ContinualModel):
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
                 soft_task = nn.functional.softmax(casp_logits, dim=1)
-                for j in range(original_labels.shape[0]):
-                    self.confidence_by_task[self.task_class[original_labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, original_labels[j]].item())
+                for j in range(labels.shape[0]):
+                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
             self.net.train()
 
         
@@ -509,11 +499,6 @@ class Casp(ContinualModel):
         else:
             mem_x, mem_y = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
-
-            if self.epoch >= 35:
-                self.net.eval()
-                mem_x, mem_y = sara(model=self.net, forward=self.net.pcrForward,inputs=mem_x, labels=mem_y)
-                self.net.train()
         
             mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
                                      for idx in range(mem_x.size(0))])
