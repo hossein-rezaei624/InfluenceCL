@@ -8,7 +8,7 @@
 from corruptions import *
 from torchvision.transforms import ToPILImage, PILToTensor
 
-from openTSNE import TSNE
+from tsne_torch import TorchTSNE as TSNE
 import matplotlib.pyplot as plt
 
 import math
@@ -330,8 +330,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     labels_list = np.concatenate(labels_list)
 
     # Apply t-SNE
-    tsne = TSNE(n_components=2, random_state=42, n_jobs=8)
-    features_2d = tsne.fit(features_list)
+    tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
+    features_2d = tsne.fit_transform(torch.tensor(features_list))
 
 
     plt.figure(figsize=(10, 8))
