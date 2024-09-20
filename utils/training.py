@@ -229,7 +229,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             for data in task_1:
                 with torch.no_grad():
                     inputs, labels, not_aug_inputs, index_ = data
-                    inputs = inputs.to(model.device)
+                    inputs = not_aug_inputs.to(model.device)
                     
                     # Extract features
                     if model.NAME == 'casp':
