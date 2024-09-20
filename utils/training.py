@@ -219,6 +219,39 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
         if t == 0:
             task_1 = train_loader
+        if t == 1:
+            model.net.eval()
+            features_list = []
+            labels_list = []
+            for data in task_1:
+                with torch.no_grad():
+                    inputs, labels, not_aug_inputs, index_ = data
+                    inputs, labels = inputs.to(model.device), labels.to(model.device)
+        
+                    if model.NAME == 'casp':
+                        outputs, rep = model.net.pcrForward(inputs)
+                    else:
+                        outputs, rep = model.net.forward(inputs, returnt='all')
+        
+                    features_list.append(rep.cpu().numpy())
+                    labels_list.append(labels.cpu().numpy())
+            features_list = np.concatenate(features_list)
+            labels_list = np.concatenate(labels_list)
+        
+            # Apply t-SNE
+            tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
+            features_2d = tsne.fit_transform(torch.tensor(features_list))
+        
+        
+            plt.figure(figsize=(10, 8))
+            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=all_domains, cmap='viridis', alpha=0.6)
+            plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
+            plt.title('t-SNE of Learned Representations for Task One')
+            plt.xlabel('Dimension 1')
+            plt.ylabel('Dimension 2')
+        
+            plt.savefig("tsneER")
+            
 
         unique_classes_ = set()
         for _, labels_, _, _ in train_loader:
@@ -311,37 +344,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     ##print("confidence_by_class_", confidence_by_class_)
 
 
-    model.net.eval()
-    features_list = []
-    labels_list = []
-    for data in task_1:
-        with torch.no_grad():
-            inputs, labels, not_aug_inputs, index_ = data
-            inputs, labels = inputs.to(model.device), labels.to(model.device)
 
-            if model.NAME == 'casp':
-                outputs, rep = model.net.pcrForward(inputs)
-            else:
-                outputs, rep = model.net.forward(inputs, returnt='all')
-
-            features_list.append(rep.cpu().numpy())
-            labels_list.append(labels.cpu().numpy())
-    features_list = np.concatenate(features_list)
-    labels_list = np.concatenate(labels_list)
-
-    # Apply t-SNE
-    tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
-    features_2d = tsne.fit_transform(torch.tensor(features_list))
-
-
-    plt.figure(figsize=(10, 8))
-    scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=all_domains, cmap='viridis', alpha=0.6)
-    plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
-    plt.title('t-SNE of Learned Representations for Task One')
-    plt.xlabel('Dimension 1')
-    plt.ylabel('Dimension 2')
-
-    plt.savefig("tsneER")
               
 
     if not args.disable_log and not args.ignore_other_metrics:
