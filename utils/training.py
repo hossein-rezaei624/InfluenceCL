@@ -322,7 +322,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             if model.NAME == 'casp':
                 outputs, rep = model.net.pcrForward(inputs)
             else:
-                outputs, rep = model.forward(inputs, returnt='all')
+                outputs, rep = model.net.forward(inputs, returnt='all')
 
             features_list.append(rep.cpu().numpy())
             labels_list.append(labels.numpy())
