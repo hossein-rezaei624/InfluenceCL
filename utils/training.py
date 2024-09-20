@@ -8,6 +8,9 @@
 from corruptions import *
 from torchvision.transforms import ToPILImage, PILToTensor
 
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+
 import math
 import sys
 from argparse import Namespace
@@ -214,6 +217,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
 
+        if t == 0:
+            task_1 = train_loader
 
         unique_classes_ = set()
         for _, labels_, _, _ in train_loader:
@@ -302,8 +307,44 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         confidence_by_task_[task_class_[model.buffer.labels[j].item()]] += 1
         confidence_by_class_[model.buffer.labels[j].item()] += 1
         
-    print("confidence_by_task_", confidence_by_task_)
-    print("confidence_by_class_", confidence_by_class_)
+    ##print("confidence_by_task_", confidence_by_task_)
+    ##print("confidence_by_class_", confidence_by_class_)
+
+
+    model.net.eval()
+    features_list = []
+    labels_list = []
+    for data in task_1:
+        with torch.no_grad():
+            inputs, labels, not_aug_inputs, index_ = data
+            inputs, labels = inputs.to(model.device), labels.to(model.device)
+
+            if model.NAME == 'casp':
+                outputs, rep = model.net.pcrForward(inputs)
+            else:
+                outputs, rep = model(inputs, returnt='all')
+
+            features_list.append(rep.cpu().numpy())
+            labels_list.append(labels.numpy())
+    features_list = np.concatenate(features_list)
+    labels_list = np.concatenate(labels_list)
+
+    # Apply t-SNE
+    tsne = TSNE(n_components=2, random_state=42)
+    features_2d = tsne.fit_transform(features_list)
+
+
+    # Plot the t-SNE embeddings
+    plt.figure(figsize=(10, 8))
+    scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=all_domains, cmap='viridis', alpha=0.6)
+    
+    # Create a legend
+    plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
+    plt.title('t-SNE of Learned Representations for Task One')
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+
+    plt.savefig("tsneER")
               
 
     if not args.disable_log and not args.ignore_other_metrics:
