@@ -299,8 +299,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     confidence_by_task_ = {task_id:0 for task_id in range(dataset.N_TASKS)}
     confidence_by_class_ = {class_id:0 for class_id in range(dataset.N_TASKS*dataset.N_CLASSES_PER_TASK)}
     for j in range(len(model.buffer)):
-        confidence_by_task_[task_class_[self.buffer.labels[j].item()]] += 1
-        confidence_by_class_[self.buffer.labels[j].item()] += 1
+        confidence_by_task_[task_class_[model.buffer.labels[j].item()]] += 1
+        confidence_by_class_[model.buffer.labels[j].item()] += 1
         
     print("confidence_by_task_", confidence_by_task_)
     print("confidence_by_class_", confidence_by_class_)
