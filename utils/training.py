@@ -262,7 +262,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             # Apply t-SNE
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
-            features_2d = tsne.fit_transform(features_list)
+            features_2d = tsne.fit_transform(torch.tensor(features_list))
             
             # Plotting
             plt.figure(figsize=(12, 10))
