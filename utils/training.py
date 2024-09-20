@@ -8,7 +8,7 @@
 from corruptions import *
 from torchvision.transforms import ToPILImage, PILToTensor
 
-from tsne_torch import TorchTSNE as TSNE
+from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 
