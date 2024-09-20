@@ -340,7 +340,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             print(f"Any infinite values in features: {torch.isinf(features_tensor).any().item()}")
 
 
-            features_2d = features_2d.cpu().numpy()
+            ##features_2d = features_2d.cpu().numpy()
             
             # Debugging statements
             print(f"t-SNE output shape: {features_2d.shape}")
