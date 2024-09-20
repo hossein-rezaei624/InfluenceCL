@@ -8,7 +8,7 @@
 from corruptions import *
 from torchvision.transforms import ToPILImage, PILToTensor
 
-from sklearn.manifold import TSNE
+from openTSNE import TSNE
 import matplotlib.pyplot as plt
 
 import math
@@ -330,15 +330,12 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     labels_list = np.concatenate(labels_list)
 
     # Apply t-SNE
-    tsne = TSNE(n_components=2, random_state=42)
-    features_2d = tsne.fit_transform(features_list)
+    tsne = TSNE(n_components=2, random_state=42, n_jobs=8)
+    features_2d = tsne.fit(features_list)
 
 
-    # Plot the t-SNE embeddings
     plt.figure(figsize=(10, 8))
     scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=all_domains, cmap='viridis', alpha=0.6)
-    
-    # Create a legend
     plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
     plt.title('t-SNE of Learned Representations for Task One')
     plt.xlabel('Dimension 1')
