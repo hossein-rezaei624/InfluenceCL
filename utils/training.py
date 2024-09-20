@@ -230,21 +230,30 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                 with torch.no_grad():
                     inputs, labels, not_aug_inputs, index_ = data
                     inputs = inputs.to(model.device)
-                    labels_list.append(labels.cpu().numpy())
-                    
-                    # Compute image hash
-                    image_hash = hash(inputs.cpu().numpy().tobytes())
-                    image_hashes.append(image_hash)
                     
                     # Extract features
                     if model.NAME == 'casp':
                         outputs, rep = model.net.pcrForward(inputs)
                     else:
                         outputs, rep = model.net.forward(inputs, returnt='all')
-                    features_list.append(rep.cpu().numpy())
+                    
+                    # Convert to numpy arrays
+                    inputs_np = inputs.cpu().numpy()
+                    labels_np = labels.cpu().numpy()
+                    features_np = rep.cpu().numpy()
+                    
+                    # Process each sample in the batch
+                    for i in range(inputs_np.shape[0]):
+                        # Compute image hash for each sample
+                        image_hash = hash(inputs_np[i].tobytes())
+                        image_hashes.append(image_hash)
+                        
+                        # Collect labels and features per sample
+                        labels_list.append(labels_np[i])
+                        features_list.append(features_np[i])
             
-            features_list = np.concatenate(features_list)
-            labels_list = np.concatenate(labels_list)
+            labels_list = np.array(labels_list)
+            features_list = np.array(features_list)
             image_hashes = np.array(image_hashes)
             
             # Step 2: Compute image hashes for buffer samples
@@ -252,8 +261,15 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             with torch.no_grad():
                 inputs = model.buffer.examples
                 inputs = inputs.to(model.device)
-                image_hash = hash(inputs.cpu().numpy().tobytes())
-                buffer_image_hashes.append(image_hash)
+                
+                # Convert to numpy arrays
+                inputs_np = inputs.cpu().numpy()
+                
+                # Process each sample in the batch
+                for i in range(inputs_np.shape[0]):
+                    # Compute image hash for each sample
+                    image_hash = hash(inputs_np[i].tobytes())
+                    buffer_image_hashes.append(image_hash)
             
             buffer_hash_set = set(buffer_image_hashes)
             
@@ -300,6 +316,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             plt.tight_layout()
             plt.savefig("tsneER")
+
+            
 
             model.net.train()
             
