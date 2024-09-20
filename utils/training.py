@@ -181,6 +181,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     """
     print(args)
 
+    task_class_ = {}
+              
     if not args.nowand:
         assert wandb is not None, "Wandb not installed, please install it or run without wandb"
         name_of_run = f"{args.model}_{args.buffer_size}_{args.dataset}"
@@ -211,13 +213,17 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
-        #unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
-##        unique_classes = set()
-##        for _, labels, _, _ in train_loader:
-##            unique_classes.update(labels.numpy())
-##            if len(unique_classes)==dataset.N_CLASSES_PER_TASK:
-##                break
-##        print("unique_classes", unique_classes)
+
+
+        unique_classes_ = set()
+        for _, labels_, _, _ in train_loader:
+            unique_classes_.update(labels_.numpy())
+            if len(unique_classes_)==dataset.N_CLASSES_PER_TASK:
+                break
+        
+        task_class_.update({value: t for index, value in enumerate(unique_classes_)})
+
+        
         if hasattr(model, 'begin_task'):
             if model.NAME == 'casp':
                 model.begin_task(dataset, train_loader)
@@ -290,12 +296,15 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             wandb.log(d2)
 
 
-    ##print("model.buffer.labels", model.buffer.labels)
-    ##ha = args.buffer_size
-    ##print("part 1:",  model.buffer.labels[:ha//4])
-    ##print("part 2:",  model.buffer.labels[ha//4:ha//2])
-    ##print("part 3:",  model.buffer.labels[ha//2:-ha//4])
-    ##print("part 4:",  model.buffer.labels[-ha//4:])
+    confidence_by_task_ = {task_id:0 for task_id in range(dataset.N_TASKS)}
+    confidence_by_class_ = {class_id:0 for class_id in range(dataset.N_TASKS*dataset.N_CLASSES_PER_TASK)}
+    for j in range(len(model.buffer)):
+        confidence_by_task_[task_class_[self.buffer.labels[j].item()]] += 1
+        confidence_by_class_[self.buffer.labels[j].item()] += 1
+        
+    print("confidence_by_task_", confidence_by_task_)
+    print("confidence_by_class_", confidence_by_class_)
+              
 
     if not args.disable_log and not args.ignore_other_metrics:
         logger.add_bwt(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
