@@ -244,7 +244,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         
         
             plt.figure(figsize=(10, 8))
-            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=all_domains, cmap='viridis', alpha=0.6)
+            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], cmap='viridis', alpha=0.6)
             plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
             plt.title('t-SNE of Learned Representations for Task One')
             plt.xlabel('Dimension 1')
