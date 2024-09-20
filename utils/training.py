@@ -223,99 +223,55 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             # Step 1: Extract features, labels, and image hashes for Task 1 samples
             model.net.eval()
-            features_list = []
-            labels_list = []
-            image_hashes = []
+            features = []
+            labels = []
             for data in task_1:
                 with torch.no_grad():
                     inputs, labels, not_aug_inputs, index_ = data
-                    inputs = not_aug_inputs.to(model.device)
+                    not_aug_inputs = not_aug_inputs.to(model.device)
+                    labels = labels.to(model.device)
                     
                     # Extract features
                     if model.NAME == 'casp':
-                        outputs, rep = model.net.pcrForward(inputs)
+                        outputs, rep = model.net.pcrForward(not_aug_inputs)
                     else:
-                        outputs, rep = model.net.forward(inputs, returnt='all')
+                        outputs, rep = model.net.forward(not_aug_inputs, returnt='all')
                     
-                    # Convert to numpy arrays
-                    inputs_np = inputs.cpu().numpy()
-                    labels_np = labels.cpu().numpy()
-                    features_np = rep.cpu().numpy()
-                    
-                ##    # Process each sample in the batch
-                ##    for i in range(inputs_np.shape[0]):
-                ##        # Compute image hash for each sample
-                ##        image_hash = hash(inputs_np[i].tobytes())
-                ##        image_hashes.append(image_hash)
-                        
-                        # Collect labels and features per sample
-                        labels_list.append(labels_np[i])
-                        features_list.append(features_np[i])
+
+                    # Move features to CPU and store
+                    features.append(rep.cpu())
+                    labels.append(labelscpu())
             
-            labels_list = np.array(labels_list)
-            features_list = np.array(features_list)
-         ##   image_hashes = np.array(image_hashes)
-            
-            # Step 2: Compute image hashes for buffer samples
-        ##    buffer_image_hashes = []
-       ##     with torch.no_grad():
-        ##        inputs = model.buffer.examples
-       ##         inputs = inputs.to(model.device)
-                
-                # Convert to numpy arrays
-         ##       inputs_np = inputs.cpu().numpy()
-                
-         ##       # Process each sample in the batch
-        ##        for i in range(inputs_np.shape[0]):
-       ##             # Compute image hash for each sample
-       ##             image_hash = hash(inputs_np[i].tobytes())
-        ##            buffer_image_hashes.append(image_hash)
-            
-        ##    buffer_hash_set = set(buffer_image_hashes)
-            
-            # Step 3: Create a mask indicating which Task 1 samples are in the buffer
-      ##      mask_in_buffer = np.array([image_hash in buffer_hash_set for image_hash in image_hashes])
-            
-            # Apply t-SNE
+            # Concatenate all features and labels
+            features = torch.cat(features)
+            labels = torch.cat(labels)
+ 
+
+            # Initialize t-SNE with desired parameters
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
-            features_tensor = torch.tensor(features_list).to(model.device).float()
-            features_2d = tsne.fit_transform(features_tensor)
             
-            # Plotting
+            # Fit and transform the features
+            features_2d = tsne.fit_transform(features)
+
+
+
+            # Convert labels to numpy array for plotting
+            labels = labels.numpy()
+            
+            # Create a scatter plot
             plt.figure(figsize=(12, 10))
+            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=labels, cmap='tab10', alpha=0.7)
             
-            # Create a colormap with 10 distinct colors
-            cmap = plt.cm.get_cmap('tab10', 10)  # 'tab10' is suitable for up to 10 classes
+            # Add a legend
+            legend = plt.legend(*scatter.legend_elements(), title="Classes")
+            plt.gca().add_artist(legend)
             
-            # Plot all Task 1 samples as circles, colored by class labels
-            for class_idx in range(10):
-                idx = labels_list == class_idx
-                plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
-                            c=np.array([cmap(class_idx)]), label=f'Class {class_idx}',
-                            marker='o', alpha=0.6)
+            # Add title and labels
+            plt.title('t-SNE of Learned Representations from the First Task')
+            plt.xlabel('t-SNE Dimension 1')
+            plt.ylabel('t-SNE Dimension 2')
             
-     ##       # Overlay buffer samples as triangles at the same positions
-     ##       buffer_idx = mask_in_buffer
-     ##       for class_idx in range(10):
-     ##           idx = (labels_list == class_idx) & buffer_idx
-      ##          if np.any(idx):
-      ##              plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
-       ##                         c=np.array([cmap(class_idx)]), marker='^',
-       ##                         edgecolors='k', linewidths=1.0, s=100, alpha=0.9)
-            
-            # Custom legend
-            legend_elements = [plt.Line2D([0], [0], marker='o', color='w', label=f'Class {i}',
-                                          markerfacecolor=cmap(i), markersize=10) for i in range(10)]
-      ##      legend_elements.append(plt.Line2D([0], [0], marker='^', color='k', label='Buffer Sample',
-        ##                                      markerfacecolor='none', markersize=10, linestyle='None'))
-            
-            plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
-            
-            plt.title('t-SNE of Learned Representations for Task One')
-            plt.xlabel('Dimension 1')
-            plt.ylabel('Dimension 2')
-            
-            plt.tight_layout()
+
             plt.savefig("tsneER")
 
             
@@ -324,29 +280,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
 
 
-            # After collecting features and labels
-            print(f"Number of samples: {len(features_list)}")
-            print(f"Feature shape: {features_list[0].shape if len(features_list) > 0 else 'N/A'}")
-            print(f"Labels: {np.unique(labels_list)}")
-            
-            # Check if mask_in_buffer is correctly computed
-            print(f"Number of Task 1 samples in buffer: {np.sum(mask_in_buffer)}")
-            
-            # Before t-SNE transformation
-            print(f"Features tensor shape: {features_tensor.shape}")
-            
-            # Check for NaNs or infinite values
-            print(f"Any NaNs in features: {torch.isnan(features_tensor).any().item()}")
-            print(f"Any infinite values in features: {torch.isinf(features_tensor).any().item()}")
-
-
-            ##features_2d = features_2d.cpu().numpy()
-            
-            # Debugging statements
-            print(f"t-SNE output shape: {features_2d.shape}")
-            print(f"First few t-SNE outputs:\n{features_2d[:5]}")
-            print(f"Any NaNs in t-SNE output: {np.isnan(features_2d).any()}")
-            print(f"Any infinite values in t-SNE output: {np.isinf(features_2d).any()}")
             
 
         unique_classes_ = set()
