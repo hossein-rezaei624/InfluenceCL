@@ -240,7 +240,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
                     # Move features to CPU and store
                     features.append(rep.cpu())
-                    labels.append(labelscpu())
+                    labels.append(labels.cpu())
             
             # Concatenate all features and labels
             features = torch.cat(features)
