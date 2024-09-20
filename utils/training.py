@@ -223,8 +223,8 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             # Step 1: Extract features, labels, and image hashes for Task 1 samples
             model.net.eval()
-            features = []
-            labels = []
+            features_list = []
+            labels_list = []
             for data in task_1:
                 with torch.no_grad():
                     inputs, labels, not_aug_inputs, index_ = data
@@ -239,28 +239,28 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     
 
                     # Move features to CPU and store
-                    features.append(rep.cpu())
-                    labels.append(labels.cpu())
+                    features_list.append(rep.cpu())
+                    labels_list.append(labels.cpu())
             
             # Concatenate all features and labels
-            features = torch.cat(features)
-            labels = torch.cat(labels)
+            features_list = torch.cat(features_list)
+            labels_list = torch.cat(labels_list)
  
 
             # Initialize t-SNE with desired parameters
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
             
             # Fit and transform the features
-            features_2d = tsne.fit_transform(features)
+            features_2d = tsne.fit_transform(features_list)
 
 
 
             # Convert labels to numpy array for plotting
-            labels = labels.numpy()
+            labels_list = labels_list.numpy()
             
             # Create a scatter plot
             plt.figure(figsize=(12, 10))
-            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=labels, cmap='tab10', alpha=0.7)
+            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=labels_list, cmap='tab10', alpha=0.7)
             
             # Add a legend
             legend = plt.legend(*scatter.legend_elements(), title="Classes")
