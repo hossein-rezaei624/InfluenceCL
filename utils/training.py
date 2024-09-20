@@ -325,7 +325,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                 outputs, rep = model.net.forward(inputs, returnt='all')
 
             features_list.append(rep.cpu().numpy())
-            labels_list.append(labels.numpy())
+            labels_list.append(labels.cpu().numpy())
     features_list = np.concatenate(features_list)
     labels_list = np.concatenate(labels_list)
 
