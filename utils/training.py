@@ -320,6 +320,26 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
 
             model.net.train()
+
+
+
+            # After collecting features and labels
+            print(f"Number of samples: {len(features_list)}")
+            print(f"Feature shape: {features_list[0].shape if len(features_list) > 0 else 'N/A'}")
+            print(f"Labels: {np.unique(labels_list)}")
+            
+            # Check if mask_in_buffer is correctly computed
+            print(f"Number of Task 1 samples in buffer: {np.sum(mask_in_buffer)}")
+            
+            # Before t-SNE transformation
+            print(f"Features tensor shape: {features_tensor.shape}")
+            
+            # Check for NaNs or infinite values
+            print(f"Any NaNs in features: {torch.isnan(features_tensor).any().item()}")
+            print(f"Any infinite values in features: {torch.isinf(features_tensor).any().item()}")
+
+
+        
             
 
         unique_classes_ = set()
