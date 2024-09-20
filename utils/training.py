@@ -6,6 +6,14 @@
 ##import itertools
 
 from corruptions import *
+
+# Add deprecated aliases back to NumPy
+np.float = float
+np.int = int
+np.bool = bool
+np.object = object
+np.long = int
+
 from torchvision.transforms import ToPILImage, PILToTensor
 
 from sklearn.manifold import TSNE
