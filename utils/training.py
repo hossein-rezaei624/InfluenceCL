@@ -242,11 +242,11 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                     labels_np = labels.cpu().numpy()
                     features_np = rep.cpu().numpy()
                     
-                    # Process each sample in the batch
-                    for i in range(inputs_np.shape[0]):
-                        # Compute image hash for each sample
-                        image_hash = hash(inputs_np[i].tobytes())
-                        image_hashes.append(image_hash)
+                ##    # Process each sample in the batch
+                ##    for i in range(inputs_np.shape[0]):
+                ##        # Compute image hash for each sample
+                ##        image_hash = hash(inputs_np[i].tobytes())
+                ##        image_hashes.append(image_hash)
                         
                         # Collect labels and features per sample
                         labels_list.append(labels_np[i])
@@ -254,27 +254,27 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             labels_list = np.array(labels_list)
             features_list = np.array(features_list)
-            image_hashes = np.array(image_hashes)
+         ##   image_hashes = np.array(image_hashes)
             
             # Step 2: Compute image hashes for buffer samples
-            buffer_image_hashes = []
-            with torch.no_grad():
-                inputs = model.buffer.examples
-                inputs = inputs.to(model.device)
+        ##    buffer_image_hashes = []
+       ##     with torch.no_grad():
+        ##        inputs = model.buffer.examples
+       ##         inputs = inputs.to(model.device)
                 
                 # Convert to numpy arrays
-                inputs_np = inputs.cpu().numpy()
+         ##       inputs_np = inputs.cpu().numpy()
                 
-                # Process each sample in the batch
-                for i in range(inputs_np.shape[0]):
-                    # Compute image hash for each sample
-                    image_hash = hash(inputs_np[i].tobytes())
-                    buffer_image_hashes.append(image_hash)
+         ##       # Process each sample in the batch
+        ##        for i in range(inputs_np.shape[0]):
+       ##             # Compute image hash for each sample
+       ##             image_hash = hash(inputs_np[i].tobytes())
+        ##            buffer_image_hashes.append(image_hash)
             
-            buffer_hash_set = set(buffer_image_hashes)
+        ##    buffer_hash_set = set(buffer_image_hashes)
             
             # Step 3: Create a mask indicating which Task 1 samples are in the buffer
-            mask_in_buffer = np.array([image_hash in buffer_hash_set for image_hash in image_hashes])
+      ##      mask_in_buffer = np.array([image_hash in buffer_hash_set for image_hash in image_hashes])
             
             # Apply t-SNE
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
@@ -294,20 +294,20 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                             c=np.array([cmap(class_idx)]), label=f'Class {class_idx}',
                             marker='o', alpha=0.6)
             
-            # Overlay buffer samples as triangles at the same positions
-            buffer_idx = mask_in_buffer
-            for class_idx in range(10):
-                idx = (labels_list == class_idx) & buffer_idx
-                if np.any(idx):
-                    plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
-                                c=np.array([cmap(class_idx)]), marker='^',
-                                edgecolors='k', linewidths=1.0, s=100, alpha=0.9)
+     ##       # Overlay buffer samples as triangles at the same positions
+     ##       buffer_idx = mask_in_buffer
+     ##       for class_idx in range(10):
+     ##           idx = (labels_list == class_idx) & buffer_idx
+      ##          if np.any(idx):
+      ##              plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
+       ##                         c=np.array([cmap(class_idx)]), marker='^',
+       ##                         edgecolors='k', linewidths=1.0, s=100, alpha=0.9)
             
             # Custom legend
             legend_elements = [plt.Line2D([0], [0], marker='o', color='w', label=f'Class {i}',
                                           markerfacecolor=cmap(i), markersize=10) for i in range(10)]
-            legend_elements.append(plt.Line2D([0], [0], marker='^', color='k', label='Buffer Sample',
-                                              markerfacecolor='none', markersize=10, linestyle='None'))
+      ##      legend_elements.append(plt.Line2D([0], [0], marker='^', color='k', label='Buffer Sample',
+        ##                                      markerfacecolor='none', markersize=10, linestyle='None'))
             
             plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
             
