@@ -10,6 +10,7 @@ from torchvision.transforms import ToPILImage, PILToTensor
 
 from tsne_torch import TorchTSNE as TSNE
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 import math
 import sys
@@ -245,16 +246,37 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             # Concatenate all features and labels
             features_list = torch.cat(features_list)
             labels_list = torch.cat(labels_list)
- 
 
+
+
+            # Check the shape and statistics of features
+            print(f"Features shape: {features_list.shape}")
+            print(f"Features mean: {features_list.mean().item()}, std: {features_list.std().item()}")
+            
+            # Check unique labels
+            unique_labels = np.unique(labels_list)
+            print(f"Unique labels: {unique_labels}")
+
+
+            scaler = StandardScaler()
+            features_scaled = scaler.fit_transform(features_list.numpy())
+
+            
+            
             # Initialize t-SNE with desired parameters
-            tsne = TSNE(n_components=2, perplexity=5, n_iter=1000)
+            tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
             
             # Fit and transform the features
-            features_2d = tsne.fit_transform(features_list)
+            features_2d = tsne.fit_transform(features_scaled)
 
 
+            
+            # Check for NaNs in features_2d
+            num_nans = np.isnan(features_2d).sum()
+            print(f"Number of NaNs in features_2d: {num_nans}")
 
+
+            
             # Convert labels to numpy array for plotting
             labels_list = labels_list.numpy()
             
