@@ -220,37 +220,88 @@ def train(model: ContinualModel, dataset: ContinualDataset,
         if t == 0:
             task_1 = train_loader
         if t == 1:
+            
+            # Step 1: Extract features, labels, and image hashes for Task 1 samples
             model.net.eval()
             features_list = []
             labels_list = []
+            image_hashes = []
             for data in task_1:
                 with torch.no_grad():
                     inputs, labels, not_aug_inputs, index_ = data
-                    inputs, labels = inputs.to(model.device), labels.to(model.device)
-        
+                    inputs = inputs.to(model.device)
+                    labels_list.append(labels.cpu().numpy())
+                    
+                    # Compute image hash
+                    image_hash = hash(inputs.cpu().numpy().tobytes())
+                    image_hashes.append(image_hash)
+                    
+                    # Extract features
                     if model.NAME == 'casp':
                         outputs, rep = model.net.pcrForward(inputs)
                     else:
                         outputs, rep = model.net.forward(inputs, returnt='all')
-        
                     features_list.append(rep.cpu().numpy())
-                    labels_list.append(labels.cpu().numpy())
+            
             features_list = np.concatenate(features_list)
             labels_list = np.concatenate(labels_list)
-        
+            image_hashes = np.array(image_hashes)
+            
+            # Step 2: Compute image hashes for buffer samples
+            buffer_image_hashes = []
+            with torch.no_grad():
+                inputs = model.buffer.examples
+                inputs = inputs.to(model.device)
+                image_hash = hash(inputs.cpu().numpy().tobytes())
+                buffer_image_hashes.append(image_hash)
+            
+            buffer_hash_set = set(buffer_image_hashes)
+            
+            # Step 3: Create a mask indicating which Task 1 samples are in the buffer
+            mask_in_buffer = np.array([image_hash in buffer_hash_set for image_hash in image_hashes])
+            
             # Apply t-SNE
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
-            features_2d = tsne.fit_transform(torch.tensor(features_list))
-        
-        
-            plt.figure(figsize=(10, 8))
-            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], cmap='viridis', alpha=0.6)
-            plt.legend(handles=scatter.legend_elements()[0], labels=['Task 1 Samples', 'Buffer Samples'])
+            features_2d = tsne.fit_transform(features_list)
+            
+            # Plotting
+            plt.figure(figsize=(12, 10))
+            
+            # Create a colormap with 10 distinct colors
+            cmap = plt.cm.get_cmap('tab10', 10)  # 'tab10' is suitable for up to 10 classes
+            
+            # Plot all Task 1 samples as circles, colored by class labels
+            for class_idx in range(10):
+                idx = labels_list == class_idx
+                plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
+                            c=np.array([cmap(class_idx)]), label=f'Class {class_idx}',
+                            marker='o', alpha=0.6)
+            
+            # Overlay buffer samples as triangles at the same positions
+            buffer_idx = mask_in_buffer
+            for class_idx in range(10):
+                idx = (labels_list == class_idx) & buffer_idx
+                if np.any(idx):
+                    plt.scatter(features_2d[idx, 0], features_2d[idx, 1],
+                                c=np.array([cmap(class_idx)]), marker='^',
+                                edgecolors='k', linewidths=1.0, s=100, alpha=0.9)
+            
+            # Custom legend
+            legend_elements = [plt.Line2D([0], [0], marker='o', color='w', label=f'Class {i}',
+                                          markerfacecolor=cmap(i), markersize=10) for i in range(10)]
+            legend_elements.append(plt.Line2D([0], [0], marker='^', color='k', label='Buffer Sample',
+                                              markerfacecolor='none', markersize=10, linestyle='None'))
+            
+            plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+            
             plt.title('t-SNE of Learned Representations for Task One')
             plt.xlabel('Dimension 1')
             plt.ylabel('Dimension 2')
-        
+            
+            plt.tight_layout()
             plt.savefig("tsneER")
+
+            model.net.train()
             
 
         unique_classes_ = set()
