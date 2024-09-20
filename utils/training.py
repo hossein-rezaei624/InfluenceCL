@@ -340,7 +340,13 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             print(f"Any infinite values in features: {torch.isinf(features_tensor).any().item()}")
 
 
-        
+            features_2d = features_2d.cpu().numpy()
+            
+            # Debugging statements
+            print(f"t-SNE output shape: {features_2d.shape}")
+            print(f"First few t-SNE outputs:\n{features_2d[:5]}")
+            print(f"Any NaNs in t-SNE output: {np.isnan(features_2d).any()}")
+            print(f"Any infinite values in t-SNE output: {np.isinf(features_2d).any()}")
             
 
         unique_classes_ = set()
