@@ -248,7 +248,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
  
 
             # Initialize t-SNE with desired parameters
-            tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
+            tsne = TSNE(n_components=2, perplexity=5, n_iter=1000)
             
             # Fit and transform the features
             features_2d = tsne.fit_transform(features_list)
