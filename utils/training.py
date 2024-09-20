@@ -9,10 +9,6 @@ from corruptions import *
 
 # Add deprecated aliases back to NumPy
 np.float = float
-#np.int = int
-#np.bool = bool
-#np.object = object
-#np.long = int
 
 from torchvision.transforms import ToPILImage, PILToTensor
 
@@ -256,33 +252,14 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             labels_list = torch.cat(labels_list)
 
 
-
-            # Check the shape and statistics of features
-            print(f"Features shape: {features_list.shape}")
-            print(f"Features mean: {features_list.mean().item()}, std: {features_list.std().item()}")
-            
-            # Check unique labels
-            unique_labels = np.unique(labels_list)
-            print(f"Unique labels: {unique_labels}")
-
-
             scaler = StandardScaler()
             features_scaled = scaler.fit_transform(features_list.numpy())
-
-            
             
             # Initialize t-SNE with desired parameters
             tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
             
             # Fit and transform the features
             features_2d = tsne.fit_transform(features_scaled)
-
-
-            
-            # Check for NaNs in features_2d
-            num_nans = np.isnan(features_2d).sum()
-            print(f"Number of NaNs in features_2d: {num_nans}")
-
 
             
             # Convert labels to numpy array for plotting
@@ -300,15 +277,9 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             plt.title('t-SNE of Learned Representations from the First Task')
             plt.xlabel('t-SNE Dimension 1')
             plt.ylabel('t-SNE Dimension 2')
-            
-
             plt.savefig("tsneER")
 
-            
-
             model.net.train()
-
-
 
             
 
