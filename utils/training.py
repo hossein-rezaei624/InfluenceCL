@@ -375,7 +375,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
 
             
-            plt.savefig("tsneERnew50")
+            plt.savefig("tsneERnew10")
 
             model.net.train()
 
