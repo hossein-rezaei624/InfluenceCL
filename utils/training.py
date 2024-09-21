@@ -323,7 +323,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for data in task_1:
         with torch.no_grad():
             inputs, labels, not_aug_inputs, index_ = data
-            not_aug_inputs = not_aug_inputs.to(model.device)
+            not_aug_inputs = inputs.to(model.device)
             labels = labels.to(model.device)
             
             # Extract features
