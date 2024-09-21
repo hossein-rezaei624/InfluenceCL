@@ -282,7 +282,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             
             # Convert features to NumPy arrays
             features_task1_np = features_list.numpy()
-            features_buffer_np = features_buffer.cpu().numpy()
+            features_buffer_np = features_buffer.detach().cpu().numpy()
             
             # Set a small tolerance for matching features
             tolerance = 1e-6
