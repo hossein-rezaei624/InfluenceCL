@@ -305,7 +305,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             # Convert to a NumPy array
             buffer_indices_in_task1 = np.array(buffer_indices_in_task1)
 
-            buffer_mask = np.zeros(len(labels_task1), dtype=bool)
+            buffer_mask = np.zeros(len(labels_list), dtype=bool)
             buffer_mask[buffer_indices_in_task1] = True
             print("buffer_mask.size", buffer_mask.size)
             
