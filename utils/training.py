@@ -367,7 +367,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     plt.title('t-SNE of Learned Representations from the First Task')
     plt.xlabel('t-SNE Dimension 1')
     plt.ylabel('t-SNE Dimension 2')
-    plt.savefig(f'{model.NAME}')
+    plt.savefig(f'{model.NAME}+plus')
 
     model.net.train()
 
