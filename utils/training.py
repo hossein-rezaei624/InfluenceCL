@@ -312,11 +312,11 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
             
             # Prepare color mapping
-            classes = np.unique(labels_list)
+            classes = np.unique(labels_list.item())
             num_classes = len(classes)
             cmap = cm.get_cmap('tab10', num_classes)
             label_to_color = {label: cmap(i) for i, label in enumerate(classes)}
-            colors = np.array([label_to_color[label] for label in labels_list])
+            colors = np.array([label_to_color[label.item()] for label in labels_list])
             
             # Plotting
             fig, ax = plt.subplots(figsize=(12, 10))
