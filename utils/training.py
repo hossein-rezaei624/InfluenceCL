@@ -227,7 +227,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
         if t == 0:
             task_1 = train_loader
-        if t == 1:
+        if t == 2:
             
             # Step 1: Extract features, labels, and image hashes for Task 1 samples
             model.net.eval()
