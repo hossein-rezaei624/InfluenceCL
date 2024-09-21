@@ -275,7 +275,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
             # Concatenate features and labels
             features_buffer = rep
-            labels_buffer = model.buffer.labels.numpy()
+            labels_buffer = model.buffer.labels.cpu().numpy()
 
 
 
