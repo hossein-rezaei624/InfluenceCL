@@ -1,4 +1,4 @@
-# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.#
+# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
@@ -15,6 +15,9 @@ from torchvision.transforms import ToPILImage, PILToTensor
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import NearestNeighbors
+import matplotlib.cm as cm
+from matplotlib.lines import Line2D
 
 import math
 import sys
@@ -261,23 +264,118 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             # Fit and transform the features
             features_2d = tsne.fit_transform(features_scaled)
 
+
+
+
+            # Extract features
+            if model.NAME == 'casp':
+                outputs, rep = model.net.pcrForward(model.buffer.examples)
+            else:
+                outputs, rep = model.net.forward(model.buffer.examples, returnt='all')
+
+            # Concatenate features and labels
+            features_buffer = rep
+            labels_buffer = model.buffer.labels.numpy()
+
+
+
             
-            # Convert labels to numpy array for plotting
-            labels_list = labels_list.numpy()
+            # Convert features to NumPy arrays
+            features_task1_np = features_list.numpy()
+            features_buffer_np = features_buffer.numpy()
             
-            # Create a scatter plot
-            plt.figure(figsize=(12, 10))
-            scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=labels_list, cmap='tab10', alpha=0.7)
+            # Set a small tolerance for matching features
+            tolerance = 1e-6
             
-            # Add a legend
-            legend = plt.legend(*scatter.legend_elements(), title="Classes")
-            plt.gca().add_artist(legend)
+            # Initialize a list to store indices of buffer samples in task 1 samples
+            buffer_indices_in_task1 = []
             
-            # Add title and labels
-            plt.title('t-SNE of Learned Representations from the First Task')
-            plt.xlabel('t-SNE Dimension 1')
-            plt.ylabel('t-SNE Dimension 2')
-            plt.savefig("tsneER50")
+            nbrs = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(features_task1_np)
+            
+            # Find the nearest neighbor in task1 features for each buffer feature
+            distances, indices = nbrs.kneighbors(features_buffer_np)
+            
+            # Apply tolerance to filter out non-matching features
+            for i, (dist, idx) in enumerate(zip(distances, indices)):
+                if dist[0] < tolerance:
+                    buffer_indices_in_task1.append(idx[0])
+                else:
+                    print(f"Buffer sample {i} did not match any task 1 sample within tolerance.")
+            
+            # Convert to a NumPy array
+            buffer_indices_in_task1 = np.array(buffer_indices_in_task1)
+
+            buffer_mask = np.zeros(len(labels_task1), dtype=bool)
+            buffer_mask[buffer_indices_in_task1] = True
+            print("buffer_mask.size", buffer_mask.size)
+            
+
+            
+            # Prepare color mapping
+            classes = np.unique(labels_list)
+            num_classes = len(classes)
+            cmap = cm.get_cmap('tab10', num_classes)
+            label_to_color = {label: cmap(i) for i, label in enumerate(classes)}
+            colors = np.array([label_to_color[label] for label in labels_list])
+            
+            # Plotting
+            fig, ax = plt.subplots(figsize=(12, 10))
+            
+            # Non-buffer samples (circles)
+            ax.scatter(
+                features_2d[~buffer_mask, 0],
+                features_2d[~buffer_mask, 1],
+                c=colors[~buffer_mask],
+                marker='o',
+                alpha=0.7,
+                edgecolors='none'
+            )
+            
+            # Buffer samples (triangles)
+            ax.scatter(
+                features_2d[buffer_mask, 0],
+                features_2d[buffer_mask, 1],
+                c=colors[buffer_mask],
+                marker='^',
+                alpha=0.7,
+                edgecolors='k'
+            )
+            
+            # Legends
+            marker_legend_elements = [
+                Line2D([0], [0], marker='o', color='w', label='Non-buffer samples',
+                       markerfacecolor='gray', markersize=10),
+                Line2D([0], [0], marker='^', color='w', label='Buffer samples',
+                       markerfacecolor='gray', markeredgecolor='k', markersize=10)
+            ]
+            
+            class_legend_elements = [
+                Line2D([0], [0], marker='s', color='w', label=str(class_id),
+                       markerfacecolor=label_to_color[class_id], markersize=10)
+                for class_id in classes
+            ]
+            
+            # Add legends
+            class_legend = ax.legend(
+                handles=class_legend_elements,
+                title='Classes',
+                bbox_to_anchor=(1.05, 1),
+                loc='upper left'
+            )
+            ax.add_artist(class_legend)
+            marker_legend = ax.legend(
+                handles=marker_legend_elements,
+                title='Sample Type',
+                loc='best'
+            )
+            
+            ax.set_title('t-SNE of Learned Representations from the First Task')
+            ax.set_xlabel('t-SNE Dimension 1')
+            ax.set_ylabel('t-SNE Dimension 2')
+
+
+            
+            plt.savefig("tsneERnew")
 
             model.net.train()
 
