@@ -224,7 +224,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
         if t == 0:
             task_1 = train_loader
-        if t == 2:
+        if t == 1:
             
             # Step 1: Extract features, labels, and image hashes for Task 1 samples
             model.net.eval()
@@ -277,7 +277,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             plt.title('t-SNE of Learned Representations from the First Task')
             plt.xlabel('t-SNE Dimension 1')
             plt.ylabel('t-SNE Dimension 2')
-            plt.savefig("tsneER")
+            plt.savefig("tsneER50")
 
             model.net.train()
 
