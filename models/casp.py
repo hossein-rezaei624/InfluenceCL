@@ -1,4 +1,4 @@
-import torch ##start adding random
+import torch
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
