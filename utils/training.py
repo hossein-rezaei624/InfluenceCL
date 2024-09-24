@@ -7,14 +7,7 @@
 
 from corruptions import *
 
-# Add deprecated aliases back to NumPy
-np.float = float
-
 from torchvision.transforms import ToPILImage, PILToTensor
-
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
 
 import math
 import sys
@@ -188,8 +181,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     :param args: the arguments of the current execution
     """
     print(args)
-
-    task_class_ = {}
               
     if not args.nowand:
         assert wandb is not None, "Wandb not installed, please install it or run without wandb"
@@ -221,18 +212,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
-
-        if t == 0:
-            task_1 = train_loader
-
-        unique_classes_ = set()
-        for _, labels_, _, _ in train_loader:
-            unique_classes_.update(labels_.numpy())
-            if len(unique_classes_)==dataset.N_CLASSES_PER_TASK:
-                break
-        
-        task_class_.update({value: t for index, value in enumerate(unique_classes_)})
-
         
         if hasattr(model, 'begin_task'):
             if model.NAME == 'casp':
@@ -304,73 +283,6 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                 **{f'RESULT_task_acc_ood_{i}': a for i, a in enumerate(accs[3])}}
 
             wandb.log(d2)
-
-
-    confidence_by_task_ = {task_id:0 for task_id in range(dataset.N_TASKS)}
-    confidence_by_class_ = {class_id:0 for class_id in range(dataset.N_TASKS*dataset.N_CLASSES_PER_TASK)}
-    for j in range(model.args.buffer_size):
-        confidence_by_task_[task_class_[model.buffer.labels[j].item()]] += 1
-        confidence_by_class_[model.buffer.labels[j].item()] += 1
-        
-    print("confidence_by_task_", confidence_by_task_)
-    print("confidence_by_class_", confidence_by_class_)
-
-
-    # Step 1: Extract features, labels, and image hashes for Task 1 samples
-    model.net.eval()
-    features_list = []
-    labels_list = []
-    for data in task_1:
-        with torch.no_grad():
-            inputs, labels, not_aug_inputs, index_ = data
-            not_aug_inputs = inputs.to(model.device)
-            labels = labels.to(model.device)
-            
-            # Extract features
-            if model.NAME == 'casp':
-                outputs, rep = model.net.pcrForward(not_aug_inputs)
-            else:
-                outputs, rep = model.net.forward(not_aug_inputs, returnt='all')
-            
-
-            # Move features to CPU and store
-            features_list.append(rep.cpu())
-            labels_list.append(labels.cpu())
-    
-    # Concatenate all features and labels
-    features_list = torch.cat(features_list)
-    labels_list = torch.cat(labels_list)
-
-
-    scaler = StandardScaler()
-    features_scaled = scaler.fit_transform(features_list.numpy())
-    
-    # Initialize t-SNE with desired parameters
-    tsne = TSNE(n_components=2, perplexity=30, n_iter=1000)
-    
-    # Fit and transform the features
-    features_2d = tsne.fit_transform(features_scaled)
-
-    
-    # Convert labels to numpy array for plotting
-    labels_list = labels_list.numpy()
-    
-    # Create a scatter plot
-    plt.figure(figsize=(12, 10))
-    scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1], c=labels_list, cmap='tab10', alpha=0.6)
-    
-    # Add a legend
-    legend = plt.legend(*scatter.legend_elements(), title="Classes")
-    plt.gca().add_artist(legend)
-    
-    # Add title and labels
-    plt.title('t-SNE of Learned Representations from the First Task')
-    plt.xlabel('t-SNE Dimension 1')
-    plt.ylabel('t-SNE Dimension 2')
-    plt.savefig(f'{model.NAME}+plus')
-
-    model.net.train()
-
               
 
     if not args.disable_log and not args.ignore_other_metrics:
