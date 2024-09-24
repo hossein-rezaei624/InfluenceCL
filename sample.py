@@ -1,4 +1,4 @@
-# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.#
+# Copyright 2022-present, Lorenzo Bonicelli, Pietro Buzzega, Matteo Boschini, Angelo Porrello, Simone Calderara.
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
@@ -6,7 +6,6 @@
 ##import itertools
 
 from corruptions import *
-
 from torchvision.transforms import ToPILImage, PILToTensor
 
 import math
@@ -181,7 +180,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     :param args: the arguments of the current execution
     """
     print(args)
-              
+
     if not args.nowand:
         assert wandb is not None, "Wandb not installed, please install it or run without wandb"
         name_of_run = f"{args.model}_{args.buffer_size}_{args.dataset}"
@@ -212,7 +211,13 @@ def train(model: ContinualModel, dataset: ContinualDataset,
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
-        
+        #unique_classes = set(itertools.chain.from_iterable(labels.numpy() for _, labels, _, _ in train_loader))
+##        unique_classes = set()
+##        for _, labels, _, _ in train_loader:
+##            unique_classes.update(labels.numpy())
+##            if len(unique_classes)==dataset.N_CLASSES_PER_TASK:
+##                break
+##        print("unique_classes", unique_classes)
         if hasattr(model, 'begin_task'):
             if model.NAME == 'casp':
                 model.begin_task(dataset, train_loader)
@@ -283,7 +288,14 @@ def train(model: ContinualModel, dataset: ContinualDataset,
                 **{f'RESULT_task_acc_ood_{i}': a for i, a in enumerate(accs[3])}}
 
             wandb.log(d2)
-              
+
+
+    ##print("model.buffer.labels", model.buffer.labels)
+    ##ha = args.buffer_size
+    ##print("part 1:",  model.buffer.labels[:ha//4])
+    ##print("part 2:",  model.buffer.labels[ha//4:ha//2])
+    ##print("part 3:",  model.buffer.labels[ha//2:-ha//4])
+    ##print("part 4:",  model.buffer.labels[-ha//4:])
 
     if not args.disable_log and not args.ignore_other_metrics:
         logger.add_bwt(results, results_mask_classes, results_augmented, results_mask_classes_augmented)
