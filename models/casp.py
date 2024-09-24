@@ -10,6 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
 
+from collections import defaultdict
+import random
+
 
 def get_parser() -> ArgumentParser:
     parser = ArgumentParser(description='Continual learning via'
@@ -17,7 +20,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--n_fine_epoch', type=int,
+    parser.add_argument('--n_fine_epoch', type=int, default=2,
                         help='Epoch for strategies')
     
     return parser
@@ -180,13 +183,13 @@ class Casp(ContinualModel):
             self.predicted_epoch = self.args.n_fine_epoch
             print("self.predicted_epoch", self.predicted_epoch)
         
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty(): #here was
+        if self.epoch < self.predicted_epoch and not self.buffer.is_empty(): #here was
             self.net.eval()
             with torch.no_grad():
                 buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
                 soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
                 for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_buffer[j, self.buffer.labels[j]].item())
+                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
             self.net.train()
 
         
@@ -194,13 +197,13 @@ class Casp(ContinualModel):
         
         if self.epoch == self.args.n_epochs:
             # Calculate mean confidence by class
-            mean_by_class = {class_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
+            mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
             std_of_means_by_class = {class_id: torch.var(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
 
 
-            mean_by_task = {task_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
+            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
             std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
             
             
@@ -218,49 +221,21 @@ class Casp(ContinualModel):
             
         
             # Sort indices based on the Confidence
-            sorted_indices_1 = np.argsort(Confidence_mean.numpy())
+            ##sorted_indices_1 = np.argsort(Confidence_mean.numpy())
             
             # Sort indices based on the variability
-            ##sorted_indices_2 = np.argsort(Variability.numpy())
+            sorted_indices_2 = np.argsort(Variability.numpy())
             
         
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
-            top_indices_sorted = sorted_indices_1[::-1].copy() #simple
+            ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
         
             # Descending order
-            ##top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
+            top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
-
-            # Initialize lists to hold data
-            all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
             
-            # Collect all data
-            for data_1 in train_loader:
-                inputs_1, labels_1, not_aug_inputs_1, indices_1 = data_1
-                all_inputs.append(inputs_1)
-                all_labels.append(labels_1)
-                all_not_aug_inputs.append(not_aug_inputs_1)
-                all_indices.append(indices_1)
-            
-            # Concatenate all collected items to form complete arrays            
-            all_inputs = torch.cat(all_inputs, dim=0)
-            all_labels = torch.cat(all_labels, dim=0)
-            all_not_aug_inputs = torch.cat(all_not_aug_inputs, dim=0)
-            all_indices = torch.cat(all_indices, dim=0)
-
-            # Convert sorted_indices_2 to a tensor for indexing
-            top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
-
-            # Find the positions of these indices in the shuffled order
-            positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
-
-            # Extract inputs and labels using these positions
-            ###all_images = all_inputs[positions]
-            ###all_not_aug_inputs = all_not_aug_inputs[positions]
-            all_images = all_not_aug_inputs[positions]
-            all_labels = all_labels[positions]
 
 
             # Extract the first 12 images to display (or fewer if there are less than 12 images)
@@ -286,18 +261,18 @@ class Casp(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1/v for k, v in updated_std_of_means_by_class.items()} # comment for balance
+            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
             updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
             print("updated_std_of_means_by_class", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
             
 
-            ###self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].var(dim=0)).item())
+            ####self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].var(dim=0)).item())
             
-            ###updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
-            ###print("updated_task_portion", updated_task_portion)
-            ###dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
+            ####updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
+            ####print("updated_task_portion", updated_task_portion)
+            ####dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
 
 ##            if self.task > 1:
 ##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
@@ -317,7 +292,7 @@ class Casp(ContinualModel):
 ####                    dist_task_prev[o] += 1
 
 
-            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
+            ##updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
@@ -357,23 +332,33 @@ class Casp(ContinualModel):
                     condition = distribute_excess(condition, check_bound)
                     break
         
-            # Initialize new lists for adjusted images and labels
-            images_list_ = []
-            labels_list_ = []
-        
-            # Iterate over all_labels and select most challening images for each class based on the class variability
-            for i in range(all_labels.shape[0]):
-                if counter_class[self.mapping[all_labels[i].item()]] < condition[self.mapping[all_labels[i].item()]]:
-                    counter_class[self.mapping[all_labels[i].item()]] += 1
-                    labels_list_.append(all_labels[i])
-                    images_list_.append(all_images[i])
-                if counter_class == condition:
-                    break
-        
-            # Stack the selected images and labels
-            all_images_ = torch.stack(images_list_).to(self.device)
-            all_labels_ = torch.stack(labels_list_).to(self.device)
-        
+
+            # Assuming train_loader is defined and each batch consists of (inputs, labels)
+            class_samples = defaultdict(list)
+            
+            for inputs_1, labels_1, not_aug_inputs_1, indices_1 in train_loader:
+                for input, label in zip(inputs_1, labels_1):
+                    class_samples[label.item()].append((input, label))
+
+            desired_samples = condition
+            selected_data = []
+            
+            for label, samples in class_samples.items():
+                n_samples = desired_samples[self.mapping[label]]
+                if len(samples) >= n_samples:
+                    selected_data.extend(random.sample(samples, n_samples))
+                else:
+                    print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
+
+
+            # Extracting images and labels into separate lists
+            images11 = [data[0] for data in selected_data]  # data[0] is the image tensor
+            labels11 = [data[1] for data in selected_data]  # data[1] is the label tensor
+
+            # Convert lists of tensors to single tensors
+            all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
+            all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
+            
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
@@ -400,25 +385,38 @@ class Casp(ContinualModel):
             self.dist_class_prev = dist_class_merged.copy()
             self.dist_class_prev.update(dist_last)
             if not self.buffer.is_empty():
-                # Initialize new lists for adjusted images and labels
-                images_store = []
-                labels_store = []
+
+
+                # Assuming train_loader is defined and each batch consists of (inputs, labels)
+                class_samples_buffer = defaultdict(list)
                 
-                # Iterate over all_labels and select most challening images for each class based on the class variability
-                for i in range(len(self.buffer)):
-                    if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
-                        counter_manage_merged[self.buffer.labels[i].item()] += 1
-                        labels_store.append(self.buffer.labels[i])
-                        images_store.append(self.buffer.examples[i])
-                    if counter_manage_merged == dist_class_merged:
-                        break
+                for input, label in zip(self.buffer.examples, self.buffer.labels):
+                    class_samples_buffer[label.item()].append((input, label))
+    
+                desired_samples_buffer = dist_class_merged
+                selected_data_buffer = []
                 
-                # Stack the selected images and labels
-                images_store_ = torch.stack(images_store).to(self.device)
-                labels_store_ = torch.stack(labels_store).to(self.device)
-                
+                for label, samples in class_samples_buffer.items():
+                    n_samples = desired_samples_buffer[label]
+                    if len(samples) >= n_samples:
+                        selected_data_buffer.extend(random.sample(samples, n_samples))
+                    else:
+                        print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
+    
+    
+                # Extracting images and labels into separate lists
+                images11_buffer = [data[0] for data in selected_data_buffer]  # data[0] is the image tensor
+                labels11_buffer = [data[1] for data in selected_data_buffer]  # data[1] is the label tensor
+    
+                # Convert lists of tensors to single tensors
+                images_store_ = torch.stack(images11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
+                labels_store_ = torch.stack(labels11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
+
+
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
+
+            
 
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
@@ -431,7 +429,7 @@ class Casp(ContinualModel):
             
 
     def observe(self, inputs, labels, not_aug_inputs, index_):
-        
+
         real_batch_size = inputs.shape[0]
         
         if self.epoch < self.predicted_epoch: #self.predicted_epoch
@@ -470,13 +468,13 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch):
+        if self.epoch < self.predicted_epoch:
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
                 soft_task = nn.functional.softmax(casp_logits, dim=1)
                 for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
+                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
             self.net.train()
 
         
