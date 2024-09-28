@@ -136,7 +136,6 @@ class SequentialTinyImagenet(ContinualDataset):
 
         train_dataset = MyTinyImagenet(base_path() + 'TINYIMG',
                                  train=True, download=True, transform=transform)
-        print("len of train data set", len(train_dataset.data))
         train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
@@ -145,7 +144,6 @@ class SequentialTinyImagenet(ContinualDataset):
             test_dataset = TinyImagenet(base_path() + 'TINYIMG',
                         train=False, download=True, transform=test_transform)
 
-        print("len of test data set", len(test_dataset.data))
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
         return train, test
 
