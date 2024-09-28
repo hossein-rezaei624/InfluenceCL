@@ -89,6 +89,7 @@ class SequentialCIFAR100(ContinualDataset):
 
         train_dataset = MyCIFAR100(base_path() + 'CIFAR100', train=True,
                                   download=True, transform=transform)
+        print("len of train data set", len(train_dataset.data))
         train_dataset.not_aug_transform = test_transform  # store normalized images in the buffer
         if self.args.validation:
             train_dataset, test_dataset = get_train_val(train_dataset,
@@ -96,7 +97,7 @@ class SequentialCIFAR100(ContinualDataset):
         else:
             test_dataset = TCIFAR100(base_path() + 'CIFAR100',train=False,
                                    download=True, transform=test_transform)
-
+        print("len of test data set", len(test_dataset.data))
         train, test = store_masked_loaders(train_dataset, test_dataset, self)
 
         return train, test
