@@ -17,7 +17,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--n_fine_epoch', type=int,
+    parser.add_argument('--n_fine_epoch', type=int, default=5,
                         help='Epoch for strategies')
     
     return parser
@@ -168,53 +168,19 @@ class Casp(ContinualModel):
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == 0 and self.task == 1:
-            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
-            print("self.predicted_epoch", self.predicted_epoch)
-            self.predicted_epoch = round(self.predicted_epoch * np.log(dataset.N_CLASSES_PER_TASK) / np.log(dataset.N_TASKS))
-            print("self.predicted_epoch", self.predicted_epoch)
-            if self.predicted_epoch > self.args.n_epochs:
-                self.predicted_epoch = self.args.n_epochs
-            if self.predicted_epoch < 2:
-                self.predicted_epoch = 2
-            self.predicted_epoch = self.args.n_fine_epoch
-            print("self.predicted_epoch", self.predicted_epoch)
-        
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch) and not self.buffer.is_empty(): #here was
-            self.net.eval()
-            with torch.no_grad():
-                buffer_logits, _ = self.net.pcrForward(self.buffer.examples)
-                soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
-                for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_buffer[j, self.buffer.labels[j]].item())
-            self.net.train()
-
-        
+        self.predicted_epoch = self.args.n_fine_epoch
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
-            # Calculate mean confidence by class
-            mean_by_class = {class_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.var(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
-
-
-            mean_by_task = {task_id: {epoch: torch.var(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
-            std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
+            std_of_means_by_class = {class_id: 1 for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_task = {task_id: 1 for task_id in range(self.task)}
             
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
             Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
-
-            ##plt.scatter(Variability, Confidence_mean, s = 2)
-            
-            ##plt.xlabel("Variability") 
-            ##plt.ylabel("Confidence") 
-            
-            ##plt.savefig('scatter_plot.png')
-
             
         
             # Sort indices based on the Confidence
@@ -257,67 +223,17 @@ class Casp(ContinualModel):
             positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
 
             # Extract inputs and labels using these positions
-            ###all_images = all_inputs[positions]
-            ###all_not_aug_inputs = all_not_aug_inputs[positions]
             all_images = all_not_aug_inputs[positions]
             all_labels = all_labels[positions]
-
-
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            ##images_display = [all_images[j] for j in range(100)]
-    
-            # Make a grid from these images
-            ##grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
-            
-            # Save grid image with unique name for each batch
-            ##torchvision.utils.save_image(grid, 'grid_image.png')
-
-
-
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            ##images_display_ = [all_not_aug_inputs[j] for j in range(100)]
-    
-            # Make a grid from these images
-            ##grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
-            
-            # Save grid image with unique name for each batch
-            ##torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
 
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: 1/v for k, v in updated_std_of_means_by_class.items()} # comment for balance
             updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
             print("updated_std_of_means_by_class", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
             
-
-            ###self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].var(dim=0)).item())
-            
-            ###updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
-            ###print("updated_task_portion", updated_task_portion)
-            ###dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
-
-##            if self.task > 1:
-##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
-##                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
-            
-####            same_task_number = self.args.buffer_size//self.task
-####            dist_task = {i:same_task_number for i in range(self.task)}
-####            diff = self.args.buffer_size - same_task_number*self.task
-####            for o in range(diff):
-####                dist_task[o] += 1
-####
-####            if self.task > 1:
-####                same_task_number_prev = self.args.buffer_size//(self.task - 1)
-####                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-####                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-####                for o in range(diff_prev):
-####                    dist_task_prev[o] += 1
-
-
-            ##updated_std_of_means_by_task = {k: v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
             print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
@@ -329,8 +245,6 @@ class Casp(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
-###            if self.task > 1:
-###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
             self.dist_task_prev = dist_task
 
@@ -434,9 +348,6 @@ class Casp(ContinualModel):
         
         real_batch_size = inputs.shape[0]
         
-        if self.epoch < self.predicted_epoch: #self.predicted_epoch
-            targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
-            confidence_batch = []
 
         # batch update
         batch_x, batch_y = inputs, labels
@@ -453,6 +364,8 @@ class Casp(ContinualModel):
         self.opt.zero_grad()
 
         if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+            targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
+            confidence_batch = []
             self.net.eval()
             with torch.no_grad():
                 casp_logits, _ = self.net.pcrForward(not_aug_inputs)
@@ -460,9 +373,6 @@ class Casp(ContinualModel):
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
                     confidence_batch.append(soft_[i,labels[i]].item())
-                    
-                    # Update the dictionary with the confidence score for the current class for the current epoch
-                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
                 
                 # Record the confidence scores for samples in the corresponding tensor
                 conf_tensor = torch.tensor(confidence_batch)
@@ -470,14 +380,7 @@ class Casp(ContinualModel):
             self.net.train()
     
 
-        if self.epoch >= (self.args.n_epochs - self.predicted_epoch):
-            self.net.eval()
-            with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_task = nn.functional.softmax(casp_logits, dim=1)
-                for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch - (self.args.n_epochs - self.predicted_epoch)].append(soft_task[j, labels[j]].item())
-            self.net.train()
+
 
         
         if self.buffer.is_empty():
@@ -527,8 +430,6 @@ class Casp(ContinualModel):
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
             novel_loss += PSC(features=cos_features, labels=combined_labels)
 
-        if self.epoch == 0 and self.task == 1:
-            self.task_conf_first.append(novel_loss.item())
         
         novel_loss.backward()
         self.opt.step()
