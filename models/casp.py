@@ -137,7 +137,6 @@ class Casp(ContinualModel):
         self.unique_classes = set()
         self.mapping = {}
         self.reverse_mapping = {}
-        self.confidence_by_class = {}
         self.confidence_by_sample = None
         self.n_sample_per_task = None
         self.class_portion = []
@@ -145,8 +144,6 @@ class Casp(ContinualModel):
         self.dist_task_prev = None
         self.task_class = {}
         self.dist_class_prev = None
-        self.predicted_epoch = 1
-        self.task_conf_first = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -161,14 +158,11 @@ class Casp(ContinualModel):
                 break
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.n_epochs)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
-        self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.n_epochs)} for task_id in range(self.task)}
         self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
     
     def end_epoch(self, dataset, train_loader):
 
-        self.predicted_epoch = self.args.n_fine_epoch
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
@@ -179,8 +173,8 @@ class Casp(ContinualModel):
             
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
-            Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
+            Confidence_mean = self.confidence_by_sample[:self.args.n_fine_epoch].mean(dim=0)
+            Variability = self.confidence_by_sample[:self.args.n_fine_epoch].var(dim=0)
             
         
             # Sort indices based on the Confidence
@@ -363,7 +357,7 @@ class Casp(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+        if self.epoch < self.args.n_fine_epoch:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
             self.net.eval()
