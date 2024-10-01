@@ -140,9 +140,7 @@ class Casp(ContinualModel):
         self.confidence_by_sample = None
         self.n_sample_per_task = None
         self.class_portion = []
-        self.task_portion = []
         self.dist_task_prev = None
-        self.task_class = {}
         self.dist_class_prev = None
 
     def begin_train(self, dataset):
@@ -159,7 +157,6 @@ class Casp(ContinualModel):
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
-        self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
     
     def end_epoch(self, dataset, train_loader):
 
@@ -170,7 +167,6 @@ class Casp(ContinualModel):
             # Calculate standard deviation of mean confidences by class
             std_of_means_by_class = {class_id: 1 for class_id, __ in enumerate(self.unique_classes)}
             std_of_means_by_task = {task_id: 1 for task_id in range(self.task)}
-            
             
             # Compute mean and variability of confidences for each sample
             Confidence_mean = self.confidence_by_sample[:self.args.n_fine_epoch].mean(dim=0)
@@ -183,7 +179,6 @@ class Casp(ContinualModel):
             # Sort indices based on the variability
             sorted_indices_2 = np.argsort(Variability.numpy())
             
-        
         
             ##top_indices_sorted = sorted_indices_1 #hard
             
@@ -373,9 +368,6 @@ class Casp(ContinualModel):
                 self.confidence_by_sample[self.epoch, index_] = conf_tensor
             self.net.train()
     
-
-
-
         
         if self.buffer.is_empty():
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
