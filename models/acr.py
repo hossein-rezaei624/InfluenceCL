@@ -218,12 +218,10 @@ class Acr(ContinualModel):
             
             # Convert standard deviation of means by class to item form
             updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in std_of_means_by_class.items()}   #uncomment for balance
-            print("updated_std_of_means_by_class", updated_std_of_means_by_class)
 
             self.class_portion.append(updated_std_of_means_by_class)
             
             updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
-            print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
