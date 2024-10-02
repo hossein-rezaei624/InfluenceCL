@@ -109,7 +109,7 @@ class ResNet(MammothBackbone):
         self.layer3 = self._make_layer(block, nf * 4, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, nf * 8, num_blocks[3], stride=2)
         self.linear = nn.Linear(nf * 8 * block.expansion, num_classes)
-        if args.model == 'casp':
+        if args.model == 'acr':
             self.pcrLinear = cosLinear(nf * 8 * block.expansion, num_classes)
 
         self._features = nn.Sequential(self.conv1,
