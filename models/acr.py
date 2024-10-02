@@ -17,7 +17,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--n_fine_epoch', type=int, default=5,
+    parser.add_argument('--E', type=int, default=5,
                         help='Epoch for strategies')
     
     return parser
@@ -169,8 +169,8 @@ class Acr(ContinualModel):
             std_of_means_by_task = {task_id: 1 for task_id in range(self.task)}
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:self.args.n_fine_epoch].mean(dim=0)
-            Variability = self.confidence_by_sample[:self.args.n_fine_epoch].var(dim=0)
+            Confidence_mean = self.confidence_by_sample[:self.args.E].mean(dim=0)
+            Variability = self.confidence_by_sample[:self.args.E].var(dim=0)
             
         
             # Sort indices based on the Confidence
@@ -351,7 +351,7 @@ class Acr(ContinualModel):
         novel_loss = 0*self.loss(logits, batch_y_combine)
         self.opt.zero_grad()
 
-        if self.epoch < self.args.n_fine_epoch:
+        if self.epoch < self.args.E:
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
             self.net.eval()
