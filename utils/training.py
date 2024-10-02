@@ -65,7 +65,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 if 'class-il' not in model.COMPATIBILITY:
                     outputs = model(inputs, k)
                 else:
-                    if model.NAME == 'casp':
+                    if model.NAME == 'acr':
                         outputs, _ = model.net.pcrForward(inputs)
                     else:
                         outputs = model(inputs)
@@ -143,7 +143,7 @@ def evaluate(model: ContinualModel, dataset: ContinualDataset, last=False) -> Tu
                 if 'class-il' not in model.COMPATIBILITY:
                     outputs_augmented = model(batch_x_augmented, k)
                 else:
-                    if model.NAME == 'casp':
+                    if model.NAME == 'acr':
                         outputs_augmented, __temp = model.net.pcrForward(batch_x_augmented)
                     else:
                         outputs_augmented = model(batch_x_augmented)
@@ -207,14 +207,14 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
     print(file=sys.stderr)
     if hasattr(model, 'begin_train'):
-        if model.NAME == 'casp' or model.NAME == 'meta_sp':
+        if model.NAME == 'acr' or model.NAME == 'meta_sp':
             model.begin_train(dataset)
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
         
         if hasattr(model, 'begin_task'):
-            if model.NAME == 'casp':
+            if model.NAME == 'acr':
                 model.begin_task(dataset, train_loader)
             else:
                 model.begin_task(dataset)
@@ -253,7 +253,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             if scheduler is not None:
                 scheduler.step()
             if hasattr(model, 'end_epoch'):
-                if model.NAME == 'casp':
+                if model.NAME == 'acr':
                     model.end_epoch(dataset, train_loader)
                 else:
                     model.end_epoch(dataset)
