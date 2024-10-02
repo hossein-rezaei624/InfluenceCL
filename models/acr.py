@@ -125,8 +125,8 @@ def adjust_values_integer_include_all(a, b):
     return a
 
 
-class Casp(ContinualModel):
-    NAME = 'casp'
+class Acr(ContinualModel):
+    NAME = 'acr'
     COMPATIBILITY = ['class-il']
 
     def __init__(self, backbone, loss, args, transform):
