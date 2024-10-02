@@ -2,8 +2,8 @@ import torch
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
-from utils.casp_loss import SupConLoss
-from utils.casp_transforms_aug import transforms_aug
+from utils.acr_loss import SupConLoss
+from utils.acr_transforms_aug import transforms_aug
 
 import torch.nn as nn
 import numpy as np
@@ -130,7 +130,7 @@ class Acr(ContinualModel):
     COMPATIBILITY = ['class-il']
 
     def __init__(self, backbone, loss, args, transform):
-        super(Casp, self).__init__(backbone, loss, args, transform)
+        super(Acr, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.task = 0
         self.epoch = 0
@@ -356,8 +356,8 @@ class Acr(ContinualModel):
             confidence_batch = []
             self.net.eval()
             with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_ = nn.functional.softmax(casp_logits, dim=1)
+                acr_logits, _ = self.net.pcrForward(not_aug_inputs)
+                soft_ = nn.functional.softmax(acr_logits, dim=1)
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
                     confidence_batch.append(soft_[i,labels[i]].item())
