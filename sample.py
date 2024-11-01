@@ -1,6 +1,5 @@
 # Some people think that the government should provide free education at every level. However, some say that individuals should pay for their university education.
-       
-Discuss both views and give your opinion.
+       Discuss both views and give your opinion.
 
 The debate surrounding whether the authorities in charge should provide free education for all levels, including primary, secondary, and higher education, has gained significant traction in recent years. Advocates claim that education, as a fundamental right, should be accessible to all, while opponents assert that individuals should be responsible for the financial issues of their higher education. This essay will elaborate on both perspectives before concluding with a personal viewpoint.
 
