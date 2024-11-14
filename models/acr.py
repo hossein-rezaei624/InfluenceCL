@@ -128,12 +128,12 @@ def adjust_values_integer_include_all(a, b):
     return a
 
 
-class Casp(ContinualModel):
-    NAME = 'casp'
+class Acr(ContinualModel):
+    NAME = 'acr'
     COMPATIBILITY = ['class-il']
 
     def __init__(self, backbone, loss, args, transform):
-        super(Casp, self).__init__(backbone, loss, args, transform)
+        super(Acr, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
         self.task = 0
         self.epoch = 0
@@ -453,8 +453,8 @@ class Casp(ContinualModel):
         if self.epoch < self.predicted_epoch:  #self.predicted_epoch
             self.net.eval()
             with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_ = nn.functional.softmax(casp_logits, dim=1)
+                acr_logits, _ = self.net.pcrForward(not_aug_inputs)
+                soft_ = nn.functional.softmax(acr_logits, dim=1)
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
                     confidence_batch.append(soft_[i,labels[i]].item())
@@ -471,8 +471,8 @@ class Casp(ContinualModel):
         if self.epoch < self.predicted_epoch:
             self.net.eval()
             with torch.no_grad():
-                casp_logits, _ = self.net.pcrForward(not_aug_inputs)
-                soft_task = nn.functional.softmax(casp_logits, dim=1)
+                acr_logits, _ = self.net.pcrForward(not_aug_inputs)
+                soft_task = nn.functional.softmax(acr_logits, dim=1)
                 for j in range(labels.shape[0]):
                     self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
             self.net.train()
