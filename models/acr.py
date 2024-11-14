@@ -1,4 +1,4 @@
-import torch  ## start ER with reservoir
+import torch  ## back to here again
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
@@ -135,6 +135,7 @@ class Acr(ContinualModel):
     def __init__(self, backbone, loss, args, transform):
         super(Acr, self).__init__(backbone, loss, args, transform)
         self.buffer = Buffer(self.args.buffer_size, self.device)
+        self.transform = None
         self.task = 0
         self.epoch = 0
         self.unique_classes = set()
@@ -337,7 +338,7 @@ class Acr(ContinualModel):
             class_samples = defaultdict(list)
             
             for inputs_1, labels_1, not_aug_inputs_1, indices_1 in train_loader:
-                for input, label in zip(not_aug_inputs_1, labels_1):
+                for input, label in zip(inputs_1, labels_1):
                     class_samples[label.item()].append((input, label))
 
             desired_samples = condition
@@ -436,19 +437,11 @@ class Acr(ContinualModel):
             targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
             confidence_batch = []
 
-        # batch update
-        batch_x, batch_y = inputs, labels
-        batch_x_aug = torch.stack([transforms_aug[self.args.dataset](batch_x[idx].cpu())
-                                   for idx in range(batch_x.size(0))])
-        batch_x = batch_x.to(self.device)
-        batch_x_aug = batch_x_aug.to(self.device)
-        batch_y = batch_y.to(self.device)
-        batch_x_combine = torch.cat((batch_x, batch_x_aug))
-        batch_y_combine = torch.cat((batch_y, batch_y))
-            
-        logits, feas= self.net.pcrForward(batch_x_combine)
-        novel_loss = 0*self.loss(logits, batch_y_combine)
+
         self.opt.zero_grad()
+
+        
+        
 
         if self.epoch < self.predicted_epoch:  #self.predicted_epoch
             self.net.eval()
@@ -478,57 +471,27 @@ class Acr(ContinualModel):
             self.net.train()
 
         
-        if self.buffer.is_empty():
-            feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
-
-            feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
-            feas_normalized = feas.div(feas_norm + 0.000001)
-
-            feas_aug_norm = torch.norm(feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
-                feas_aug)
-            feas_aug_normalized = feas_aug.div(feas_aug_norm + 0.000001)
-            cos_features = torch.cat([feas_normalized.unsqueeze(1),
-                                      feas_aug_normalized.unsqueeze(1)],
-                                     dim=1)
-            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss += PSC(features=cos_features, labels=batch_y_combine)
-
-        
-        else:
-            mem_x, mem_y = self.buffer.get_data(
+        if not self.buffer.is_empty():
+            buf_inputs, buf_labels = self.buffer.get_data(
                 self.args.minibatch_size, transform=self.transform)
+            inputs = torch.cat((inputs, buf_inputs))
+            labels = torch.cat((labels, buf_labels))
+
+
         
-            mem_x_aug = torch.stack([transforms_aug[self.args.dataset](mem_x[idx].cpu())
-                                     for idx in range(mem_x.size(0))])
-            mem_x = mem_x.to(self.device)
-            mem_x_aug = mem_x_aug.to(self.device)
-            mem_y = mem_y.to(self.device)
-            mem_x_combine = torch.cat([mem_x, mem_x_aug])
-            mem_y_combine = torch.cat([mem_y, mem_y])
+        outputs = self.net(inputs)
+        loss = self.loss(outputs, labels)
 
-
-            mem_logits, mem_fea= self.net.pcrForward(mem_x_combine)
-
-            combined_feas = torch.cat([mem_fea, feas])
-            combined_labels = torch.cat((mem_y_combine, batch_y_combine))
-            combined_feas_aug = self.net.pcrLinear.L.weight[combined_labels]
-
-            combined_feas_norm = torch.norm(combined_feas, p=2, dim=1).unsqueeze(1).expand_as(combined_feas)
-            combined_feas_normalized = combined_feas.div(combined_feas_norm + 0.000001)
-
-            combined_feas_aug_norm = torch.norm(combined_feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
-                combined_feas_aug)
-            combined_feas_aug_normalized = combined_feas_aug.div(combined_feas_aug_norm + 0.000001)
-            cos_features = torch.cat([combined_feas_normalized.unsqueeze(1),
-                                      combined_feas_aug_normalized.unsqueeze(1)],
-                                     dim=1)
-            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss += PSC(features=cos_features, labels=combined_labels)
-
+        
         if self.epoch == 0 and self.task == 1:
-            self.task_conf_first.append(novel_loss.item())
+            self.task_conf_first.append(loss.item())
         
-        novel_loss.backward()
+
+        loss.backward()
         self.opt.step()
+
+        #self.buffer.add_data(examples=inputs[:real_batch_size],
+        #                     labels=labels[:real_batch_size])
         
-        return novel_loss.item()
+        
+        return loss.item()
