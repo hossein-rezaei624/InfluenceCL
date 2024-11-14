@@ -337,7 +337,7 @@ class Acr(ContinualModel):
             class_samples = defaultdict(list)
             
             for inputs_1, labels_1, not_aug_inputs_1, indices_1 in train_loader:
-                for input, label in zip(inputs_1, labels_1):
+                for input, label in zip(not_aug_inputs_1, labels_1):
                     class_samples[label.item()].append((input, label))
 
             desired_samples = condition
