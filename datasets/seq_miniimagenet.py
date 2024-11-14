@@ -19,7 +19,7 @@ class MiniImagenet(Dataset):
     """
     def __init__(self, root: str, train: bool = True, transform: transforms = None,
                  target_transform: transforms = None, download: bool = False) -> None:
-        self.not_aug_transform = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
+        self.not_aug_transform = transforms.Compose([transforms.ToTensor()])
         self.root = root
         self.train = train
         self.transform = transform
@@ -105,8 +105,7 @@ class SequentialMiniImagenet(ContinualDataset):
     MEAN = (0.47313006, 0.44905752, 0.40378186)
     STD = (0.27292014, 0.26559181, 0.27953038)
     TRANSFORM = transforms.Compose(
-        [transforms.Resize(32),
-         # remove data augmentation to reproduce results
+        [# remove data augmentation to reproduce results
          transforms.RandomCrop(32, padding=4),
          transforms.RandomHorizontalFlip(),
          transforms.ToTensor(),
@@ -122,7 +121,7 @@ class SequentialMiniImagenet(ContinualDataset):
         transform = self.TRANSFORM
 
         test_transform = transforms.Compose(
-            [transforms.Resize(32), transforms.ToTensor(), self.get_normalization_transform()])
+            [transforms.ToTensor(), self.get_normalization_transform()])
 
         train_dataset = MyMiniImagenet(base_path() + 'MINIIMG',
                                        train=True, download=True, transform=transform)
