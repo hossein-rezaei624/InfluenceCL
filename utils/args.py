@@ -49,7 +49,7 @@ def add_management_args(parser: ArgumentParser) -> None:
                         help='disable additional metrics')
     parser.add_argument('--debug_mode', type=int, default=0, help='Run only a few forward steps per epoch')
     parser.add_argument('--nowand', default=1, choices=[0, 1], type=int, help='Inhibit wandb logging')
-    parser.add_argument('--wandb_entity', type=str, default='ACR', help='Wandb entity')
+    parser.add_argument('--wandb_entity', type=str, default='CL_NeurIPS_24', help='Wandb entity')
     parser.add_argument('--wandb_project', type=str, default='mammoth', help='Wandb project name')
 
 def add_rehearsal_args(parser: ArgumentParser) -> None:
