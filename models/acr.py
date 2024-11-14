@@ -20,7 +20,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--n_epochs', type=int, default=5,
+    parser.add_argument('--E', type=int, default=5,
                         help='Epoch for strategies')
     
     return parser
@@ -180,7 +180,7 @@ class Acr(ContinualModel):
                 self.predicted_epoch = self.args.n_epochs
             if self.predicted_epoch < 2:
                 self.predicted_epoch = 2
-            self.predicted_epoch = self.args.n_fine_epoch
+            self.predicted_epoch = self.args.E
             print("self.predicted_epoch", self.predicted_epoch)
         
         if self.epoch < self.predicted_epoch and not self.buffer.is_empty(): #here was
