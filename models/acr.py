@@ -478,13 +478,15 @@ class Acr(ContinualModel):
             labels = torch.cat((labels, buf_labels))
 
 
-
-        if self.epoch == 0 and self.task == 1:
-            self.task_conf_first.append(novel_loss.item())
         
-
         outputs = self.net(inputs)
         loss = self.loss(outputs, labels)
+
+        
+        if self.epoch == 0 and self.task == 1:
+            self.task_conf_first.append(loss.item())
+        
+
         loss.backward()
         self.opt.step()
 
