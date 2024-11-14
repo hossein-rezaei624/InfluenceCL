@@ -20,7 +20,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--n_fine_epoch', type=int, default=2,
+    parser.add_argument('--E', type=int, default=5,
                         help='Epoch for strategies')
     
     return parser
