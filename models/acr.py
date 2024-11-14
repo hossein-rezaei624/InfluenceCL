@@ -2,8 +2,8 @@ import torch
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
-from utils.casp_loss import SupConLoss
-from utils.casp_transforms_aug import transforms_aug
+from utils.acr_loss import SupConLoss
+from utils.acr_transforms_aug import transforms_aug
 
 import torch.nn as nn
 import numpy as np
