@@ -2,7 +2,7 @@
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
-import torch #er with random
+import torch
 from utils.buffer import Buffer
 from utils.args import *
 from models.utils.continual_model import ContinualModel
@@ -12,9 +12,6 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
-
-from collections import defaultdict
-import random
 
 
 def get_parser() -> ArgumentParser:
@@ -27,6 +24,8 @@ def get_parser() -> ArgumentParser:
                         help='Epoch for strategies')
     
     return parser
+
+
 
 def distribute_samples(probabilities, M):
     # Normalize the probabilities
@@ -54,6 +53,7 @@ def distribute_samples(probabilities, M):
 
     return samples    # Return the final classes distribution
 
+    
 def distribute_excess(lst, check_bound):
     # Calculate the total excess value
     total_excess = sum(val - check_bound for val in lst if val > check_bound)
@@ -129,7 +129,6 @@ def adjust_values_integer_include_all(a, b):
     return a
 
 
-
 class Er(ContinualModel):
     NAME = 'er'
     COMPATIBILITY = ['class-il', 'domain-il', 'task-il', 'general-continual']
@@ -143,16 +142,11 @@ class Er(ContinualModel):
         self.unique_classes = set()
         self.mapping = {}
         self.reverse_mapping = {}
-        self.confidence_by_class = {}
         self.confidence_by_sample = None
         self.n_sample_per_task = None
         self.class_portion = []
-        self.task_portion = []
         self.dist_task_prev = None
-        self.task_class = {}
         self.dist_class_prev = None
-        self.predicted_epoch = 1
-        self.task_conf_first = []
 
     def begin_train(self, dataset):
         self.n_sample_per_task = dataset.get_examples_number()//dataset.N_TASKS
@@ -167,60 +161,22 @@ class Er(ContinualModel):
                 break
         self.mapping = {value: index for index, value in enumerate(self.unique_classes)}
         self.reverse_mapping = {index: value for value, index in self.mapping.items()}
-        self.confidence_by_class = {class_id: {epoch: [] for epoch in range(self.args.n_epochs)} for class_id, __ in enumerate(self.unique_classes)}
         self.confidence_by_sample = torch.zeros((self.args.n_epochs, self.n_sample_per_task))
-        self.confidence_by_task = {task_id: {epoch: [] for epoch in range(self.args.n_epochs)} for task_id in range(self.task)}
-        self.task_class.update({value: (self.task - 1) for index, value in enumerate(self.unique_classes)})
+
     
     def end_epoch(self, dataset, train_loader):
 
-        if self.epoch == 0 and self.task == 1:
-            self.predicted_epoch = torch.mean(torch.tensor(self.task_conf_first)).item()
-            print("self.predicted_epoch", self.predicted_epoch)
-            self.predicted_epoch = round(self.predicted_epoch * np.log(dataset.N_CLASSES_PER_TASK) / np.log(dataset.N_TASKS))
-            print("self.predicted_epoch", self.predicted_epoch)
-            if self.predicted_epoch > self.args.n_epochs:
-                self.predicted_epoch = self.args.n_epochs
-            if self.predicted_epoch < 2:
-                self.predicted_epoch = 2
-            self.predicted_epoch = self.args.E
-            print("self.predicted_epoch", self.predicted_epoch)
-        
-        if self.epoch < self.predicted_epoch and not self.buffer.is_empty(): #here was
-            self.net.eval()
-            with torch.no_grad():
-                buffer_logits = self.net(self.buffer.examples)
-                soft_buffer = nn.functional.softmax(buffer_logits, dim=1)
-                for j in range(len(self.buffer)):
-                    self.confidence_by_task[self.task_class[self.buffer.labels[j].item()]][self.epoch].append(soft_buffer[j, self.buffer.labels[j]].item())
-            self.net.train()
-
-        
         self.epoch += 1
         
         if self.epoch == self.args.n_epochs:
-            # Calculate mean confidence by class
-            mean_by_class = {class_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for class_id, confidences in self.confidence_by_class.items()}
             
             # Calculate standard deviation of mean confidences by class
-            std_of_means_by_class = {class_id: torch.var(torch.tensor([mean_by_class[class_id][epoch] for epoch in range(self.predicted_epoch)])) for class_id, __ in enumerate(self.unique_classes)}
-
-
-            mean_by_task = {task_id: {epoch: torch.mean(torch.tensor(confidences[epoch])) for epoch in range(self.predicted_epoch)} for task_id, confidences in self.confidence_by_task.items()}
-            std_of_means_by_task = {task_id: torch.mean(torch.tensor([mean_by_task[task_id][epoch] for epoch in range(self.predicted_epoch)])) for task_id in range(self.task)}
-            
+            std_of_means_by_class = {class_id: 1 for class_id, __ in enumerate(self.unique_classes)}
+            std_of_means_by_task = {task_id: 1 for task_id in range(self.task)}
             
             # Compute mean and variability of confidences for each sample
-            Confidence_mean = self.confidence_by_sample[:self.predicted_epoch].mean(dim=0)
-            Variability = self.confidence_by_sample[:self.predicted_epoch].var(dim=0)
-
-            ##plt.scatter(Variability, Confidence_mean, s = 2)
-            
-            ##plt.xlabel("Variability") 
-            ##plt.ylabel("Confidence") 
-            
-            ##plt.savefig('scatter_plot.png')
-
+            Confidence_mean = self.confidence_by_sample[:self.args.E].mean(dim=0)
+            Variability = self.confidence_by_sample[:self.args.E].var(dim=0)
             
         
             # Sort indices based on the Confidence
@@ -230,7 +186,6 @@ class Er(ContinualModel):
             sorted_indices_2 = np.argsort(Variability.numpy())
             
         
-        
             ##top_indices_sorted = sorted_indices_1 #hard
             
             ##top_indices_sorted = sorted_indices_1[::-1].copy() #simple
@@ -238,66 +193,41 @@ class Er(ContinualModel):
             # Descending order
             top_indices_sorted = sorted_indices_2[::-1].copy() #challenging
 
+
+            # Initialize lists to hold data
+            all_inputs, all_labels, all_not_aug_inputs, all_indices = [], [], [], []
             
-
-
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            ##images_display = [all_images[j] for j in range(100)]
-    
-            # Make a grid from these images
-            ##grid = torchvision.utils.make_grid(images_display, nrow=10)  # Adjust nrow based on actual images
+            # Collect all data
+            for data_1 in train_loader:
+                inputs_1, labels_1, not_aug_inputs_1, indices_1 = data_1
+                all_inputs.append(inputs_1)
+                all_labels.append(labels_1)
+                all_not_aug_inputs.append(not_aug_inputs_1)
+                all_indices.append(indices_1)
             
-            # Save grid image with unique name for each batch
-            ##torchvision.utils.save_image(grid, 'grid_image.png')
+            # Concatenate all collected items to form complete arrays            
+            all_inputs = torch.cat(all_inputs, dim=0)
+            all_labels = torch.cat(all_labels, dim=0)
+            all_not_aug_inputs = torch.cat(all_not_aug_inputs, dim=0)
+            all_indices = torch.cat(all_indices, dim=0)
 
+            # Convert sorted_indices_2 to a tensor for indexing
+            top_indices_sorted = torch.tensor(top_indices_sorted, dtype=torch.long)
 
+            # Find the positions of these indices in the shuffled order
+            positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
 
-            # Extract the first 12 images to display (or fewer if there are less than 12 images)
-            ##images_display_ = [all_not_aug_inputs[j] for j in range(100)]
-    
-            # Make a grid from these images
-            ##grid_ = torchvision.utils.make_grid(images_display_, nrow=10)  # Adjust nrow based on actual images
-            
-            # Save grid image with unique name for each batch
-            ##torchvision.utils.save_image(grid_, 'grid_image_not_aug_inputs.png')
+            # Extract inputs and labels using these positions
+            all_images = all_inputs[positions]
+            all_labels = all_labels[positions]
 
             
             # Convert standard deviation of means by class to item form
-            updated_std_of_means_by_class = {k: v.item() for k, v in std_of_means_by_class.items()}
-            ##updated_std_of_means_by_class = {self.reverse_mapping[k]: v for k, v in updated_std_of_means_by_class.items()} # comment for balance
-            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in updated_std_of_means_by_class.items()}   #uncomment for balance
-            print("updated_std_of_means_by_class", updated_std_of_means_by_class)
+            updated_std_of_means_by_class = {self.reverse_mapping[k]: 1 for k, _ in std_of_means_by_class.items()}   #uncomment for balance
 
             self.class_portion.append(updated_std_of_means_by_class)
             
-
-            ####self.task_portion.append(((self.confidence_by_sample.mean(dim=1))[:self.predicted_epoch].var(dim=0)).item())
-            
-            ####updated_task_portion = {i: value for i, value in enumerate(self.task_portion)} #complement
-            ####print("updated_task_portion", updated_task_portion)
-            ####dist_task_before = distribute_samples(updated_task_portion, self.args.buffer_size)
-
-##            if self.task > 1:
-##                updated_task_portion_prev = {i:value for i, value in enumerate(self.task_portion[:-1])}
-##                dist_task_prev = distribute_samples(updated_task_portion_prev, self.args.buffer_size)
-            
-####            same_task_number = self.args.buffer_size//self.task
-####            dist_task = {i:same_task_number for i in range(self.task)}
-####            diff = self.args.buffer_size - same_task_number*self.task
-####            for o in range(diff):
-####                dist_task[o] += 1
-####
-####            if self.task > 1:
-####                same_task_number_prev = self.args.buffer_size//(self.task - 1)
-####                dist_task_prev = {i:same_task_number_prev for i in range(self.task - 1)}
-####                diff_prev = self.args.buffer_size - same_task_number_prev*(self.task - 1)
-####                for o in range(diff_prev):
-####                    dist_task_prev[o] += 1
-
-
-            ##updated_std_of_means_by_task = {k: 1/v.item() for k, v in std_of_means_by_task.items()}  # comment for balance
             updated_std_of_means_by_task = {k: 1 for k, v in std_of_means_by_task.items()}    #uncomment for balance
-            print("updated_std_of_means_by_task", updated_std_of_means_by_task)
             dist_task_before = distribute_samples(updated_std_of_means_by_task, self.args.buffer_size)
             
             if self.task > 1:
@@ -307,8 +237,6 @@ class Er(ContinualModel):
             
             dist_class = [distribute_samples(self.class_portion[i], dist_task[i]) for i in range(self.task)]
             
-###            if self.task > 1:
-###                dist_class_prev = [distribute_samples(self.class_portion[i], self.dist_task_prev[i]) for i in range(self.task - 1)]
 
             self.dist_task_prev = dist_task
 
@@ -335,33 +263,23 @@ class Er(ContinualModel):
                     condition = distribute_excess(condition, check_bound)
                     break
         
-
-            # Assuming train_loader is defined and each batch consists of (inputs, labels)
-            class_samples = defaultdict(list)
-            
-            for inputs_1, labels_1, not_aug_inputs_1, indices_1 in train_loader:
-                for input, label in zip(inputs_1, labels_1):
-                    class_samples[label.item()].append((input, label))
-
-            desired_samples = condition
-            selected_data = []
-            
-            for label, samples in class_samples.items():
-                n_samples = desired_samples[self.mapping[label]]
-                if len(samples) >= n_samples:
-                    selected_data.extend(random.sample(samples, n_samples))
-                else:
-                    print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
-
-
-            # Extracting images and labels into separate lists
-            images11 = [data[0] for data in selected_data]  # data[0] is the image tensor
-            labels11 = [data[1] for data in selected_data]  # data[1] is the label tensor
-
-            # Convert lists of tensors to single tensors
-            all_images_ = torch.stack(images11, dim=0).to(self.device)  # Stacks along a new dimension
-            all_labels_ = torch.stack(labels11, dim=0).to(self.device)  # Stacks along a new dimension
-            
+            # Initialize new lists for adjusted images and labels
+            images_list_ = []
+            labels_list_ = []
+        
+            # Iterate over all_labels and select most challening images for each class based on the class variability
+            for i in range(all_labels.shape[0]):
+                if counter_class[self.mapping[all_labels[i].item()]] < condition[self.mapping[all_labels[i].item()]]:
+                    counter_class[self.mapping[all_labels[i].item()]] += 1
+                    labels_list_.append(all_labels[i])
+                    images_list_.append(all_images[i])
+                if counter_class == condition:
+                    break
+        
+            # Stack the selected images and labels
+            all_images_ = torch.stack(images_list_).to(self.device)
+            all_labels_ = torch.stack(labels_list_).to(self.device)
+        
             
             counter_manage = [{k:0 for k, __ in dist_class[i].items()} for i in range(self.task - 1)]
 
@@ -388,38 +306,25 @@ class Er(ContinualModel):
             self.dist_class_prev = dist_class_merged.copy()
             self.dist_class_prev.update(dist_last)
             if not self.buffer.is_empty():
-
-
-                # Assuming train_loader is defined and each batch consists of (inputs, labels)
-                class_samples_buffer = defaultdict(list)
+                # Initialize new lists for adjusted images and labels
+                images_store = []
+                labels_store = []
                 
-                for input, label in zip(self.buffer.examples, self.buffer.labels):
-                    class_samples_buffer[label.item()].append((input, label))
-    
-                desired_samples_buffer = dist_class_merged
-                selected_data_buffer = []
+                # Iterate over all_labels and select most challening images for each class based on the class variability
+                for i in range(len(self.buffer)):
+                    if counter_manage_merged[self.buffer.labels[i].item()] < dist_class_merged[self.buffer.labels[i].item()]:
+                        counter_manage_merged[self.buffer.labels[i].item()] += 1
+                        labels_store.append(self.buffer.labels[i])
+                        images_store.append(self.buffer.examples[i])
+                    if counter_manage_merged == dist_class_merged:
+                        break
                 
-                for label, samples in class_samples_buffer.items():
-                    n_samples = desired_samples_buffer[label]
-                    if len(samples) >= n_samples:
-                        selected_data_buffer.extend(random.sample(samples, n_samples))
-                    else:
-                        print(f"Not enough samples for class {label}, needed {n_samples}, but got {len(samples)}")
-    
-    
-                # Extracting images and labels into separate lists
-                images11_buffer = [data[0] for data in selected_data_buffer]  # data[0] is the image tensor
-                labels11_buffer = [data[1] for data in selected_data_buffer]  # data[1] is the label tensor
-    
-                # Convert lists of tensors to single tensors
-                images_store_ = torch.stack(images11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
-                labels_store_ = torch.stack(labels11_buffer, dim=0).to(self.device)  # Stacks along a new dimension
-
-
+                # Stack the selected images and labels
+                images_store_ = torch.stack(images_store).to(self.device)
+                labels_store_ = torch.stack(labels_store).to(self.device)
+                
                 all_images_ = torch.cat((images_store_, all_images_))
                 all_labels_ = torch.cat((labels_store_, all_labels_))
-
-            
 
             if not hasattr(self.buffer, 'examples'):
                 self.buffer.init_tensors(all_images_, all_labels_, None, None)
@@ -429,49 +334,29 @@ class Er(ContinualModel):
             # Update the buffer with the shuffled images and labels
             self.buffer.labels = all_labels_
             self.buffer.examples = all_images_
-
     
     def observe(self, inputs, labels, not_aug_inputs, index_):
 
         real_batch_size = inputs.shape[0]
-
-
-        if self.epoch < self.predicted_epoch: #self.predicted_epoch
-            targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
-            confidence_batch = []
-
-        
-        
+                
         self.opt.zero_grad()
 
 
-        if self.epoch < self.predicted_epoch:  #self.predicted_epoch
+        if self.epoch < self.args.E:
+            targets = torch.tensor([self.mapping[val.item()] for val in labels]).to(self.device)
+            confidence_batch = []
             self.net.eval()
             with torch.no_grad():
-                casp_logits = self.net(not_aug_inputs)
-                soft_ = nn.functional.softmax(casp_logits, dim=1)
+                acr_logits = self.net(not_aug_inputs)
+                soft_ = nn.functional.softmax(acr_logits, dim=1)
                 # Accumulate confidences
                 for i in range(targets.shape[0]):
                     confidence_batch.append(soft_[i,labels[i]].item())
-                    
-                    # Update the dictionary with the confidence score for the current class for the current epoch
-                    self.confidence_by_class[targets[i].item()][self.epoch].append(soft_[i, labels[i]].item())
                 
                 # Record the confidence scores for samples in the corresponding tensor
                 conf_tensor = torch.tensor(confidence_batch)
                 self.confidence_by_sample[self.epoch, index_] = conf_tensor
             self.net.train()
-
-
-        if self.epoch < self.predicted_epoch:
-            self.net.eval()
-            with torch.no_grad():
-                casp_logits = self.net(not_aug_inputs)
-                soft_task = nn.functional.softmax(casp_logits, dim=1)
-                for j in range(labels.shape[0]):
-                    self.confidence_by_task[self.task_class[labels[j].item()]][self.epoch].append(soft_task[j, labels[j]].item())
-            self.net.train()
-
         
         
         if not self.buffer.is_empty():
@@ -483,14 +368,9 @@ class Er(ContinualModel):
         outputs = self.net(inputs)
         loss = self.loss(outputs, labels)
 
-
-        if self.epoch == 0 and self.task == 1:
-            self.task_conf_first.append(loss.item())
-
         
         loss.backward()
         self.opt.step()
-
 
 
         return loss.item()
