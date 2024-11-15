@@ -212,7 +212,7 @@ class Acr(ContinualModel):
             positions = torch.hstack([torch.where(all_indices == index)[0] for index in top_indices_sorted])
 
             # Extract inputs and labels using these positions
-            all_images = all_not_aug_inputs[positions]
+            all_images = all_inputs[positions]
             all_labels = all_labels[positions]
 
             
