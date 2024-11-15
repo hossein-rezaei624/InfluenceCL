@@ -207,14 +207,14 @@ def train(model: ContinualModel, dataset: ContinualDataset,
 
     print(file=sys.stderr)
     if hasattr(model, 'begin_train'):
-        if model.NAME == 'acr' or model.NAME == 'meta_sp':
+        if model.NAME == 'acr' or model.NAME == 'meta_sp' or model.NAME == 'er':
             model.begin_train(dataset)
     for t in range(dataset.N_TASKS):
         model.net.train()
         train_loader, test_loader = dataset.get_data_loaders()
         
         if hasattr(model, 'begin_task'):
-            if model.NAME == 'acr':
+            if model.NAME == 'acr' or model.NAME == 'er':
                 model.begin_task(dataset, train_loader)
             else:
                 model.begin_task(dataset)
@@ -253,7 +253,7 @@ def train(model: ContinualModel, dataset: ContinualDataset,
             if scheduler is not None:
                 scheduler.step()
             if hasattr(model, 'end_epoch'):
-                if model.NAME == 'acr':
+                if model.NAME == 'acr' or model.NAME == 'er':
                     model.end_epoch(dataset, train_loader)
                 else:
                     model.end_epoch(dataset)
