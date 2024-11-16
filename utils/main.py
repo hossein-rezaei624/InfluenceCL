@@ -8,6 +8,12 @@ import importlib
 import os
 import sys
 import socket
+
+
+# Disable GPU devices for JAX
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+
 mammoth_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(mammoth_path)
 sys.path.append(mammoth_path + '/datasets')
