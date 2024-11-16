@@ -10,8 +10,11 @@ import sys
 import socket
 
 
-# Set JAX to use CPU
-os.environ["JAX_PLATFORM_NAME"] = "cpu"
+## Set JAX to use CPU
+#os.environ["JAX_PLATFORM_NAME"] = "cpu"
+
+os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.8"
+
 
 
 mammoth_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
