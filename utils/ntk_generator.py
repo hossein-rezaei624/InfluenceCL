@@ -3,7 +3,7 @@ import numpy as np
 
 import os
 # Restrict JAX to use 40% of the GPU memory
-os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = '0.01'
+os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = '0.001'
 
 from jax import jit
 from neural_tangents import stax
