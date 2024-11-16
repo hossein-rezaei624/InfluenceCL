@@ -56,7 +56,7 @@ _, _, resnet_kernel_fn = Resnet(block_size=2, num_classes=10)
 resnet_kernel_fn = jit(resnet_kernel_fn, static_argnums=(2,))
 
 
-def generate_resnet_ntk(X, Y, skip=15):
+def generate_resnet_ntk(X, Y, skip=1):
     n = X.shape[0]
     m = Y.shape[0]
     K = np.zeros((n, m))
