@@ -10,8 +10,8 @@ import sys
 import socket
 
 
-# Disable GPU devices for JAX
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# Set JAX to use CPU
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
 
 
 mammoth_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
