@@ -1,10 +1,5 @@
 # Reference: https://github.com/zalanborsos/bilevel_coresets
 import numpy as np
-
-##import os
-## Restrict JAX to use 40% of the GPU memory
-##os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = '0.001'
-
 from jax import jit
 from neural_tangents import stax
 import jax
@@ -56,7 +51,7 @@ _, _, resnet_kernel_fn = Resnet(block_size=2, num_classes=10)
 resnet_kernel_fn = jit(resnet_kernel_fn, static_argnums=(2,))
 
 
-def generate_resnet_ntk(X, Y, skip=2):
+def generate_resnet_ntk(X, Y, skip=1):
     n = X.shape[0]
     m = Y.shape[0]
     K = np.zeros((n, m))
