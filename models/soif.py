@@ -12,7 +12,7 @@ def get_parser() -> ArgumentParser:
     add_management_args(parser)
     add_experiment_args(parser)
     add_rehearsal_args(parser)
-    parser.add_argument('--sel_epoch', type=int, nargs='+', default=[49],
+    parser.add_argument('--sel_epoch', type=int, nargs='+', default=[6],
                         help='Epoch for sample selection')
     parser.add_argument('--mu', type=float, default=0.5,
                         help='Probability of already-in-coreset case.')
