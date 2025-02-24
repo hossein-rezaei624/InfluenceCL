@@ -394,28 +394,9 @@ class Acr(ContinualModel):
             mem_x_combine = torch.cat([mem_x, mem_x_aug])
             mem_y_combine = torch.cat([mem_y, mem_y])
 
-
             mem_logits, mem_fea= self.net.pcrForward(mem_x_combine)
 
-            combined_feas = torch.cat([mem_fea, feas])
-            combined_labels = torch.cat((mem_y_combine, batch_y_combine))
-            combined_feas_aug = self.net.pcrLinear.L.weight[combined_labels]
-
-            combined_feas_norm = torch.norm(combined_feas, p=2, dim=1).unsqueeze(1).expand_as(combined_feas)
-            combined_feas_normalized = combined_feas.div(combined_feas_norm + 0.000001)
-
-            combined_feas_aug_norm = torch.norm(combined_feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
-                combined_feas_aug)
-            combined_feas_aug_normalized = combined_feas_aug.div(combined_feas_aug_norm + 0.000001)
-            cos_features = torch.cat([combined_feas_normalized.unsqueeze(1),
-                                      combined_feas_aug_normalized.unsqueeze(1)],
-                                     dim=1)
-            PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss_prev = PSC(features=cos_features, labels=combined_labels)
-            print("novel_loss_prev", novel_loss_prev)
-
-
-
+            
             feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
 
             feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
@@ -447,7 +428,6 @@ class Acr(ContinualModel):
             PSC_buffer = SupConLoss(temperature=0.09, contrast_mode='proxy')
             loss_buffer = PSC_buffer(features=cos_features_buffer, labels=mem_y_combine)
             novel_loss += (loss_current + loss_buffer)
-            print("novel_loss", novel_loss)
 
         
         novel_loss.backward()
