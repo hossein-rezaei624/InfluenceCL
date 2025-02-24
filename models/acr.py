@@ -411,7 +411,43 @@ class Acr(ContinualModel):
                                       combined_feas_aug_normalized.unsqueeze(1)],
                                      dim=1)
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss += PSC(features=cos_features, labels=combined_labels)
+            novel_loss_prev += PSC(features=cos_features, labels=combined_labels)
+            print("novel_loss_prev", novel_loss_prev)
+
+
+
+            feas_aug = self.net.pcrLinear.L.weight[batch_y_combine]
+
+            feas_norm = torch.norm(feas, p=2, dim=1).unsqueeze(1).expand_as(feas)
+            feas_normalized = feas.div(feas_norm + 0.000001)
+
+            feas_aug_norm = torch.norm(feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
+                feas_aug)
+            feas_aug_normalized = feas_aug.div(feas_aug_norm + 0.000001)
+            cos_features_current = torch.cat([feas_normalized.unsqueeze(1),
+                                      feas_aug_normalized.unsqueeze(1)],
+                                     dim=1)
+            PSC_current = SupConLoss(temperature=0.09, contrast_mode='proxy')
+            loss_current = PSC_current(features=cos_features_current, labels=batch_y_combine)
+            
+            
+            mem_feas_aug = self.net.pcrLinear.L.weight[mem_y_combine]
+
+            mem_feas_norm = torch.norm(mem_fea, p=2, dim=1).unsqueeze(1).expand_as(mem_fea)
+            mem_feas_normalized = mem_fea.div(mem_feas_norm + 0.000001)
+
+            mem_feas_aug_norm = torch.norm(mem_feas_aug, p=2, dim=1).unsqueeze(1).expand_as(
+                mem_feas_aug)
+            mem_feas_aug_normalized = mem_feas_aug.div(mem_feas_aug_norm + 0.000001)
+            cos_features_buffer = torch.cat([mem_feas_normalized.unsqueeze(1),
+                                      mem_feas_aug_normalized.unsqueeze(1)],
+                                     dim=1)
+            
+            
+            PSC_buffer = SupConLoss(temperature=0.09, contrast_mode='proxy')
+            loss_buffer = PSC_buffer(features=cos_features_buffer, labels=mem_y_combine)
+            novel_loss += (loss_current + loss_buffer)
+            print("novel_loss", novel_loss)
 
         
         novel_loss.backward()
