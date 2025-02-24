@@ -411,7 +411,7 @@ class Acr(ContinualModel):
                                       combined_feas_aug_normalized.unsqueeze(1)],
                                      dim=1)
             PSC = SupConLoss(temperature=0.09, contrast_mode='proxy')
-            novel_loss_prev += PSC(features=cos_features, labels=combined_labels)
+            novel_loss_prev = PSC(features=cos_features, labels=combined_labels)
             print("novel_loss_prev", novel_loss_prev)
 
 
